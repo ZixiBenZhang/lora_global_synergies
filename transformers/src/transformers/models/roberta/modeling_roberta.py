@@ -45,6 +45,9 @@ from ...utils import (
 )
 from .configuration_roberta import RobertaConfig
 
+from lora.lora_modules import LoraLinear
+from adapters import Adapter
+
 
 logger = logging.get_logger(__name__)
 
@@ -165,9 +168,21 @@ class RobertaSelfAttention(nn.Module):
         self.attention_head_size = int(config.hidden_size / config.num_attention_heads)
         self.all_head_size = self.num_attention_heads * self.attention_head_size
 
-        self.query = nn.Linear(config.hidden_size, self.all_head_size)
-        self.key = nn.Linear(config.hidden_size, self.all_head_size)
-        self.value = nn.Linear(config.hidden_size, self.all_head_size)
+        ### Apply LoRA to multi-head attention in the layer
+        if config.apply_lora_q:
+            self.query = LoraLinear(config.hidden_size, self.all_head_size, config.lora_r, config.lora_alpha)
+        else:
+            self.query = nn.Linear(config.hidden_size, self.all_head_size)
+
+        if config.apply_lora_k:
+            self.key = LoraLinear(config.hidden_size, self.all_head_size, config.lora_r, config.lora_alpha)
+        else:
+            self.key = nn.Linear(config.hidden_size, self.all_head_size)
+
+        if config.apply_lora_v:
+            self.value = LoraLinear(config.hidden_size, self.all_head_size, config.lora_r, config.lora_alpha)
+        else:
+            self.value = nn.Linear(config.hidden_size, self.all_head_size)
 
         self.dropout = nn.Dropout(config.attention_probs_dropout_prob)
         self.position_embedding_type = position_embedding_type or getattr(
@@ -178,6 +193,12 @@ class RobertaSelfAttention(nn.Module):
             self.distance_embedding = nn.Embedding(2 * config.max_position_embeddings - 1, self.attention_head_size)
 
         self.is_decoder = config.is_decoder
+
+        self.config = config
+
+        # First Parallel Adapter
+        if config.apply_parallel_adapter:
+            self.parallel_adapter_1 = Adapter(config.hidden_size, config.parallel_adapter_size, "relu")
 
     def transpose_for_scores(self, x: torch.Tensor) -> torch.Tensor:
         new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
@@ -279,6 +300,10 @@ class RobertaSelfAttention(nn.Module):
         new_context_layer_shape = context_layer.size()[:-2] + (self.all_head_size,)
         context_layer = context_layer.view(new_context_layer_shape)
 
+        if self.config.apply_parallel_adapter:
+            pa_output = self.parallel_adapter_1(hidden_states, residual=0)
+            context_layer = context_layer + pa_output
+
         outputs = (context_layer, attention_probs) if output_attentions else (context_layer,)
 
         if self.is_decoder:
@@ -290,13 +315,27 @@ class RobertaSelfAttention(nn.Module):
 class RobertaSelfOutput(nn.Module):
     def __init__(self, config):
         super().__init__()
-        self.dense = nn.Linear(config.hidden_size, config.hidden_size)
+
+        ### Apply LoRA to W_O
+        if config.apply_lora_o:
+            self.dense = LoraLinear(config.hidden_size, config.hidden_size, config.lora_r, config.lora_alpha)
+        else:
+            self.dense = nn.Linear(config.hidden_size, config.hidden_size)
+
         self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
+
+        self.config = config
+        ### First Serial Adapter (Houlsby)
+        if config.apply_serial_adapter:
+            self.serial_adapter_1 = Adapter(config.hidden_size, config.serial_adapter_size, 'swish')
 
     def forward(self, hidden_states: torch.Tensor, input_tensor: torch.Tensor) -> torch.Tensor:
         hidden_states = self.dense(hidden_states)
         hidden_states = self.dropout(hidden_states)
+        ### Apply the first SA
+        if self.config.apply_serial_adapter:
+            hidden_states = self.serial_adapter_1(hidden_states, residual=hidden_states)
         hidden_states = self.LayerNorm(hidden_states + input_tensor)
         return hidden_states
 
@@ -355,7 +394,13 @@ class RobertaAttention(nn.Module):
 class RobertaIntermediate(nn.Module):
     def __init__(self, config):
         super().__init__()
-        self.dense = nn.Linear(config.hidden_size, config.intermediate_size)
+
+        ### Apply LoRA to W_1 in FFN
+        if config.apply_lora_w1:
+            self.dense = LoraLinear(config.hidden_size, config.intermediate_size, config.lora_r, config.lora_alpha)
+        else:
+            self.dense = nn.Linear(config.hidden_size, config.intermediate_size)
+
         if isinstance(config.hidden_act, str):
             self.intermediate_act_fn = ACT2FN[config.hidden_act]
         else:
@@ -371,13 +416,48 @@ class RobertaIntermediate(nn.Module):
 class RobertaOutput(nn.Module):
     def __init__(self, config):
         super().__init__()
-        self.dense = nn.Linear(config.intermediate_size, config.hidden_size)
+
+        self.config = config
+
+        ### Apply LoRA to W_2 in FFN
+        if self.config.apply_lora_w2:
+            self.dense = LoraLinear(config.intermediate_size, config.hidden_size, config.lora_r, config.lora_alpha)
+        else:
+            self.dense = nn.Linear(config.intermediate_size, config.hidden_size)
+
         self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
-    def forward(self, hidden_states: torch.Tensor, input_tensor: torch.Tensor) -> torch.Tensor:
+        ### Second Serial Adapter (Houlsby)
+        if self.config.apply_serial_adapter:
+            self.serial_adapter_2 = Adapter(config.hidden_size, config.serial_adapter_size, 'swish')
+
+    def forward(
+            self,
+            hidden_states: torch.Tensor,  # x
+            input_tensor: torch.Tensor,  # attention's output
+            pa_output: torch.Tensor,  # second PA's output
+    ) -> torch.Tensor:
         hidden_states = self.dense(hidden_states)
         hidden_states = self.dropout(hidden_states)
+        ### Apply the second SA
+        if self.config.apply_serial_adaptor:
+            if not self.config.serial_adapter_pfeiffer:
+                hidden_states = self.serial_adapter_2(hidden_states, residual=hidden_states)
+            else:
+                residual = hidden_states
+
+        ### Apply Pfeiffer SA
+        # TODO: AdapterFusion??
+        if self.config.apply_serial_adapter and self.config.serial_adapter_pfeiffer:
+            hidden_states = self.LayerNorm(hidden_states + input_tensor)
+            hidden_states = self.serial_adapter_2(hidden_states, residual=residual)
+
+        ### Merge second PA's output
+        if self.config.apply_parallel_adapter:
+            assert pa_output is not None, "Parallel Adapter's output is None."
+            hidden_states = hidden_states + pa_output
+
         hidden_states = self.LayerNorm(hidden_states + input_tensor)
         return hidden_states
 
@@ -397,6 +477,12 @@ class RobertaLayer(nn.Module):
             self.crossattention = RobertaAttention(config, position_embedding_type="absolute")
         self.intermediate = RobertaIntermediate(config)
         self.output = RobertaOutput(config)
+
+        self.config = config
+        # TODO: add Parallel Adapter 2
+        if self.config.apply_parallel_adapter:
+            self.parallel_adapter_2 = Adapter(config.hidden_size, config.parallel_adapter_size, "relu")
+
 
     def forward(
         self,
@@ -464,6 +550,7 @@ class RobertaLayer(nn.Module):
         return outputs
 
     def feed_forward_chunk(self, attention_output):
+        # TODO: accommodate Parallel Adapter 2
         intermediate_output = self.intermediate(attention_output)
         layer_output = self.output(intermediate_output, attention_output)
         return layer_output
