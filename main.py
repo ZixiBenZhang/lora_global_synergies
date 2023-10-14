@@ -472,23 +472,23 @@ def main():
     datasets_ = datasets_.map(preprocess_function, batched=True, load_from_cache_file=not data_args.overwrite_cache)
 
     if training_args.do_train:
-        if "train" not in datasets:
+        if "train" not in datasets_:
             raise ValueError("--do_train requires a train dataset")
-        train_dataset = datasets["train"]
+        train_dataset = datasets_["train"]
         if data_args.max_train_samples is not None:
             train_dataset = train_dataset.select(range(data_args.max_train_samples))
 
     if training_args.do_eval:
-        if "validation" not in datasets and "validation_matched" not in datasets:
+        if "validation" not in datasets_ and "validation_matched" not in datasets_:
             raise ValueError("--do_eval requires a validation dataset")
-        eval_dataset = datasets["validation_matched" if data_args.task_name == "mnli" else "validation"]
+        eval_dataset = datasets_["validation_matched" if data_args.task_name == "mnli" else "validation"]
         if data_args.max_val_samples is not None:
             eval_dataset = eval_dataset.select(range(data_args.max_val_samples))
 
     if training_args.do_predict or data_args.task_name is not None or data_args.test_file is not None:
-        if "test" not in datasets and "test_matched" not in datasets:
+        if "test" not in datasets_ and "test_matched" not in datasets_:
             raise ValueError("--do_predict requires a test dataset")
-        test_dataset = datasets["test_matched" if data_args.task_name == "mnli" else "test"]
+        test_dataset = datasets_["test_matched" if data_args.task_name == "mnli" else "test"]
         if data_args.max_test_samples is not None:
             test_dataset = test_dataset.select(range(data_args.max_test_samples))
 
