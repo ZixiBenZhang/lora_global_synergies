@@ -266,8 +266,8 @@ def main():
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
     # Apply use_deterministic_algorithms: whether to check if inferences are deterministic or not
-    torch.use_deterministic_algorithms(training_args.use_deterministic_algorithms)
-    logger.info("use_deterministic_algorithms: " + str(torch.are_deterministic_algorithms_enabled()))
+    # torch.use_deterministic_algorithms(training_args.use_deterministic_algorithms)
+    # logger.info("use_deterministic_algorithms: " + str(torch.are_deterministic_algorithms_enabled()))
     
     # Detecting last checkpoint for training
     last_checkpoint = None
