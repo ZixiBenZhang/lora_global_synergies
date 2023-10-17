@@ -21,13 +21,13 @@ task_to_keys = {
 
     "boolq": ("question", "passage"),
     "cb": ("premise", "hypothesis"),
-    # TODO: decide how COPA, WiC are passed in to model
+    # TODO: determine how COPA, WiC are passed in to model
     # "copa": ,
     # "wic": ,
 }
 
 
-# adapter global synergies data module
+# Adapter global synergies data module, accept GLUE, XSum, SuperGLUE.
 class AgsDataModule(pl.LightningDataModule):
     def __init__(
         self,
@@ -41,6 +41,9 @@ class AgsDataModule(pl.LightningDataModule):
         super().__init__()
 
         self.dataset_name = dataset_name.lower()
+        # Accept only datasets in the project plan
+        assert self.dataset_name in task_to_keys.keys()
+
         self.batch_size = batch_size
         self.tokenizer = tokenizer
         self.max_token_len = max_token_len
@@ -53,22 +56,6 @@ class AgsDataModule(pl.LightningDataModule):
         self.prediction_dataset = None
 
         self.text_column_names = task_to_keys[self.dataset_name]
-
-        self.dataset_info = self._get_dataset_info()
-
-    def _get_dataset_info(self):
-        if self.dataset_name in datasets.get_dataset_config_names("glue"):
-            return datasets.get_dataset_config_info("glue", self.dataset_name)
-        return datasets.get_dataset_infos(self.dataset_name)
-
-    # def _get_split(self, dataset: DatasetDict, split: str) -> Dataset:
-    #     split_dataset = None
-    #     for i, split in enumerate(splits):
-    #         split_dataset = dataset[split]
-    #         if i == 0:
-    #             train_dataset = dataset_
-    #         else:
-    #             train_dataset = datasets.concatenate_datasets([train_dataset, dataset_])
 
     # Called on rank 0
     def prepare_data(self) -> None:
@@ -108,7 +95,7 @@ class AgsDataModule(pl.LightningDataModule):
         test_splits = [n for n in datasets.get_dataset_split_names(path, name) if 'test' in n]
         pred_splits = [n for n in datasets.get_dataset_split_names(path, name) if 'pred' in n]
 
-        dataset_ = load_dataset(path, name=name, num_proc=self.num_proc)
+        dataset_ = load_dataset(path, name=name)
 
         if len(train_splits) > 0:
             _train_dataset = datasets.concatenate_datasets([dataset_[split] for split in train_splits])
@@ -142,7 +129,7 @@ class AgsDataModule(pl.LightningDataModule):
         test_splits = [n for n in datasets.get_dataset_split_names(path, name) if 'test' in n]
         pred_splits = [n for n in datasets.get_dataset_split_names(path, name) if 'pred' in n]
 
-        dataset_ = load_dataset(path, name=name, num_proc=self.num_proc)
+        dataset_ = load_dataset(path, name=name)
 
         if self.max_token_len > self.tokenizer.model_max_length:
             # Todo: logger warning
@@ -153,23 +140,20 @@ class AgsDataModule(pl.LightningDataModule):
             # )
         block_size = min(self.max_token_len, self.tokenizer.model_max_length)
 
-        def preprocess_function(examples):
+        def tokenize_function(examples):
             # Tokenize the texts
             result = self.tokenizer(
-                self.text_column_names,
+                examples[self.text_column_names],
                 max_length=block_size,
                 # Currently disabled padding & truncation
                 padding=False,
                 truncation=False,
             )
-            # Todo: label_to_ids for ordered labels??
-            # Map labels to IDs (not necessary for GLUE tasks)
-            if label_to_id is not None and "label" in examples:
-                result["label"] = [(label_to_id[label] if label != -1 else -1) for label in examples["label"]]
+            # TODO: map label_to_ids according to PreTrainedConfig.label2id for datasets other than GLUE
             return result
 
         dataset_ = dataset_.map(
-            preprocess_function,
+            tokenize_function,
             batched=True,
             num_proc=self.num_proc,
             load_from_cache_file=self.load_from_cache_file,
@@ -228,3 +212,13 @@ class AgsDataModule(pl.LightningDataModule):
             shuffle=False,
             num_workers=self.num_proc,
         )
+
+
+def get_dataset_info(dataset_name):
+    # Accept only datasets in the project plan
+    assert dataset_name in task_to_keys.keys()
+    if dataset_name in datasets.get_dataset_config_names("glue"):
+        return datasets.get_dataset_config_info("glue", dataset_name)
+    elif dataset_name in datasets.get_dataset_config_names("super_glue"):
+        return datasets.get_dataset_config_info("super_glue", dataset_name)
+    return datasets.get_dataset_infos(dataset_name)

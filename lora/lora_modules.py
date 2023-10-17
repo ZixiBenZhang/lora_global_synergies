@@ -43,7 +43,6 @@ class LoRALayer:
             self.scaling[adapter_name] = lora_alpha / r
         if init_lora_weights:
             self.reset_lora_parameters(adapter_name)
-        # TODO: convert to device's weight type
 
     def reset_lora_parameters(self, adapter_name):
         if adapter_name in self.lora_A.keys():

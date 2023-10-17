@@ -5,6 +5,7 @@ from functools import partial
 ACTIONS = ["train", "test"]
 TASKS = ["cls"]
 
+# TODO: default args
 CLI_DEFAULTS = {
     # Main program arguments
     # NOTE: The following two are required if a configuration file isn't specified.
@@ -52,8 +53,6 @@ CLI_DEFAULTS = {
 def get_arg_parser():
     parser = argparse.ArgumentParser(description="")
 
-    # TODO: use HF arg parser??
-
     # args for main.py
     main_group = parser.add_argument_group("main arguments")
     main_group.add_argument(
@@ -94,23 +93,49 @@ def get_arg_parser():
     general_group.add_argument(
         "--load",
         dest="load_name",
+        type=_valid_dir_or_file_path,
+        help="path to load the model from. (default: %(default)s)",
+        metavar="PATH",
     )
     general_group.add_argument(
         "--load-type",
         dest="load_type",
+        choices=LOAD_TYPE,
+        help=f"""
+                    the type of checkpoint to be loaded; it's disregarded if --load is NOT
+                    specified. It is designed to and must be used in tandem with --load.
+                    One of {'(' + '|'.join(LOAD_TYPE) + ')'} (default: %(default)s)
+                """,
+        metavar="LOAD_TYPE",
     )
     general_group.add_argument(
         "--batch-size",
         dest="batch_size",
+        type=int,
+        help="batch size for training and evaluation. (default: %(default)s)",
+        metavar="NUM",
     )
     general_group.add_argument(
         "--seed",
         dest="seed",
+        type=int,
+        help="""
+                    seed for random number generators set via Pytorch Lightning's
+                    seed_everything function. (default: %(default)s)
+                """,
+        metavar="NUM",
     )
     # debug mode, for detailed logging
     general_group.add_argument(
         "--log-level",
         dest="log_level",
+        choices=LOG_LEVELS,
+        help=f"""
+                    verbosity level of the logger; it's only effective when --debug flag is
+                    NOT passed in. One of {'(' + '|'.join(LOG_LEVELS) + ')'}
+                    (default: %(default)s)
+                """,
+        metavar="",
     )
 
     # Trainer options
@@ -118,22 +143,43 @@ def get_arg_parser():
     trainer_group.add_argument(
         "--optimizer",
         dest="optimizer",
+        choices=OPTIMIZERS,
+        help=f"""
+                    name of supported optimiser for training. One of
+                    {'(' + '|'.join(OPTIMIZERS) + ')'} (default: %(default)s)
+                """,
+        metavar="TYPE",
     )
     trainer_group.add_argument(
         "--learning-rate",
         dest="learning_rate",
+        type=float,
+        help="initial learning rate for training. (default: %(default)s)",
+        metavar="NUM",
     )
     trainer_group.add_argument(
         "--weight-decay",
         dest="weight_decay",
+        type=float,
+        help="initial learning rate for training. (default: %(default)s)",
+        metavar="NUM",
     )
     trainer_group.add_argument(
         "--max-epochs",
         dest="max_epochs",
+        type=int,
+        help="maximum number of epochs for training. (default: %(default)s)",
+        metavar="NUM",
     )
     trainer_group.add_argument(
         "--max-steps",
         dest="max_steps",
+        type=_positive_int,
+        help="""
+                    maximum number of steps for training. A negative value disables this
+                    option. (default: %(default)s)
+                """,
+        metavar="NUM",
     )
     trainer_group.add_argument(
         "--accumulate-grad-batches",
@@ -150,7 +196,82 @@ def get_arg_parser():
         metavar="NUM",
     )
 
-    # TODO: Runtime environment group
+    # Runtime environment options
+    runtime_group = parser.add_argument_group("runtime environment options")
+    runtime_group.add_argument(
+        "--cpu",
+        "--num-workers",
+        dest="num_proc",
+        type=_positive_int,
+        help="""
+                    number of CPU workers; the default varies across systems and is set to
+                    os.cpu_count(). (default: %(default)s)
+                """,
+        metavar="NUM",
+    )
+    runtime_group.add_argument(
+        "--gpu",
+        "--num-devices",
+        dest="num_devices",
+        type=_positive_int,
+        help="number of GPU devices. (default: %(default)s)",
+        metavar="NUM",
+    )
+    runtime_group.add_argument(
+        "--nodes",
+        dest="num_nodes",
+        type=int,
+        help="number of nodes. (default: %(default)s)",
+        metavar="NUM",
+    )
+    runtime_group.add_argument(
+        "--accelerator",
+        dest="accelerator",
+        choices=ACCELERATORS,
+        help=f"""
+                    type of accelerator for training. One of
+                    {'(' + '|'.join(ACCELERATORS) + ')'} (default: %(default)s)
+                """,
+        metavar="TYPE",
+    )
+    runtime_group.add_argument(
+        "--strategy",
+        dest="strategy",
+        choices=STRATEGIES,
+        help=f"""
+                    type of strategy for training. One of
+                    {'(' + '|'.join(STRATEGIES) + ')'} (default: %(default)s)
+                """,
+        metavar="TYPE",
+    )
+    runtime_group.add_argument(
+        "--disable-dataset-cache",
+        dest="disable_dataset_cache",
+        action="store_true",
+        help="""
+                    disable caching of datasets. (default: %(default)s)
+                """,
+    )
+    # TODO: args for runtime environment SLURM and GitHub CI
+    # runtime_group.add_argument(
+    #     "--auto-requeue",
+    #     dest="is_to_auto_requeue",
+    #     action="store_true",
+    #     help="""
+    #                 enable automatic job resubmission on SLURM managed cluster. (default:
+    #                 %(default)s)
+    #             """,
+    # )
+    # runtime_group.add_argument(
+    #     "--github-ci",
+    #     action="store_true",
+    #     dest="github_ci",
+    #     help="""
+    #                 set the execution environment to GitHub's CI pipeline; it's used in the
+    #                 MASE verilog emitter transform pass to skip simulations.
+    #                 (default: %(default)s)
+    #                 """,
+    # )
 
     # Language model options
     lm_group = parser.add_argument_group(title="language model options")

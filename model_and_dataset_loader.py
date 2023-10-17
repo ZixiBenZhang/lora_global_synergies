@@ -1,5 +1,10 @@
 import datasets
 import pytorch_lightning as pl
+from transformers import AutoTokenizer, PreTrainedModel, PreTrainedTokenizer
+
+from pl_wrapper.dataset_wrapper import AgsDataModule, get_dataset_info
+from model_info import get_model_info, AgsModelInfo
+from model_loader import get_model
 
 
 TASK_TO_KEYS = {
@@ -15,9 +20,34 @@ TASK_TO_KEYS = {
 }
 
 
-def setup_dataset(args) -> pl.LightningDataModule:
-    if args.dataset.lower() in datasets.get_dataset_config_names("glue"):
-        task_name = args.dataset.lower()
-        dataset, dataset_info = _load_glue(args.dataset.lower)
-    else:
-        raise NotImplementedError("Currently only GLUE datasets are supported.")
+def setup_model_and_dataset(args) -> tuple[PreTrainedModel, AgsModelInfo, PreTrainedTokenizer, pl.LightningDataModule, datasets.DatasetInfo]:
+    dataset_info = get_dataset_info(args.dataset)
+
+    checkpoint = None
+    if args.load_name is not None and args.load_type == "hf":
+        checkpoint = args.load_name
+
+    tokenizer = AutoTokenizer.from_pretrained(args.model if checkpoint is None else checkpoint)
+
+    data_module = AgsDataModule(
+        dataset_name=args.dataset,
+        batch_size=args.batch_size,
+        tokenizer=tokenizer,
+        max_token_len=args.max_token_len,
+        num_proc=args.num_proc,
+        load_from_cache_file=not args.disable_dataset_cache,
+    )
+
+    model_info = get_model_info(args.model)
+
+    model = get_model(
+        name=args.model,
+        task=args.task,
+        dataset_info=dataset_info,
+        pretrained=args.is_pretrained,
+        checkpoint=checkpoint,
+        # TODO: pass in LoRA config
+        lora_config=None,
+    )
+
+    return model, model_info, tokenizer, data_module, dataset_info
