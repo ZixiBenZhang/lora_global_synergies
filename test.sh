@@ -3,10 +3,10 @@ export CUBLAS_WORKSPACE_CONFIG=":16:8" # https://docs.nvidia.com/cuda/cublas/ind
 export PYTHONHASHSEED=0
 export output_dir="./test_cola"
 torchrun --nproc_per_node=$num_gpus \
-main.py \
+lora_main.py \
 --model_name_or_path roberta-base \
 --task_name cola \
---do_train False \
+--do_train \
 --do_eval \
 --max_seq_length 512 \
 --per_device_train_batch_size 32 \
