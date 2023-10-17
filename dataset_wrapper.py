@@ -1,12 +1,11 @@
 import torch
 import pytorch_lightning as pl
 import datasets
-from datasets import load_dataset, Dataset, DatasetDict
+from datasets import load_dataset, Dataset, DatasetDict, DatasetInfo
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizer
 
 task_to_keys = {
-    "ax": ("premise", "hypothesis"),
     "cola": ("sentence",),
     "mnli": ("premise", "hypothesis"),
     "mrpc": ("sentence1", "sentence2"),
@@ -14,7 +13,6 @@ task_to_keys = {
     "qqp": ("question1", "question2"),
     "rte": ("sentence1", "sentence2"),
     "sst2": ("sentence",),
-    "stsb": ("sentence1", "sentence2"),
     "wnli": ("sentence1", "sentence2"),
 
     "xsum": ("document", "summary"),
@@ -214,11 +212,12 @@ class AgsDataModule(pl.LightningDataModule):
         )
 
 
-def get_dataset_info(dataset_name):
+def get_dataset_info(dataset_name) -> DatasetInfo:
     # Accept only datasets in the project plan
     assert dataset_name in task_to_keys.keys()
     if dataset_name in datasets.get_dataset_config_names("glue"):
         return datasets.get_dataset_config_info("glue", dataset_name)
     elif dataset_name in datasets.get_dataset_config_names("super_glue"):
         return datasets.get_dataset_config_info("super_glue", dataset_name)
-    return datasets.get_dataset_infos(dataset_name)
+    else:
+        return datasets.get_dataset_infos(dataset_name)["default"]

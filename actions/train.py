@@ -9,7 +9,7 @@ from datasets import load_dataset, load_metric
 from pytorch_lightning.loggers import TensorBoardLogger
 from tools.checkpoint_load import load_model
 
-import pl_wrapper
+import pl_model_wrapper
 
 
 logger = logging.getLogger(__name__)
@@ -32,6 +32,7 @@ def train(
     load_type,  # model checkpoint's type: ['pt', 'pl']
 ):
     if save_path is not None:  # if save_path is None, model won't be saved
+        # setup callbacks
         if not os.path.isdir(save_path):
             os.makedirs(save_path)
         # Saving checkpoints
@@ -53,8 +54,9 @@ def train(
     plugins = None
     pl_trainer_args["plugins"] = plugins
 
-    wrapper_pl_model = pl_wrapper.get_model_wrapper(model_info, task)
+    wrapper_pl_model = pl_model_wrapper.get_model_wrapper(model_info, task)
 
+    # load model checkpoint
     if load_name is not None:
         model = load_model(load_name, load_type=load_type, model=model)
 

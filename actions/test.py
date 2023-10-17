@@ -9,7 +9,7 @@ from datasets import load_dataset, load_metric
 from pytorch_lightning.loggers import TensorBoardLogger
 from tools.checkpoint_load import load_model
 
-import pl_wrapper
+import pl_model_wrapper
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ def test(
 
     # TODO: environment plugins
 
-    wrapper_pl_model = pl_wrapper.get_model_wrapper(model_info, task)
+    wrapper_pl_model = pl_model_wrapper.get_model_wrapper(model_info, task)
 
     if load_name is not None:
         model = load_model(load_name, load_type=load_type, model=model)

@@ -2,7 +2,7 @@ import datasets
 import pytorch_lightning as pl
 from transformers import AutoTokenizer, PreTrainedModel, PreTrainedTokenizer
 
-from pl_wrapper.dataset_wrapper import AgsDataModule, get_dataset_info
+from dataset_wrapper import AgsDataModule, get_dataset_info
 from model_info import get_model_info, AgsModelInfo
 from model_loader import get_model
 

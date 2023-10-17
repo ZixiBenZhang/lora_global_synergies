@@ -3,7 +3,7 @@ import os.path
 from functools import partial
 
 ACTIONS = ["train", "test"]
-TASKS = ["cls"]
+TASKS = ["classification", "causal_language_modeling", "translation"]
 
 # TODO: default args
 CLI_DEFAULTS = {

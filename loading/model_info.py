@@ -119,7 +119,7 @@ MANUAL_MODELS = {
 }
 
 
-def get_model_info(name: str):
+def get_model_info(name: str) -> AgsModelInfo:
     if name in MANUAL_MODELS:
         return MANUAL_MODELS[name]["info"]
     elif name in HF_NLP_MODELS:

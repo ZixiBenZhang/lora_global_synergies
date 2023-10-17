@@ -5,8 +5,8 @@ import datasets
 import pytorch_lightning as pl
 from datasets import load_dataset
 
-from argparser_lora import get_arg_parser
-from model_and_dataset_loader import setup_model_and_dataset
+from loading.argparser_lora import get_arg_parser
+from loading.model_and_dataset_loader import setup_model_and_dataset
 
 
 def main():
@@ -44,11 +44,18 @@ def main():
 
 
 def t():
-    datasets_ = load_dataset("xsum")
+    datasets_ = load_dataset("glue", "mnli")
     print(type(datasets_))
-    print(datasets_.shape)
-    print(datasets_)
-    print(datasets_["test"].column_names)
+    print(datasets_['train'].features)
+    print(datasets_['train'][0])
+    info = datasets.get_dataset_config_info("glue", "mnli")
+    print(info.features)
+
+    info = datasets.get_dataset_infos("xsum")
+    print(info)
+    # info["num_classes"] = 2
+    # print("******\n", info)
+    # print(info['default'])
 
 
 if __name__ == "__main__":
