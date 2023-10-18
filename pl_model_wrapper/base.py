@@ -81,7 +81,7 @@ class PlWrapperBase(pl.LightningModule):
         self.log("test_acc_epoch", self.acc_test, prog_bar=True)
         self.log("test_loss_epoch", self.loss_test, prog_bar=True)
 
-    def predict_step(self, batch, batch_idx):
+    def predict_step(self, batch, batch_idx: int, dataloader_idx: int = 0):
         x, y = batch
         y_pred = self.forward(x)
         return {"batch_idx": batch_idx, "pred_y": y_pred}
