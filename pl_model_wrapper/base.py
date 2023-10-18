@@ -45,22 +45,74 @@ class PlWrapperBase(pl.LightningModule):
         return self.model(x)
 
     def training_step(self, batch, batch_idx):
-        pass
+        x, y = batch
+        y_pred = self.forward(x)
+        loss = self.loss_fn(y_pred, y)
+
+        self.acc_train(y_pred, y)
+
+        self.log("train_acc_step", self.acc_train, prog_bar=True)
+        self.log("train_loss_step", loss)
+        return loss
 
     def validation_step(self, batch, batch_idx):
-        pass
+        x, y = batch
+        y_pred = self.forward(x)
+        loss = self.loss_fn(y_pred, y)
+
+        self.acc_val(y_pred, y)
+        self.loss_val(loss)
+        return loss
 
     def on_validation_end(self):
-        pass
+        self.log("val_acc_epoch", self.acc_val, prog_bar=True)
+        self.log("val_loss_epoch", self.loss_val, prog_bar=True)
 
     def test_step(self, batch, batch_idx):
-        pass
+        x, y = batch
+        y_pred = self.forward(x)
+        loss = self.loss_fn(y_pred, y)
+
+        self.acc_test(y_pred, y)
+        self.loss_test(loss)
+        return loss
 
     def on_test_end(self):
-        pass
+        self.log("test_acc_epoch", self.acc_test, prog_bar=True)
+        self.log("test_loss_epoch", self.loss_test, prog_bar=True)
 
     def predict_step(self, batch, batch_idx):
-        pass
+        x, y = batch
+        y_pred = self.forward(x)
+        return {"batch_idx": batch_idx, "pred_y": y_pred}
 
     def configure_optimizers(self) -> torch.optim.Optimizer|dict[str, torch.optim.Optimizer|torch.optim.lr_scheduler.LRScheduler]:
-        pass
+        # Use self.trainer.model.parameters() instead of self.parameters() to support FullyShared (Model paralleled) training
+        if self.optimizer == "adamw":
+            opt = torch.optim.AdamW(
+                self.trainer.model.parameters(),
+                lr=self.learning_rate,
+                weight_decay=self.weight_decay,
+            )
+            scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=1e-6)
+        elif self.optimizer == "adam":
+            opt = torch.optim.Adam(
+                self.trainer.model.parameters(),
+                lr=self.learning_rate,
+                weight_decay=self.weight_decay,
+            )
+            scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=1e-6)
+        elif self.optimizer in ["sgd_no_warmup", "sgd"]:
+            opt = torch.optim.SGD(
+                self.trainer.model.parameters(),
+                lr=self.learning_rate,
+                momentum=0.9,
+                weight_decay=0.0005,
+                nesterov=True,
+            )
+            scheduler = None
+            if self.optimizer == "sgd":
+                scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=0.0)
+        else:
+            raise ValueError(f"Unsupported optimizer name {self.optimizer}")
+        return {"optimizer": opt, "lr_scheduler": scheduler}
