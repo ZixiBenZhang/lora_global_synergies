@@ -7,7 +7,7 @@ import torch.nn.functional as F
 import pytorch_lightning as pl
 from datasets import load_dataset, load_metric
 from pytorch_lightning.loggers import TensorBoardLogger
-from tools.checkpoint_load import load_model
+from tools.checkpoint_load import load_model_chkpt
 
 import pl_model_wrapper
 
@@ -58,7 +58,7 @@ def train(
 
     # load model checkpoint
     if load_name is not None:
-        model = load_model(load_name, load_type=load_type, model=model)
+        model = load_model_chkpt(load_name, load_type=load_type, model=model)
 
     pl_model: pl.LightningModule = wrapper_pl_model(
         model,

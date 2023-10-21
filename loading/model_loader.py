@@ -70,7 +70,7 @@ def get_hf_model(
                 )
             else:
                 model = AutoModelForSequenceClassification.from_config(config)
-        case "translation":
+        case "summarization":
             if not model_info.seq2seqLM:
                 raise ValueError(f"Task {task} is not supported for {name}")
             if pretrained:
@@ -123,7 +123,7 @@ def get_manual_model(
             else:
                 config = MANUAL_MODELS[name]["config_cls"].from_pretrained(checkpoint)
             model_cls = MANUAL_MODELS[name]["causal_LM"]
-        case "translation":
+        case "summarization":
             assert model_info.seq2seqLM, f"Task {task} is not supported for {name}"
             if lora_config is not None:
                 config = MANUAL_MODELS[name]["config_cls"].from_pretrained(
