@@ -8,34 +8,34 @@ import pytorch_lightning as pl
 from datasets import load_dataset, load_metric
 from pytorch_lightning.loggers import TensorBoardLogger
 from tools.checkpoint_load import load_model_chkpt
-
+from dataset_wrapper import AgsDataModule
 import pl_model_wrapper
 
 logger = logging.getLogger(__name__)
 
 
 def test(
-    model,
+    model: torch.nn.Module | torch.fx.GraphModule,
     tokenizer,
-    model_info,
-    data_module,
-    dataset_info,
-    task,
-    optimizer,
-    learning_rate,
-    weight_decay,
-    plt_trainer_args,
-    auto_requeue,
-    save_path,
-    load_name,
-    load_type,
+    model_info,  # dataclass of model's task type and name
+    data_module: pl.LightningDataModule,  # for preparing and loading datasets for pl trainer
+    dataset_info,  # dataclass including e.g. number of classes for the pl model wrapper
+    task,  # to decide the pl model wrapper of which type should be used
+    optimizer,  # optimizer for pl trainer
+    learning_rate,  # lr for optimizer. lr_scheduler is default as CosineAnnealingLR
+    weight_decay,  # weight_decay for optimizer
+    pl_trainer_args,  # args for pl trainer; include e.g. "max_epochs" for setting up lr_scheduler
+    auto_requeue,  # for setting up SLURMEnvironment, environment for distributed launch
+    save_path,  # path for saving checkpoints
+    load_name,  # path to the saved checkpoint
+    load_type,  # model checkpoint's type: ['pt', 'pl']
 ):
     if save_path is not None:
         if not os.path.isdir(save_path):
             os.makedirs(save_path)
         tb_logger = TensorBoardLogger(save_dir=save_path, name="logs_test-sw")
-        plt_trainer_args["callbacks"] = []
-        plt_trainer_args["logger"] = tb_logger
+        pl_trainer_args["callbacks"] = []
+        pl_trainer_args["logger"] = tb_logger
 
     # TODO: environment plugins
 
@@ -52,12 +52,12 @@ def test(
         optimizer=optimizer,
     )
 
-    trainer = pl.Trainer(**plt_trainer_args)
+    trainer = pl.Trainer(**pl_trainer_args)
 
-    if data_module.dataset_info.test_split_available:
+    if dataset_info.test_split_available:
         # Testing
         trainer.test(plt_model, datamodule=data_module)
-    elif data_module.dataset_info.pred_split_available:
+    elif dataset_info.pred_split_available:
         # Predicting, save to predicted_result.pkl
         predicted_results = trainer.predict(plt_model, datamodule=data_module)
         pred_save_name = os.path.join(save_path, "predicted_result.pkl")
@@ -66,5 +66,5 @@ def test(
         logger.info(f"Predicted results is saved to {pred_save_name}")
     else:
         raise ValueError(
-            f"Test or pred split not available for dataset {data_module.info.name}"
+            f"Test or pred split not available for dataset {data_module.name}"
         )

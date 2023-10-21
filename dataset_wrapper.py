@@ -47,6 +47,7 @@ class AgsDataModule(pl.LightningDataModule):
         self.max_token_len = max_token_len
         self.num_proc = num_proc
         self.load_from_cache_file = load_from_cache_file
+        self.dataset_info = get_dataset_info(dataset_name)
 
         self.training_dataset = None
         self.validation_dataset = None
