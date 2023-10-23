@@ -68,7 +68,7 @@ def main():
 
     model, model_info, tokenizer, data_module, dataset_info = setup_model_and_dataset(args)
 
-    output_dir = setup_folder()
+    output_dir = setup_folder(args)
 
     match args.action:
         case "train":
@@ -158,4 +158,4 @@ def t():
 
 
 if __name__ == "__main__":
-    t()
+    main()

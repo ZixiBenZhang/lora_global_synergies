@@ -5,7 +5,7 @@ from datasets import DatasetInfo
 from transformers import PreTrainedModel, AutoModelForCausalLM, AutoConfig, AutoModelForSequenceClassification, \
     AutoModelForSeq2SeqLM
 
-from loading.model_info import get_model_info, ModelSource, MANUAL_MODELS
+from models.model_info import get_model_info, ModelSource, MANUAL_MODELS
 
 
 def get_model(

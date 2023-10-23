@@ -1,4 +1,4 @@
-from loading.model_info import AgsModelInfo
+from models.model_info import AgsModelInfo
 from .classification import NLPClassificationModelWrapper
 from .summarization import NLPSummarizationModelWrapper
 
