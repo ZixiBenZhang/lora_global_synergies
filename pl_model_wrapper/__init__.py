@@ -1,6 +1,6 @@
 from loading.model_info import AgsModelInfo
-from classification import NLPClassificationModelWrapper
-from summarization import NLPSummarizationModelWrapper
+from .classification import NLPClassificationModelWrapper
+from .summarization import NLPSummarizationModelWrapper
 
 
 def get_model_wrapper(model_info: AgsModelInfo, task: str):

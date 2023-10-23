@@ -1,11 +1,29 @@
 import argparse
 import os.path
 from functools import partial
+from pathlib import Path
 
+
+ROOT = Path(__file__).parent.parent.absolute()
 ACTIONS = ["train", "test"]
 TASKS = ["classification", "causal_language_modeling", "summarization"]
+LOAD_TYPE = [
+    "pt",  # PyTorch module state dictionary
+    "pl",  # PyTorch Lightning checkpoint
+    "hf",  # HuggingFace's checkpoint directory saved by 'save_pretrained'
+]
+OPTIMIZERS = ["adam", "sgd", "adamw"]
+LOG_LEVELS = ["debug", "info", "warning", "error", "critical"]
+STRATEGIES = [
+    "ddp",
+    "ddp_find_unused_parameters_true",
+    # "fsdp",
+    # "fsdp_native",
+    # "fsdp_custom",
+    # "deepspeed_stage_3_offload",
+]
+ACCELERATORS = ["auto", "cpu", "gpu"]
 
-# TODO: default args
 CLI_DEFAULTS = {
     # Main program arguments
     # NOTE: The following two are required if a configuration file isn't specified.
@@ -22,7 +40,7 @@ CLI_DEFAULTS = {
     "seed": 0,
     # Trainer options
     "training_optimizer": OPTIMIZERS[0],
-    "trainer_precision": TRAINER_PRECISION[1],
+    # "trainer_precision": TRAINER_PRECISION[1],
     "learning_rate": 1e-5,
     "weight_decay": 0,
     "max_epochs": 20,
@@ -340,7 +358,7 @@ def _positive_int(s: str) -> int | None:
     try:
         v = int(s)
     except ValueError:
-        raise argparse.ArgumentError(f"expected integer, got {s!r}")
+        raise argparse.ArgumentError(None, f"expected integer, got {s!r}")
     if v <= 0:
         return None
     return v
