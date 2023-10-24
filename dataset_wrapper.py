@@ -142,7 +142,7 @@ class AgsDataModule(pl.LightningDataModule):
         def tokenize_function(examples):
             # Tokenize the texts
             result = self.tokenizer(
-                examples[self.text_column_names],
+                [examples[test_col_name] for test_col_name in self.text_column_names],
                 max_length=block_size,
                 # Currently disabled padding & truncation
                 padding=False,
