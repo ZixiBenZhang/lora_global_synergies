@@ -82,7 +82,6 @@ def main():
                 "accelerator": args.accelerator,
                 "strategy": args.strategy,
                 "fast_dev_run": args.to_debug,
-                "precision": args.trainer_precision,
                 "accumulate_grad_batches": args.accumulate_grad_batches,
                 "log_every_n_steps": args.log_every_n_steps,
             }

@@ -1,5 +1,5 @@
 # basics
-model = "facebook/opt-125m@patched"
+model = "facebook/opt-125m"
 dataset = "rte"
 # training
 training_optimizer = "adamw"
