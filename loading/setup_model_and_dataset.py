@@ -20,14 +20,24 @@ TASK_TO_KEYS = {
 }
 
 
-def setup_model_and_dataset(args) -> tuple[PreTrainedModel, AgsModelInfo, PreTrainedTokenizer, pl.LightningDataModule, datasets.DatasetInfo]:
+def setup_model_and_dataset(
+    args,
+) -> tuple[
+    PreTrainedModel,
+    AgsModelInfo,
+    PreTrainedTokenizer,
+    pl.LightningDataModule,
+    datasets.DatasetInfo,
+]:
     dataset_info = get_dataset_info(args.dataset)
 
     checkpoint = None
     if args.load_name is not None and args.load_type == "hf":
         checkpoint = args.load_name
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model if checkpoint is None else checkpoint)
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.model if checkpoint is None else checkpoint
+    )
 
     data_module = AgsDataModule(
         dataset_name=args.dataset,

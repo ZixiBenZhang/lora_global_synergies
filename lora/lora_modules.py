@@ -7,10 +7,10 @@ import torch.nn.functional as F
 
 class LoRALayer:
     def __init__(
-            self,
-            in_features: int,
-            out_features: int,
-            **kwargs,
+        self,
+        in_features: int,
+        out_features: int,
+        **kwargs,
     ):
         # params are stored as {adapter_config_name: param_value}
         self.r = {}
@@ -27,7 +27,9 @@ class LoRALayer:
         self.disable_adapters = False
         self.merged = False
 
-    def set_adapter(self, adapter_name, r, lora_alpha, lora_dropout_p, init_lora_weights):
+    def set_adapter(
+        self, adapter_name, r, lora_alpha, lora_dropout_p, init_lora_weights
+    ):
         self.r[adapter_name] = r
         self.lora_alpha[adapter_name] = lora_alpha
 
@@ -38,8 +40,16 @@ class LoRALayer:
         self.lora_dropout.update(nn.ModuleDict({adapter_name: dropout_layer}))
 
         if r > 0:
-            self.lora_A.update(nn.ModuleDict({adapter_name: nn.Linear(self.in_features, r, bias=False)}))
-            self.lora_B.update(nn.ModuleDict({adapter_name: nn.Linear(r, self.out_features, bias=False)}))
+            self.lora_A.update(
+                nn.ModuleDict(
+                    {adapter_name: nn.Linear(self.in_features, r, bias=False)}
+                )
+            )
+            self.lora_B.update(
+                nn.ModuleDict(
+                    {adapter_name: nn.Linear(r, self.out_features, bias=False)}
+                )
+            )
             self.scaling[adapter_name] = lora_alpha / r
         if init_lora_weights:
             self.reset_lora_parameters(adapter_name)
@@ -53,11 +63,7 @@ class LoRALayer:
 class LoraLinear(nn.Linear, LoRALayer):
     # nn.Linear with LoRA
     def __init__(
-            self,
-            in_features: int,
-            out_features: int,
-            config: dict = None,
-            **kwargs
+        self, in_features: int, out_features: int, config: dict = None, **kwargs
     ):
         nn.Linear.__init__(self, in_features, out_features, **kwargs)
         LoRALayer.__init__(self, in_features, out_features)
@@ -109,39 +115,29 @@ class LoraLinear(nn.Linear, LoRALayer):
         # input_dtype = x.dtype
         if self.active_adapter not in self.lora_A.keys():
             res = F.linear(
-                x,
-                self.weight if not self.fan_in_fan_out else self.weight.T,
-                self.bias
+                x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
         elif self.disable_adapters:
             if self.r[self.active_adapter] > 0 and self.merged:
                 self.unmerge()
             res = F.linear(
-                x,
-                self.weight if not self.fan_in_fan_out else self.weight.T,
-                self.bias
+                x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
         elif self.r[self.active_adapter] > 0 and not self.merged:
             res = F.linear(
-                x,
-                self.weight if not self.fan_in_fan_out else self.weight.T,
-                self.bias
+                x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
             # x = x.to(self.lora_A[self.active_adapter].weight.dtype)
             res += (
                 self.lora_B[self.active_adapter](
                     self.lora_A[self.active_adapter](
-                        self.lora_dropout[self.active_adapter](
-                            x
-                        )
+                        self.lora_dropout[self.active_adapter](x)
                     )
                 )
             ) * self.scaling[self.active_adapter]
         else:
             res = F.linear(
-                x,
-                self.weight if not self.fan_in_fan_out else self.weight.T,
-                self.bias
+                x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
         # res = res.to(input_dtype)
         return res

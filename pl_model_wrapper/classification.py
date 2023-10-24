@@ -16,7 +16,9 @@ class NLPClassificationModelWrapper(PlWrapperBase):
         epochs=200,  # for building lr_scheduler
         dataset_info: DatasetInfo = None,  # for getting num_classes for calculating Accuracy
     ):
-        super().__init__(model, optimizer, learning_rate, weight_decay, epochs, dataset_info)
+        super().__init__(
+            model, optimizer, learning_rate, weight_decay, epochs, dataset_info
+        )
         # TODO: use metrics from evaluate.load('glue', ds) instead of specified torchmetrics??
 
     def forward(

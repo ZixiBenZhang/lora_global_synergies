@@ -14,9 +14,7 @@ task_to_keys = {
     "rte": ("sentence1", "sentence2"),
     "sst2": ("sentence",),
     "wnli": ("sentence1", "sentence2"),
-
     "xsum": ("document", "summary"),
-
     "boolq": ("question", "passage"),
     "cb": ("premise", "hypothesis"),
     # TODO: determine how COPA, WiC are passed in to model
@@ -89,21 +87,37 @@ class AgsDataModule(pl.LightningDataModule):
                 f"Dataset {self.dataset_name} not supported. Please use one of [{'|'.join(task_to_keys.keys())}]"
             )
 
-        train_splits = [n for n in datasets.get_dataset_split_names(path, name) if 'train' in n]
-        val_splits = [n for n in datasets.get_dataset_split_names(path, name) if 'validation' in n]
-        test_splits = [n for n in datasets.get_dataset_split_names(path, name) if 'test' in n]
-        pred_splits = [n for n in datasets.get_dataset_split_names(path, name) if 'pred' in n]
+        train_splits = [
+            n for n in datasets.get_dataset_split_names(path, name) if "train" in n
+        ]
+        val_splits = [
+            n for n in datasets.get_dataset_split_names(path, name) if "validation" in n
+        ]
+        test_splits = [
+            n for n in datasets.get_dataset_split_names(path, name) if "test" in n
+        ]
+        pred_splits = [
+            n for n in datasets.get_dataset_split_names(path, name) if "pred" in n
+        ]
 
         dataset_ = load_dataset(path, name=name)
 
         if len(train_splits) > 0:
-            _train_dataset = datasets.concatenate_datasets([dataset_[split] for split in train_splits])
+            _train_dataset = datasets.concatenate_datasets(
+                [dataset_[split] for split in train_splits]
+            )
         if len(val_splits) > 0:
-            _val_dataset = datasets.concatenate_datasets([dataset_[split] for split in val_splits])
+            _val_dataset = datasets.concatenate_datasets(
+                [dataset_[split] for split in val_splits]
+            )
         if len(test_splits) > 0:
-            _test_dataset = datasets.concatenate_datasets([dataset_[split] for split in test_splits])
+            _test_dataset = datasets.concatenate_datasets(
+                [dataset_[split] for split in test_splits]
+            )
         if len(pred_splits) > 0:
-            _pred_dataset = datasets.concatenate_datasets([dataset_[split] for split in pred_splits])
+            _pred_dataset = datasets.concatenate_datasets(
+                [dataset_[split] for split in pred_splits]
+            )
 
     # Called on all ranks
     def setup(self, stage: str = None) -> None:
@@ -123,10 +137,18 @@ class AgsDataModule(pl.LightningDataModule):
                 f"Dataset {self.dataset_name} not supported. Please use one of [{'|'.join(task_to_keys.keys())}]"
             )
 
-        train_splits = [n for n in datasets.get_dataset_split_names(path, name) if 'train' in n]
-        val_splits = [n for n in datasets.get_dataset_split_names(path, name) if 'validation' in n]
-        test_splits = [n for n in datasets.get_dataset_split_names(path, name) if 'test' in n]
-        pred_splits = [n for n in datasets.get_dataset_split_names(path, name) if 'pred' in n]
+        train_splits = [
+            n for n in datasets.get_dataset_split_names(path, name) if "train" in n
+        ]
+        val_splits = [
+            n for n in datasets.get_dataset_split_names(path, name) if "validation" in n
+        ]
+        test_splits = [
+            n for n in datasets.get_dataset_split_names(path, name) if "test" in n
+        ]
+        pred_splits = [
+            n for n in datasets.get_dataset_split_names(path, name) if "pred" in n
+        ]
 
         dataset_ = load_dataset(path, name=name)
 
@@ -160,17 +182,37 @@ class AgsDataModule(pl.LightningDataModule):
         )
 
         if stage in ["fit", None]:
-            self.training_dataset = None if len(train_splits) == 0 \
-                else datasets.concatenate_datasets([dataset_[split] for split in train_splits])
+            self.training_dataset = (
+                None
+                if len(train_splits) == 0
+                else datasets.concatenate_datasets(
+                    [dataset_[split] for split in train_splits]
+                )
+            )
         if stage in ["fit", "validate", None]:
-            self.validation_dataset = None if len(val_splits) == 0 \
-                else datasets.concatenate_datasets([dataset_[split] for split in val_splits])
+            self.validation_dataset = (
+                None
+                if len(val_splits) == 0
+                else datasets.concatenate_datasets(
+                    [dataset_[split] for split in val_splits]
+                )
+            )
         if stage in ["test", None]:
-            self.testing_dataset = None if len(test_splits) == 0 \
-                else datasets.concatenate_datasets([dataset_[split] for split in test_splits])
+            self.testing_dataset = (
+                None
+                if len(test_splits) == 0
+                else datasets.concatenate_datasets(
+                    [dataset_[split] for split in test_splits]
+                )
+            )
         if stage in ["predict", None]:
-            self.prediction_dataset = None if len(pred_splits) == 0 \
-                else datasets.concatenate_datasets([dataset_[split] for split in pred_splits])
+            self.prediction_dataset = (
+                None
+                if len(pred_splits) == 0
+                else datasets.concatenate_datasets(
+                    [dataset_[split] for split in pred_splits]
+                )
+            )
 
     def train_dataloader(self) -> DataLoader:
         if self.training_dataset is None:

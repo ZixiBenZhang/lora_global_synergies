@@ -39,63 +39,126 @@ class AgsModelInfo:
     is_lora: bool = False
 
     def __post_init__(self):
-        self.model_source = ModelSource(self.model_source) \
-            if isinstance(self.model_source, str) else self.model_source
+        self.model_source = (
+            ModelSource(self.model_source)
+            if isinstance(self.model_source, str)
+            else self.model_source
+        )
         assert self.sequence_classification or self.seq2seqLM or self.causal_LM
         if self.is_lora:
-            assert self.model_source == ModelSource.MANUAL, "LoRA model must be a manual model."
+            assert (
+                self.model_source == ModelSource.MANUAL
+            ), "LoRA model must be a manual model."
 
 
 HF_NLP_MODELS = {
     "roberta-base": {
         "config_cls": RobertaConfig,
         "tokenizer_cls": RobertaTokenizer,
-        "info": AgsModelInfo("roberta-base", model_source="hf_transformers", task_type="nlp", sequence_classification=True)
+        "info": AgsModelInfo(
+            "roberta-base",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+        ),
     },
     "roberta-large": {
         "config_cls": RobertaConfig,
         "tokenizer_cls": RobertaTokenizer,
-        "info": AgsModelInfo("roberta-large", model_source="hf_transformers", task_type="nlp", sequence_classification=True)
+        "info": AgsModelInfo(
+            "roberta-large",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+        ),
     },
     "facebook/opt-125m": {
         "config_cls": OPTConfig,
         "tokenizer_cls": GPT2Tokenizer,
-        "info": AgsModelInfo("facebook/opt-125m", model_source="hf_transformers", task_type="nlp", sequence_classification=True, causal_LM=True),
+        "info": AgsModelInfo(
+            "facebook/opt-125m",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
     },
     "facebook/opt-350m": {
         "config_cls": OPTConfig,
         "tokenizer_cls": GPT2Tokenizer,
-        "info": AgsModelInfo("facebook/opt-350m", model_source="hf_transformers", task_type="nlp", sequence_classification=True, causal_LM=True),
+        "info": AgsModelInfo(
+            "facebook/opt-350m",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
     },
     "facebook/opt-1.3b": {
         "config_cls": OPTConfig,
         "tokenizer_cls": GPT2Tokenizer,
-        "info": AgsModelInfo("facebook/opt-1.3b", model_source="hf_transformers", task_type="nlp", sequence_classification=True, causal_LM=True),
+        "info": AgsModelInfo(
+            "facebook/opt-1.3b",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
     },
     "facebook/opt-2.7b": {
         "config_cls": OPTConfig,
         "tokenizer_cls": GPT2Tokenizer,
-        "info": AgsModelInfo("facebook/opt-2.7b", model_source="hf_transformers", task_type="nlp", sequence_classification=True, causal_LM=True),
+        "info": AgsModelInfo(
+            "facebook/opt-2.7b",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
     },
     "facebook/opt-6.7b": {
         "config_cls": OPTConfig,
         "tokenizer_cls": GPT2Tokenizer,
-        "info": AgsModelInfo("facebook/opt-6.7b", model_source="hf_transformers", task_type="nlp", sequence_classification=True, causal_LM=True),
+        "info": AgsModelInfo(
+            "facebook/opt-6.7b",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
     },
     "facebook/opt-13b": {
         "config_cls": OPTConfig,
         "tokenizer_cls": GPT2Tokenizer,
-        "info": AgsModelInfo("facebook/opt-13b", model_source="hf_transformers", task_type="nlp", sequence_classification=True, causal_LM=True),
+        "info": AgsModelInfo(
+            "facebook/opt-13b",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
     },
     "facebook/opt-30b": {
         "config_cls": OPTConfig,
         "tokenizer_cls": GPT2Tokenizer,
-        "info": AgsModelInfo("facebook/opt-30b", model_source="hf_transformers", task_type="nlp", sequence_classification=True, causal_LM=True),
+        "info": AgsModelInfo(
+            "facebook/opt-30b",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
     },
     "facebook/opt-66b": {
         "config_cls": OPTConfig,
         "tokenizer_cls": GPT2Tokenizer,
-        "info": AgsModelInfo("facebook/opt-66b", model_source="hf_transformers", task_type="nlp", sequence_classification=True, causal_LM=True),
+        "info": AgsModelInfo(
+            "facebook/opt-66b",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
     },
     # TODO: Llama & Vicuna model info
 }
@@ -104,14 +167,26 @@ MANUAL_MODELS = {
     "llama_plain": {
         "config_cls": LlamaConfig,
         "tokenizer_cls": LlamaTokenizer,
-        "info": AgsModelInfo("llama_plain", model_source="manual", task_type="nlp", sequence_classification=True, causal_LM=True),
+        "info": AgsModelInfo(
+            "llama_plain",
+            model_source="manual",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
         "sequence_classification": LlamaForSequenceClassification,
         "causal_LM": LlamaForCausalLM,
     },
     "opt_plain": {
         "config_cls": OPTConfig,
         "tokenizer_cls": GPT2Tokenizer,
-        "info": AgsModelInfo("opt_plain", model_source="manual", task_type="nlp", sequence_classification=True, causal_LM=True),
+        "info": AgsModelInfo(
+            "opt_plain",
+            model_source="manual",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
         "sequence_classification": OPTForSequenceClassification,
         "causal_LM": OPTForCausalLM,
     },

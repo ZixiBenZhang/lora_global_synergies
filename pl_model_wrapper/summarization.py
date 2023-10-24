@@ -18,23 +18,25 @@ class NLPSummarizationModelWrapper(PlWrapperBase):
         epochs=200,  # for building lr_scheduler
         dataset_info: DatasetInfo = None,  # for getting num_classes for calculating Accuracy
     ):
-        super().__init__(model, optimizer, learning_rate, weight_decay, epochs, dataset_info)
+        super().__init__(
+            model, optimizer, learning_rate, weight_decay, epochs, dataset_info
+        )
         self.tokenizer = tokenizer
 
         self.rouge_train = MyRouge(
             use_stemmer=False,  # use Porter Stemmer to remove morphological affixes, leaving only the word stem.
             tokenizer=tokenizer,
-            rouge_keys=('rouge1', 'rouge2', 'rougeL')
+            rouge_keys=("rouge1", "rouge2", "rougeL"),
         )
         self.rouge_val = MyRouge(
             use_stemmer=False,  # use Porter Stemmer to remove morphological affixes, leaving only the word stem.
             tokenizer=tokenizer,
-            rouge_keys=('rouge1', 'rouge2', 'rougeL')
+            rouge_keys=("rouge1", "rouge2", "rougeL"),
         )
         self.rouge_test = MyRouge(
             use_stemmer=False,  # use Porter Stemmer to remove morphological affixes, leaving only the word stem.
             tokenizer=tokenizer,
-            rouge_keys=('rouge1', 'rouge2', 'rougeL')
+            rouge_keys=("rouge1", "rouge2", "rougeL"),
         )
 
     def forward(

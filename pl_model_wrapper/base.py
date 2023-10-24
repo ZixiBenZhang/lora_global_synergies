@@ -9,13 +9,13 @@ from transformers import PreTrainedModel
 
 class PlWrapperBase(pl.LightningModule):
     def __init__(
-            self,
-            model: PreTrainedModel,
-            optimizer: str = None,
-            learning_rate=5e-4,  # for building optimizer
-            weight_decay=0.0,  # for building optimizer
-            epochs=1,  # for building lr_scheduler
-            dataset_info: DatasetInfo = None,  # for getting num_classes for calculating Accuracy
+        self,
+        model: PreTrainedModel,
+        optimizer: str = None,
+        learning_rate=5e-4,  # for building optimizer
+        weight_decay=0.0,  # for building optimizer
+        epochs=1,  # for building lr_scheduler
+        dataset_info: DatasetInfo = None,  # for getting num_classes for calculating Accuracy
     ):
         super().__init__()
 
@@ -27,8 +27,8 @@ class PlWrapperBase(pl.LightningModule):
 
         self.loss_fn = nn.CrossEntropyLoss()
 
-        assert 'label' in dataset_info.features.keys()
-        self.num_classes = dataset_info.features['label'].num_classes
+        assert "label" in dataset_info.features.keys()
+        self.num_classes = dataset_info.features["label"].num_classes
 
         # train step metrics are logged in every step
         self.acc_train = Accuracy("multiclass", num_classes=self.num_classes)
@@ -86,7 +86,11 @@ class PlWrapperBase(pl.LightningModule):
         y_pred = self.forward(x)
         return {"batch_idx": batch_idx, "pred_y": y_pred}
 
-    def configure_optimizers(self) -> torch.optim.Optimizer|dict[str, torch.optim.Optimizer|torch.optim.lr_scheduler.LRScheduler]:
+    def configure_optimizers(
+        self,
+    ) -> torch.optim.Optimizer | dict[
+        str, torch.optim.Optimizer | torch.optim.lr_scheduler.LRScheduler
+    ]:
         # Use self.trainer.model.parameters() instead of self.parameters() to support FullyShared (Model paralleled) training
         if self.optimizer == "adamw":
             opt = torch.optim.AdamW(

@@ -340,7 +340,9 @@ def _valid_filepath(path: str):
 
 def _valid_dir_path(path: str, create_dir: bool):
     if os.path.isfile(path):
-        raise argparse.ArgumentTypeError(f"expected path to directory, got file {path!r}")
+        raise argparse.ArgumentTypeError(
+            f"expected path to directory, got file {path!r}"
+        )
     if (not os.path.exists(path)) and (not create_dir):
         raise argparse.ArgumentTypeError(f"directory not found")
     if (not os.path.exists(path)) and create_dir:
