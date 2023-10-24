@@ -22,6 +22,8 @@ def load_model_chkpt(load_name: str, load_type: str, model: torch.nn.Module = No
                     new_tgt_state_dict[possible_tgt_k] = v
             model.load_state_dict(state_dict=new_tgt_state_dict)
         case _:
-            raise ValueError("Only support loading PyTorch or Lightning model checkpoint.")
+            raise ValueError(
+                "Only support loading PyTorch or Lightning model checkpoint."
+            )
 
     return model

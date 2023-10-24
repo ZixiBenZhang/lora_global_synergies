@@ -66,7 +66,9 @@ def main():
     if args.model is None or args.dataset is None:
         raise ValueError("No model and/or dataset provided.")
 
-    model, model_info, tokenizer, data_module, dataset_info = setup_model_and_dataset(args)
+    model, model_info, tokenizer, data_module, dataset_info = setup_model_and_dataset(
+        args
+    )
 
     output_dir = setup_folder(args)
 
@@ -152,7 +154,7 @@ def main():
 def t():
     datasets_ = load_dataset("glue", "mnli")
     print(type(datasets_))
-    rouge = ROUGEScore(rouge_keys=('rouge1', 'rouge2', 'rougeL'))
+    rouge = ROUGEScore(rouge_keys=("rouge1", "rouge2", "rougeL"))
     print(type(rouge))
 
 

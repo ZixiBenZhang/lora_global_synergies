@@ -2,8 +2,13 @@ from os import PathLike
 
 import datasets
 from datasets import DatasetInfo
-from transformers import PreTrainedModel, AutoModelForCausalLM, AutoConfig, AutoModelForSequenceClassification, \
-    AutoModelForSeq2SeqLM
+from transformers import (
+    PreTrainedModel,
+    AutoModelForCausalLM,
+    AutoConfig,
+    AutoModelForSequenceClassification,
+    AutoModelForSeq2SeqLM,
+)
 
 from models.model_info import get_model_info, ModelSource, MANUAL_MODELS
 
@@ -25,7 +30,7 @@ def get_model(
         "checkpoint": checkpoint,
     }
     if model_info.is_lora:
-        model_kwargs['lora_config'] = lora_config
+        model_kwargs["lora_config"] = lora_config
 
     match model_info.model_source:
         case ModelSource.HF_TRANSFORMERS:
@@ -52,17 +57,21 @@ def get_hf_model(
             if not model_info.causal_LM:
                 raise ValueError(f"Task {task} is not supported for {name}")
             if pretrained:
-                model = AutoModelForCausalLM.from_pretrained(name if checkpoint is None else checkpoint)
+                model = AutoModelForCausalLM.from_pretrained(
+                    name if checkpoint is None else checkpoint
+                )
             else:
-                config = AutoConfig.from_pretrained(name if checkpoint is None else checkpoint)
+                config = AutoConfig.from_pretrained(
+                    name if checkpoint is None else checkpoint
+                )
                 model = AutoModelForCausalLM.from_config(config)
         case "classification":
             if not model_info.sequence_classification:
                 raise ValueError(f"Task {task} is not supported for {name}")
-            assert 'label' in dataset_info.features.keys()
+            assert "label" in dataset_info.features.keys()
             config = AutoConfig.from_pretrained(
                 name if checkpoint is None else checkpoint,
-                num_labels=dataset_info.features['label'].num_classes,
+                num_labels=dataset_info.features["label"].num_classes,
             )
             if pretrained:
                 model = AutoModelForSequenceClassification.from_pretrained(
@@ -74,9 +83,13 @@ def get_hf_model(
             if not model_info.seq2seqLM:
                 raise ValueError(f"Task {task} is not supported for {name}")
             if pretrained:
-                model = AutoModelForSeq2SeqLM.from_pretrained(name if checkpoint is None else checkpoint)
+                model = AutoModelForSeq2SeqLM.from_pretrained(
+                    name if checkpoint is None else checkpoint
+                )
             else:
-                config = AutoConfig.from_pretrained(name if checkpoint is None else checkpoint)
+                config = AutoConfig.from_pretrained(
+                    name if checkpoint is None else checkpoint
+                )
                 model = AutoModelForSeq2SeqLM.from_config(config)
         case _:
             raise ValueError(f"Task {task} is not supported for {name}")
@@ -99,8 +112,8 @@ def get_manual_model(
             assert (
                 model_info.sequence_classification
             ), f"Task {task} is not supported for {name}"
-            assert 'label' in dataset_info.features.keys()
-            num_classes = dataset_info.features['label'].num_classes
+            assert "label" in dataset_info.features.keys()
+            num_classes = dataset_info.features["label"].num_classes
             if lora_config is not None:
                 config = MANUAL_MODELS[name]["config_cls"].from_pretrained(
                     checkpoint,
