@@ -1,6 +1,5 @@
 import torch
 from datasets import DatasetInfo
-from torch import tensor
 from transformers import PreTrainedModel
 
 from .base import PlWrapperBase
@@ -30,7 +29,14 @@ class NLPClassificationModelWrapper(PlWrapperBase):
         labels=None,
     ):
         if isinstance(input_ids, list):
-            input_ids = tensor(input_ids)
+            input_ids = torch.stack(input_ids)
+        if isinstance(attention_mask, list):
+            attention_mask = torch.stack(attention_mask)
+        if isinstance(token_type_ids, list):
+            token_type_ids = torch.stack(token_type_ids)
+        if isinstance(labels, list):
+            labels = torch.stack(labels)
+
         if token_type_ids is not None:
             outputs = self.model(
                 input_ids,

@@ -1,5 +1,4 @@
 import torch
-from torch import tensor
 
 from metrics import MyRouge
 from datasets import DatasetInfo
@@ -51,7 +50,16 @@ class NLPSummarizationModelWrapper(PlWrapperBase):
         labels=None,
     ):
         if isinstance(input_ids, list):
-            input_ids = tensor(input_ids)
+            input_ids = torch.stack(input_ids)
+        if isinstance(attention_mask, list):
+            attention_mask = torch.stack(attention_mask)
+        if isinstance(decoder_input_ids, list):
+            decoder_input_ids = torch.stack(decoder_input_ids)
+        if isinstance(decoder_attention_mask, list):
+            decoder_attention_mask = torch.stack(decoder_attention_mask)
+        if isinstance(labels, list):
+            labels = torch.stack(labels)
+
         outputs = self.model(
             input_ids,
             attention_mask=attention_mask,

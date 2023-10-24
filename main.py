@@ -165,6 +165,7 @@ def t():
         if i >= 1:
             break
         print(data)
+        print(type(data['input_ids'][0]))
 
 
 if __name__ == "__main__":
