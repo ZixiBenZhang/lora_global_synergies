@@ -167,8 +167,8 @@ class AgsDataModule(pl.LightningDataModule):
                 *[examples[test_col_name] for test_col_name in self.text_column_names],
                 max_length=block_size,
                 # Currently disabled padding & truncation
-                padding=False,
-                truncation=False,
+                padding='max_length',
+                truncation=True,
             )
             # TODO: map label_to_ids according to PreTrainedConfig.label2id for datasets other than GLUE
             return result
