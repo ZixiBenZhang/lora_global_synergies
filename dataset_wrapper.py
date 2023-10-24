@@ -176,6 +176,7 @@ class AgsDataModule(pl.LightningDataModule):
         dataset_ = dataset_.map(
             tokenize_function,
             batched=True,
+            batch_size=self.batch_size,
             num_proc=self.num_workers,
             load_from_cache_file=self.load_from_cache_file,
             desc="Running tokenizer on dataset",

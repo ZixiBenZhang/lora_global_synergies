@@ -65,7 +65,7 @@ class NLPClassificationModelWrapper(PlWrapperBase):
     def validation_step(self, batch, batch_idx):
         x = batch["input_ids"]
         attention_mask = batch["attention_mask"]
-        labels = batch["labels"]
+        labels = batch["label"] # bug
         token_type_ids = batch.get("token_type_ids", None)
 
         outputs = self.forward(x, attention_mask, token_type_ids, labels)
@@ -86,7 +86,7 @@ class NLPClassificationModelWrapper(PlWrapperBase):
     def test_step(self, batch, batch_idx):
         x = batch["input_ids"]
         attention_mask = batch["attention_mask"]
-        labels = batch["labels"]
+        labels = batch["label"]
         token_type_ids = batch.get("token_type_ids", None)
 
         outputs = self.forward(x, attention_mask, token_type_ids, labels)

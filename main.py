@@ -1,14 +1,17 @@
 import logging
 import os
 import sys
+from pprint import pprint
 
 import transformers
 import datasets
 from datasets import load_dataset
 import evaluate
 import pytorch_lightning as pl
+from torch.utils.data import DataLoader
 from torchmetrics.text.rouge import ROUGEScore
 import optuna
+from transformers import AutoTokenizer
 
 from loading.argparser_ags import get_arg_parser, CLI_DEFAULTS
 from loading.config_load import post_parse_load_config
@@ -152,10 +155,16 @@ def main():
 
 
 def t():
-    datasets_ = load_dataset("glue", "mnli")
+    datasets_ = load_dataset("glue", "rte")
     print(type(datasets_))
-    rouge = ROUGEScore(rouge_keys=("rouge1", "rouge2", "rougeL"))
-    print(type(rouge))
+    tokenizer = AutoTokenizer.from_pretrained("facebook/opt-125m")
+    encoded_dataset = datasets_.map(lambda examples: tokenizer(*(examples['sentence1'], examples['sentence2']), padding=True), batched=True, batch_size=2)
+    pprint(encoded_dataset['train'][:3])
+    dataloader = DataLoader(encoded_dataset['train'], batch_size=2, shuffle=False)
+    for i, data in enumerate(dataloader):
+        if i >= 1:
+            break
+        print(data)
 
 
 if __name__ == "__main__":
