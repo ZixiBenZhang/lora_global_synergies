@@ -34,7 +34,7 @@ def setup_model_and_dataset(args) -> tuple[PreTrainedModel, AgsModelInfo, PreTra
         batch_size=args.batch_size,
         tokenizer=tokenizer,
         max_token_len=args.max_token_len,
-        num_proc=args.num_workers,
+        num_workers=args.num_workers,
         load_from_cache_file=not args.disable_dataset_cache,
     )
 
