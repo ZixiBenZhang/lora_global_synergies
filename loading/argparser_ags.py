@@ -219,7 +219,7 @@ def get_arg_parser():
     runtime_group.add_argument(
         "--cpu",
         "--num-workers",
-        dest="num_proc",
+        dest="num_workers",
         type=_positive_int,
         help="""
                     number of CPU workers; the default varies across systems and is set to

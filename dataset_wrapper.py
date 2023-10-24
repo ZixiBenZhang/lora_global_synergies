@@ -33,7 +33,7 @@ class AgsDataModule(pl.LightningDataModule):
         batch_size: int,
         tokenizer: PreTrainedTokenizer,
         max_token_len: int,  # for tokenizing
-        num_proc: int = None,
+        num_workers: int = None,
         load_from_cache_file: bool = True,
     ):
         super().__init__()
@@ -45,7 +45,7 @@ class AgsDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.tokenizer = tokenizer
         self.max_token_len = max_token_len
-        self.num_proc = num_proc
+        self.num_workers = num_workers
         self.load_from_cache_file = load_from_cache_file
         self.dataset_info = get_dataset_info(dataset_name)
 
@@ -142,7 +142,7 @@ class AgsDataModule(pl.LightningDataModule):
         def tokenize_function(examples):
             # Tokenize the texts
             result = self.tokenizer(
-                [examples[test_col_name] for test_col_name in self.text_column_names],
+                *[examples[test_col_name] for test_col_name in self.text_column_names],
                 max_length=block_size,
                 # Currently disabled padding & truncation
                 padding=False,
@@ -154,7 +154,7 @@ class AgsDataModule(pl.LightningDataModule):
         dataset_ = dataset_.map(
             tokenize_function,
             batched=True,
-            num_proc=self.num_proc,
+            num_proc=self.num_workers,
             load_from_cache_file=self.load_from_cache_file,
             desc="Running tokenizer on dataset",
         )
@@ -179,7 +179,7 @@ class AgsDataModule(pl.LightningDataModule):
             self.training_dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            num_workers=self.num_proc,
+            num_workers=self.num_workers,
         )
 
     def val_dataloader(self) -> DataLoader:
@@ -189,7 +189,7 @@ class AgsDataModule(pl.LightningDataModule):
             self.validation_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.num_proc,
+            num_workers=self.num_workers,
         )
 
     def test_dataloader(self) -> DataLoader:
@@ -199,7 +199,7 @@ class AgsDataModule(pl.LightningDataModule):
             self.testing_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.num_proc,
+            num_workers=self.num_workers,
         )
 
     def predict_dataloader(self) -> DataLoader:
@@ -209,7 +209,7 @@ class AgsDataModule(pl.LightningDataModule):
             self.prediction_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.num_proc,
+            num_workers=self.num_workers,
         )
 
 
