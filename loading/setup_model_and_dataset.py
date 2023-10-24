@@ -4,7 +4,7 @@ from transformers import AutoTokenizer, PreTrainedModel, PreTrainedTokenizer
 
 from dataset_wrapper import AgsDataModule, get_dataset_info
 from models.model_info import get_model_info, AgsModelInfo
-from model_loader import get_model
+from loading.model_loader import get_model
 
 
 TASK_TO_KEYS = {

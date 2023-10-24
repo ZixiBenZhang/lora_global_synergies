@@ -2,7 +2,7 @@ import torch
 from datasets import DatasetInfo
 from transformers import PreTrainedModel
 
-from base import PlWrapperBase
+from .base import PlWrapperBase
 
 
 # Sentence classification

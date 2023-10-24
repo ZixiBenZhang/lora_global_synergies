@@ -3,7 +3,7 @@ from metrics import MyRouge
 from datasets import DatasetInfo
 from transformers import PreTrainedModel, PreTrainedTokenizer
 
-from base import PlWrapperBase
+from .base import PlWrapperBase
 
 
 # Seq2seq, metric as ROUGE

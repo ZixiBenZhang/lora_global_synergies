@@ -69,7 +69,7 @@ CLI_DEFAULTS = {
 
 
 def get_arg_parser():
-    parser = argparse.ArgumentParser(description="")
+    parser = argparse.ArgumentParser(description="", add_help=False)
 
     # args for main.py
     main_group = parser.add_argument_group("main arguments")

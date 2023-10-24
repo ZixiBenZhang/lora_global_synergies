@@ -21,7 +21,7 @@ def main():
     logger = logging.getLogger("main")
 
     parser = get_arg_parser()
-    args = parser.parse_args(sys.argv)
+    args = parser.parse_args()
 
     pl.seed_everything(args.seed)
     # if args.to_debug:
