@@ -1,5 +1,6 @@
 import torch
 from datasets import DatasetInfo
+from torch import tensor
 from transformers import PreTrainedModel
 
 from .base import PlWrapperBase
@@ -28,6 +29,8 @@ class NLPClassificationModelWrapper(PlWrapperBase):
         token_type_ids=None,  # when multiple sentences are concatenated into the input, this indicate which sentence each character belongs to
         labels=None,
     ):
+        if isinstance(input_ids, list):
+            input_ids = tensor(input_ids)
         if token_type_ids is not None:
             outputs = self.model(
                 input_ids,

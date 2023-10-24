@@ -1,4 +1,6 @@
 import torch
+from torch import tensor
+
 from metrics import MyRouge
 from datasets import DatasetInfo
 from transformers import PreTrainedModel, PreTrainedTokenizer
@@ -48,6 +50,8 @@ class NLPSummarizationModelWrapper(PlWrapperBase):
         decoder_attention_mask=None,
         labels=None,
     ):
+        if isinstance(input_ids, list):
+            input_ids = tensor(input_ids)
         outputs = self.model(
             input_ids,
             attention_mask=attention_mask,
@@ -88,7 +92,7 @@ class NLPSummarizationModelWrapper(PlWrapperBase):
         attention_mask = batch["attention_mask"]
         decoder_input_ids = batch["decoder_input_ids"]
         decoder_attention_mask = batch["decoder_attention_mask"]
-        labels = batch["labels"]
+        labels = batch["label"]
 
         outputs = self.forward(
             input_ids=x,
@@ -116,7 +120,7 @@ class NLPSummarizationModelWrapper(PlWrapperBase):
         attention_mask = batch["attention_mask"]
         decoder_input_ids = batch["decoder_input_ids"]
         decoder_attention_mask = batch["decoder_attention_mask"]
-        labels = batch["labels"]
+        labels = batch["label"]
 
         outputs = self.forward(
             input_ids=x,
