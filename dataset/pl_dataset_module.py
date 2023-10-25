@@ -304,8 +304,34 @@ def get_dataset_info(dataset_name) -> DatasetInfo:
     # Accept only datasets in the project plan
     assert dataset_name in task_to_keys.keys()
     if dataset_name in datasets.get_dataset_config_names("glue"):
-        return datasets.get_dataset_config_info("glue", dataset_name)
+        info = datasets.get_dataset_config_info("glue", dataset_name)
+        if any(["test" in split_name for split_name in datasets.get_dataset_split_names("glue", dataset_name)]):
+            info.__setattr__('test_split_available', True)
+        else:
+            info.__setattr__('test_split_available', False)
+        if any(["pred" in split_name for split_name in datasets.get_dataset_split_names("glue", dataset_name)]):
+            info.__setattr__('pred_split_available', True)
+        else:
+            info.__setattr__('pred_split_available', False)
     elif dataset_name in datasets.get_dataset_config_names("super_glue"):
-        return datasets.get_dataset_config_info("super_glue", dataset_name)
+        info = datasets.get_dataset_config_info("super_glue", dataset_name)
+        if any(["test" in split_name for split_name in datasets.get_dataset_split_names("super_glue", dataset_name)]):
+            info.__setattr__('test_split_available', True)
+        else:
+            info.__setattr__('test_split_available', False)
+        if any(["pred" in split_name for split_name in datasets.get_dataset_split_names("super_glue", dataset_name)]):
+            info.__setattr__('pred_split_available', True)
+        else:
+            info.__setattr__('pred_split_available', False)
     else:
-        return datasets.get_dataset_infos(dataset_name)["default"]
+        info = datasets.get_dataset_infos(dataset_name)["default"]
+        if any(["test" in split_name for split_name in datasets.get_dataset_split_names(dataset_name, None)]):
+            info.__setattr__('test_split_available', True)
+        else:
+            info.__setattr__('test_split_available', False)
+        if any(["pred" in split_name for split_name in datasets.get_dataset_split_names(dataset_name, None)]):
+            info.__setattr__('pred_split_available', True)
+        else:
+            info.__setattr__('pred_split_available', False)
+
+    return info
