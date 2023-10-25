@@ -2,15 +2,15 @@ from .text_entailment_datasets import *
 from .sentiment_analysis_datasets import *
 
 
-def get_nlp_dataset(
+def get_nlp_dataset_split(
     name: str,
-    splits: str | list[str],
+    split: str,
     tokenizer,
     max_token_len: int,
     num_workers: int,
     load_from_cache_file: bool = True,
     auto_setup: bool = True,
-):
+) -> Dataset:
     match name:
         case "sst2":
             dataset_cls = SentimentalAnalysisDatasetSST2
@@ -37,8 +37,8 @@ def get_nlp_dataset(
             raise ValueError(f"Unknown dataset {name}, or not supported yet.")
 
     dataset = dataset_cls(
+        split,
         tokenizer,
-        splits,
         max_token_len,
         num_workers,
         load_from_cache_file,

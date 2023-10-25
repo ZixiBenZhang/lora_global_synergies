@@ -14,6 +14,7 @@ from torchmetrics.text.rouge import ROUGEScore
 import optuna
 from transformers import AutoTokenizer
 
+from dataset import get_nlp_dataset_split
 from loading.argparser_ags import get_arg_parser, CLI_DEFAULTS
 from loading.config_load import post_parse_load_config
 from loading.setup_model_and_dataset import setup_model_and_dataset
@@ -156,26 +157,22 @@ def main():
 
 
 def t():
-    datasets_ = load_dataset("glue", "rte")
-    print(type(datasets_))
     tokenizer = AutoTokenizer.from_pretrained("facebook/opt-125m")
-    encoded_dataset = datasets_.map(
-        lambda examples: tokenizer(
-            *(examples['sentence1'], examples['sentence2']),
-            padding='max_length',
-            max_length=min(tokenizer.model_max_length, 512),
-        ),
-        batched=True,
-        # batch_size=32,
+    datasets_ = get_nlp_dataset_split(
+        name="rte",
+        split='train',
+        tokenizer=tokenizer,
+        max_token_len=512,
+        num_workers=1,
     )
-    pprint(encoded_dataset['train'][:3])
-    dataloader = DataLoader(encoded_dataset['train'], batch_size=32, shuffle=False)
+    print(type(datasets_))
+    dataloader = DataLoader(datasets_, batch_size=32, shuffle=False)
     for i, data in enumerate(dataloader):
         if i >= 1:
             break
         print(data)
         print(data['input_ids'])
-        print(torch.stack(data['input_ids']).shape)
+        print(data['input_ids'].shape)
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ from datasets import DatasetInfo
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizer
 
-from dataset import get_nlp_dataset
+from dataset import get_nlp_dataset_split
 
 
 # Only using the task names
@@ -57,13 +57,102 @@ class AgsDataModule(pl.LightningDataModule):
 
     # Called on rank 0
     def prepare_data(self) -> None:
-        _ = get_nlp_dataset(
-            name=self.dataset_name,
-            tokenizer=self.tokenizer,
-            max_token_len=self.max_token_len,
-            num_workers=self.num_workers,
-            load_from_cache_file=self.load_from_cache_file,
-            auto_setup=False,
+        # Accept only datasets in the project plan
+        assert self.dataset_name in task_to_keys.keys()
+        if self.dataset_name in datasets.get_dataset_config_names("glue"):
+            path = "glue"
+            name = self.dataset_name
+        elif self.dataset_name in datasets.get_dataset_config_names("super_glue"):
+            path = "super_glue"
+            name = self.dataset_name
+        elif self.dataset_name == "xsum":
+            path = self.dataset_name
+            name = None
+        else:
+            raise ValueError(
+                f"Dataset {self.dataset_name} not supported. Please use one of [{'|'.join(task_to_keys.keys())}]"
+            )
+
+        train_split_names = [
+            n for n in datasets.get_dataset_split_names(path, name) if "train" in n
+        ]
+        val_split_names = [
+            n for n in datasets.get_dataset_split_names(path, name) if "validation" in n
+        ]
+        test_split_names = [
+            n for n in datasets.get_dataset_split_names(path, name) if "test" in n
+        ]
+        pred_split_names = [
+            n for n in datasets.get_dataset_split_names(path, name) if "pred" in n
+        ]
+
+        _training_dataset = (
+            None
+            if len(train_split_names) == 0
+            else torch.utils.data.ConcatDataset(
+                [
+                    get_nlp_dataset_split(
+                        name=name,
+                        split=split_name,
+                        tokenizer=self.tokenizer,
+                        max_token_len=self.max_token_len,
+                        num_workers=self.num_workers,
+                        load_from_cache_file=self.load_from_cache_file,
+                        auto_setup=False,
+                    ) for split_name in train_split_names
+                ]
+            )
+        )
+        _validation_dataset = (
+            None
+            if len(val_split_names) == 0
+            else torch.utils.data.ConcatDataset(
+                [
+                    get_nlp_dataset_split(
+                        name=name,
+                        split=split_name,
+                        tokenizer=self.tokenizer,
+                        max_token_len=self.max_token_len,
+                        num_workers=self.num_workers,
+                        load_from_cache_file=self.load_from_cache_file,
+                        auto_setup=False,
+                    ) for split_name in val_split_names
+                ]
+            )
+        )
+        _testing_dataset = (
+            None
+            if len(test_split_names) == 0
+            else torch.utils.data.ConcatDataset(
+                [
+                    get_nlp_dataset_split(
+                        name=name,
+                        split=split_name,
+                        tokenizer=self.tokenizer,
+                        max_token_len=self.max_token_len,
+                        num_workers=self.num_workers,
+                        load_from_cache_file=self.load_from_cache_file,
+                        auto_setup=False,
+                    ) for split_name in test_split_names
+                ]
+            )
+        )
+        _prediction_dataset = (
+            None
+            if len(pred_split_names) == 0
+            else torch.utils.data.ConcatDataset(
+                [
+                    get_nlp_dataset_split(
+                        name=name,
+                        split=split_name,
+                        tokenizer=self.tokenizer,
+                        max_token_len=self.max_token_len,
+                        num_workers=self.num_workers,
+                        load_from_cache_file=self.load_from_cache_file,
+                        auto_setup=False,
+                    ) for split_name in pred_split_names
+                ]
+            )
         )
 
     # Called on all ranks
@@ -84,58 +173,89 @@ class AgsDataModule(pl.LightningDataModule):
                 f"Dataset {self.dataset_name} not supported. Please use one of [{'|'.join(task_to_keys.keys())}]"
             )
 
-        train_splits = [
+        train_split_names = [
             n for n in datasets.get_dataset_split_names(path, name) if "train" in n
         ]
-        val_splits = [
+        val_split_names = [
             n for n in datasets.get_dataset_split_names(path, name) if "validation" in n
         ]
-        test_splits = [
+        test_split_names = [
             n for n in datasets.get_dataset_split_names(path, name) if "test" in n
         ]
-        pred_splits = [
+        pred_split_names = [
             n for n in datasets.get_dataset_split_names(path, name) if "pred" in n
         ]
-
-        dataset_ = get_nlp_dataset(
-            name=name,
-            tokenizer=self.tokenizer,
-            max_token_len=self.max_token_len,
-            num_workers=self.num_workers,
-            load_from_cache_file=self.load_from_cache_file,
-            auto_setup=True,
-        )
 
         if stage in ["fit", None]:
             self.training_dataset = (
                 None
-                if len(train_splits) == 0
-                else datasets.concatenate_datasets(
-                    [dataset_[split] for split in train_splits]
+                if len(train_split_names) == 0
+                else torch.utils.data.ConcatDataset(
+                    [
+                        get_nlp_dataset_split(
+                            name=name,
+                            split=split_name,
+                            tokenizer=self.tokenizer,
+                            max_token_len=self.max_token_len,
+                            num_workers=self.num_workers,
+                            load_from_cache_file=self.load_from_cache_file,
+                            auto_setup=True,
+                        ) for split_name in train_split_names
+                    ]
                 )
             )
         if stage in ["fit", "validate", None]:
             self.validation_dataset = (
                 None
-                if len(val_splits) == 0
-                else datasets.concatenate_datasets(
-                    [dataset_[split] for split in val_splits]
+                if len(val_split_names) == 0
+                else torch.utils.data.ConcatDataset(
+                    [
+                        get_nlp_dataset_split(
+                            name=name,
+                            split=split_name,
+                            tokenizer=self.tokenizer,
+                            max_token_len=self.max_token_len,
+                            num_workers=self.num_workers,
+                            load_from_cache_file=self.load_from_cache_file,
+                            auto_setup=True,
+                        ) for split_name in val_split_names
+                    ]
                 )
             )
         if stage in ["test", None]:
             self.testing_dataset = (
                 None
-                if len(test_splits) == 0
-                else datasets.concatenate_datasets(
-                    [dataset_[split] for split in test_splits]
+                if len(test_split_names) == 0
+                else torch.utils.data.ConcatDataset(
+                    [
+                        get_nlp_dataset_split(
+                            name=name,
+                            split=split_name,
+                            tokenizer=self.tokenizer,
+                            max_token_len=self.max_token_len,
+                            num_workers=self.num_workers,
+                            load_from_cache_file=self.load_from_cache_file,
+                            auto_setup=True,
+                        ) for split_name in test_split_names
+                    ]
                 )
             )
         if stage in ["predict", None]:
             self.prediction_dataset = (
                 None
-                if len(pred_splits) == 0
-                else datasets.concatenate_datasets(
-                    [dataset_[split] for split in pred_splits]
+                if len(pred_split_names) == 0
+                else torch.utils.data.ConcatDataset(
+                    [
+                        get_nlp_dataset_split(
+                            name=name,
+                            split=split_name,
+                            tokenizer=self.tokenizer,
+                            max_token_len=self.max_token_len,
+                            num_workers=self.num_workers,
+                            load_from_cache_file=self.load_from_cache_file,
+                            auto_setup=True,
+                        ) for split_name in pred_split_names
+                    ]
                 )
             )
 

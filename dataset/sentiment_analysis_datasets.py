@@ -17,7 +17,7 @@ class SentimentAnalysisDatasetBase(Dataset):
 
     def __init__(
         self,
-        splits: str | list[str],
+        split_name: str,
         tokenizer,
         max_token_len: int,
         num_workers: int,
@@ -25,6 +25,7 @@ class SentimentAnalysisDatasetBase(Dataset):
         auto_setup: bool = True,
     ):
         super().__init__()
+        self.split_name = split_name
         self.tokenizer = tokenizer
         self.max_token_len = max_token_len
         self.num_workers = num_workers
@@ -45,7 +46,7 @@ class SentimentAnalysisDatasetBase(Dataset):
         self._download_dataset()
 
     def setup(self):
-        self.data_ = self._download_dataset()
+        self.data_ = self._download_dataset()[self.split_name]
 
     def __len__(self):
         if self.data_ is None:

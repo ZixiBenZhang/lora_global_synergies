@@ -14,7 +14,7 @@ class TextEntailmentDatasetBase(Dataset):
 
     def __init__(
         self,
-        split_names: str | list[str],
+        split_name: str,
         tokenizer,
         max_token_len: int,
         num_workers: int,
@@ -22,7 +22,7 @@ class TextEntailmentDatasetBase(Dataset):
         auto_setup: bool = True,
     ):
         super().__init__()
-        self.split_names = split_names
+        self.split_name = split_name
         self.tokenizer = tokenizer
         self.max_token_len = max_token_len
         self.num_workers = num_workers
@@ -43,8 +43,7 @@ class TextEntailmentDatasetBase(Dataset):
         self._download_dataset()
 
     def setup(self):
-        self.data = self._download_dataset()
-        # Todo: concatenate splits
+        self.data = self._download_dataset()[self.split_name]
 
     def __len__(self):
         if self.data is None:
