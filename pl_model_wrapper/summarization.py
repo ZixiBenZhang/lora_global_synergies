@@ -100,7 +100,7 @@ class NLPSummarizationModelWrapper(PlWrapperBase):
         attention_mask = batch["attention_mask"]
         decoder_input_ids = batch["decoder_input_ids"]
         decoder_attention_mask = batch["decoder_attention_mask"]
-        labels = batch["label"]
+        labels = batch["labels"]
 
         outputs = self.forward(
             input_ids=x,
@@ -128,7 +128,7 @@ class NLPSummarizationModelWrapper(PlWrapperBase):
         attention_mask = batch["attention_mask"]
         decoder_input_ids = batch["decoder_input_ids"]
         decoder_attention_mask = batch["decoder_attention_mask"]
-        labels = batch["label"]
+        labels = batch["labels"]
 
         outputs = self.forward(
             input_ids=x,
