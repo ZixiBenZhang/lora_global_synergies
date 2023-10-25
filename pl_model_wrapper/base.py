@@ -64,7 +64,7 @@ class PlWrapperBase(pl.LightningModule):
         self.loss_val(loss)
         return loss
 
-    def on_validation_end(self):
+    def on_validation_epoch_end(self):
         self.log("val_acc_epoch", self.acc_val, prog_bar=True)
         self.log("val_loss_epoch", self.loss_val, prog_bar=True)
 
@@ -77,7 +77,7 @@ class PlWrapperBase(pl.LightningModule):
         self.loss_test(loss)
         return loss
 
-    def on_test_end(self):
+    def on_test_epoch_end(self):
         self.log("test_acc_epoch", self.acc_test, prog_bar=True)
         self.log("test_loss_epoch", self.loss_test, prog_bar=True)
 
