@@ -160,7 +160,7 @@ def t():
     tokenizer = AutoTokenizer.from_pretrained("facebook/opt-125m")
     datasets_ = get_nlp_dataset_split(
         name="rte",
-        split='train',
+        split="train",
         tokenizer=tokenizer,
         max_token_len=512,
         num_workers=1,
@@ -171,8 +171,8 @@ def t():
         if i >= 1:
             break
         print(data)
-        print(data['input_ids'])
-        print(data['input_ids'].shape)
+        print(data["input_ids"])
+        print(data["input_ids"].shape)
 
 
 if __name__ == "__main__":

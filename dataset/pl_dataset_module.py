@@ -89,70 +89,66 @@ class AgsDataModule(pl.LightningDataModule):
         _training_dataset = (
             None
             if len(train_split_names) == 0
-            else torch.utils.data.ConcatDataset(
-                [
-                    get_nlp_dataset_split(
-                        name=name,
-                        split=split_name,
-                        tokenizer=self.tokenizer,
-                        max_token_len=self.max_token_len,
-                        num_workers=self.num_workers,
-                        load_from_cache_file=self.load_from_cache_file,
-                        auto_setup=False,
-                    ) for split_name in train_split_names
-                ]
-            )
+            else [
+                get_nlp_dataset_split(
+                    name=name,
+                    split=split_name,
+                    tokenizer=self.tokenizer,
+                    max_token_len=self.max_token_len,
+                    num_workers=self.num_workers,
+                    load_from_cache_file=self.load_from_cache_file,
+                    auto_setup=False,
+                )
+                for split_name in train_split_names
+            ]
         )
         _validation_dataset = (
             None
             if len(val_split_names) == 0
-            else torch.utils.data.ConcatDataset(
-                [
-                    get_nlp_dataset_split(
-                        name=name,
-                        split=split_name,
-                        tokenizer=self.tokenizer,
-                        max_token_len=self.max_token_len,
-                        num_workers=self.num_workers,
-                        load_from_cache_file=self.load_from_cache_file,
-                        auto_setup=False,
-                    ) for split_name in val_split_names
-                ]
-            )
+            else [
+                get_nlp_dataset_split(
+                    name=name,
+                    split=split_name,
+                    tokenizer=self.tokenizer,
+                    max_token_len=self.max_token_len,
+                    num_workers=self.num_workers,
+                    load_from_cache_file=self.load_from_cache_file,
+                    auto_setup=False,
+                )
+                for split_name in val_split_names
+            ]
         )
         _testing_dataset = (
             None
             if len(test_split_names) == 0
-            else torch.utils.data.ConcatDataset(
-                [
-                    get_nlp_dataset_split(
-                        name=name,
-                        split=split_name,
-                        tokenizer=self.tokenizer,
-                        max_token_len=self.max_token_len,
-                        num_workers=self.num_workers,
-                        load_from_cache_file=self.load_from_cache_file,
-                        auto_setup=False,
-                    ) for split_name in test_split_names
-                ]
-            )
+            else [
+                get_nlp_dataset_split(
+                    name=name,
+                    split=split_name,
+                    tokenizer=self.tokenizer,
+                    max_token_len=self.max_token_len,
+                    num_workers=self.num_workers,
+                    load_from_cache_file=self.load_from_cache_file,
+                    auto_setup=False,
+                )
+                for split_name in test_split_names
+            ]
         )
         _prediction_dataset = (
             None
             if len(pred_split_names) == 0
-            else torch.utils.data.ConcatDataset(
-                [
-                    get_nlp_dataset_split(
-                        name=name,
-                        split=split_name,
-                        tokenizer=self.tokenizer,
-                        max_token_len=self.max_token_len,
-                        num_workers=self.num_workers,
-                        load_from_cache_file=self.load_from_cache_file,
-                        auto_setup=False,
-                    ) for split_name in pred_split_names
-                ]
-            )
+            else [
+                get_nlp_dataset_split(
+                    name=name,
+                    split=split_name,
+                    tokenizer=self.tokenizer,
+                    max_token_len=self.max_token_len,
+                    num_workers=self.num_workers,
+                    load_from_cache_file=self.load_from_cache_file,
+                    auto_setup=False,
+                )
+                for split_name in pred_split_names
+            ]
         )
 
     # Called on all ranks
@@ -200,7 +196,8 @@ class AgsDataModule(pl.LightningDataModule):
                             num_workers=self.num_workers,
                             load_from_cache_file=self.load_from_cache_file,
                             auto_setup=True,
-                        ) for split_name in train_split_names
+                        )
+                        for split_name in train_split_names
                     ]
                 )
             )
@@ -218,7 +215,8 @@ class AgsDataModule(pl.LightningDataModule):
                             num_workers=self.num_workers,
                             load_from_cache_file=self.load_from_cache_file,
                             auto_setup=True,
-                        ) for split_name in val_split_names
+                        )
+                        for split_name in val_split_names
                     ]
                 )
             )
@@ -236,7 +234,8 @@ class AgsDataModule(pl.LightningDataModule):
                             num_workers=self.num_workers,
                             load_from_cache_file=self.load_from_cache_file,
                             auto_setup=True,
-                        ) for split_name in test_split_names
+                        )
+                        for split_name in test_split_names
                     ]
                 )
             )
@@ -254,7 +253,8 @@ class AgsDataModule(pl.LightningDataModule):
                             num_workers=self.num_workers,
                             load_from_cache_file=self.load_from_cache_file,
                             auto_setup=True,
-                        ) for split_name in pred_split_names
+                        )
+                        for split_name in pred_split_names
                     ]
                 )
             )
