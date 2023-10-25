@@ -1,10 +1,14 @@
 import torch
 import pytorch_lightning as pl
 import datasets
-from datasets import load_dataset, Dataset, DatasetDict, DatasetInfo
+from datasets import DatasetInfo
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizer
 
+from dataset import get_nlp_dataset
+
+
+# Only using the task names
 task_to_keys = {
     "cola": ("sentence",),
     "mnli": ("premise", "hypothesis"),
@@ -17,9 +21,8 @@ task_to_keys = {
     "xsum": ("document", "summary"),
     "boolq": ("question", "passage"),
     "cb": ("premise", "hypothesis"),
-    # TODO: determine how COPA, WiC are passed in to model
-    # "copa": ,
-    # "wic": ,
+    "copa": (),
+    "wic": (),
 }
 
 
@@ -52,72 +55,16 @@ class AgsDataModule(pl.LightningDataModule):
         self.testing_dataset = None
         self.prediction_dataset = None
 
-        self.text_column_names = task_to_keys[self.dataset_name]
-
     # Called on rank 0
     def prepare_data(self) -> None:
-        # Downloads dataset splits, but doesn't assign to attributes
-
-        # Accept datasets not in the project plan
-        # configs = datasets.get_dataset_config_names(self.dataset_name)
-        # if configs == ['default']:
-        #     path = self.dataset_name
-        #     name = None
-        # else:
-        #     # Default format: dataset.config
-        #     path = self.dataset_name.split('.')[0]
-        #     name = self.dataset_name.split('.')[1]
-        #     assert name in configs, \
-        #         f"Dataset {path} has no config {name}. " \
-        #         f"Please ensure the config exists in the dataset. Use format 'DATASET.CONFIG'."
-
-        # Accept only datasets in the project plan
-        assert self.dataset_name in task_to_keys.keys()
-        if self.dataset_name in datasets.get_dataset_config_names("glue"):
-            path = "glue"
-            name = self.dataset_name
-        elif self.dataset_name in datasets.get_dataset_config_names("super_glue"):
-            path = "super_glue"
-            name = self.dataset_name
-        elif self.dataset_name == "xsum":
-            path = self.dataset_name
-            name = None
-        else:
-            raise ValueError(
-                f"Dataset {self.dataset_name} not supported. Please use one of [{'|'.join(task_to_keys.keys())}]"
-            )
-
-        train_splits = [
-            n for n in datasets.get_dataset_split_names(path, name) if "train" in n
-        ]
-        val_splits = [
-            n for n in datasets.get_dataset_split_names(path, name) if "validation" in n
-        ]
-        test_splits = [
-            n for n in datasets.get_dataset_split_names(path, name) if "test" in n
-        ]
-        pred_splits = [
-            n for n in datasets.get_dataset_split_names(path, name) if "pred" in n
-        ]
-
-        dataset_ = load_dataset(path, name=name)
-
-        if len(train_splits) > 0:
-            _train_dataset = datasets.concatenate_datasets(
-                [dataset_[split] for split in train_splits]
-            )
-        if len(val_splits) > 0:
-            _val_dataset = datasets.concatenate_datasets(
-                [dataset_[split] for split in val_splits]
-            )
-        if len(test_splits) > 0:
-            _test_dataset = datasets.concatenate_datasets(
-                [dataset_[split] for split in test_splits]
-            )
-        if len(pred_splits) > 0:
-            _pred_dataset = datasets.concatenate_datasets(
-                [dataset_[split] for split in pred_splits]
-            )
+        _ = get_nlp_dataset(
+            name=self.dataset_name,
+            tokenizer=self.tokenizer,
+            max_token_len=self.max_token_len,
+            num_workers=self.num_workers,
+            load_from_cache_file=self.load_from_cache_file,
+            auto_setup=False,
+        )
 
     # Called on all ranks
     def setup(self, stage: str = None) -> None:
@@ -150,36 +97,13 @@ class AgsDataModule(pl.LightningDataModule):
             n for n in datasets.get_dataset_split_names(path, name) if "pred" in n
         ]
 
-        dataset_ = load_dataset(path, name=name)
-
-        if self.max_token_len > self.tokenizer.model_max_length:
-            # Todo: logger warning
-            pass
-            # logger.warning(
-            #     f"The max_seq_length passed ({data_args.max_seq_length}) is larger than the maximum length for the"
-            #     f"model ({tokenizer.model_max_length}). Using max_seq_length={tokenizer.model_max_length}."
-            # )
-        block_size = min(self.max_token_len, self.tokenizer.model_max_length)
-
-        def tokenize_function(examples):
-            # Tokenize the texts
-            result = self.tokenizer(
-                *[examples[test_col_name] for test_col_name in self.text_column_names],
-                max_length=block_size,
-                # Currently disabled padding & truncation
-                padding='max_length',
-                truncation=True,
-            )
-            # TODO: map label_to_ids according to PreTrainedConfig.label2id for datasets other than GLUE
-            return result
-
-        dataset_ = dataset_.map(
-            tokenize_function,
-            batched=True,
-            batch_size=self.batch_size,
-            num_proc=self.num_workers,
+        dataset_ = get_nlp_dataset(
+            name=name,
+            tokenizer=self.tokenizer,
+            max_token_len=self.max_token_len,
+            num_workers=self.num_workers,
             load_from_cache_file=self.load_from_cache_file,
-            desc="Running tokenizer on dataset",
+            auto_setup=True,
         )
 
         if stage in ["fit", None]:

@@ -3,12 +3,9 @@ import os
 import pickle
 
 import torch
-import torch.nn.functional as F
 import pytorch_lightning as pl
-from datasets import load_dataset, load_metric
 from pytorch_lightning.loggers import TensorBoardLogger
 from tools.checkpoint_load import load_model_chkpt
-from dataset_wrapper import AgsDataModule
 import pl_model_wrapper
 
 logger = logging.getLogger(__name__)
