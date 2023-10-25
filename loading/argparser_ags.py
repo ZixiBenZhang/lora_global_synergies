@@ -63,7 +63,7 @@ CLI_DEFAULTS = {
     "is_pretrained": False,
     "max_token_len": 512,
     # Project options,
-    "project_dir": os.path.join(ROOT, "mase_output"),
+    "project_dir": os.path.join(ROOT, "ags_output"),
     "project": None,
 }
 

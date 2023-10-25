@@ -35,9 +35,7 @@ def setup_model_and_dataset(
     if args.load_name is not None and args.load_type == "hf":
         checkpoint = args.load_name
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        args.model if checkpoint is None else checkpoint
-    )
+    tokenizer = AutoTokenizer.from_pretrained(args.model)
 
     data_module = AgsDataModule(
         dataset_name=args.dataset,
