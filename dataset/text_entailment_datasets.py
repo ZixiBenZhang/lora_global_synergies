@@ -1,6 +1,6 @@
 import torch
+from torch.utils.data import Dataset
 import datasets
-from datasets import Dataset
 
 
 class TextEntailmentDatasetBase(Dataset):
@@ -14,7 +14,6 @@ class TextEntailmentDatasetBase(Dataset):
 
     def __init__(
         self,
-        # split: str,
         tokenizer,
         max_token_len: int,
         num_workers: int,
@@ -22,7 +21,6 @@ class TextEntailmentDatasetBase(Dataset):
         auto_setup: bool = True,
     ):
         super().__init__()
-        # self.split_name = split
         self.tokenizer = tokenizer
         self.max_token_len = max_token_len
         self.num_workers = num_workers
@@ -43,7 +41,7 @@ class TextEntailmentDatasetBase(Dataset):
         self._download_dataset()
 
     def setup(self):
-        self.data_ = self._download_dataset()#[self.split_name]
+        self.data_ = self._download_dataset()
 
     def __len__(self):
         if self.data_ is None:

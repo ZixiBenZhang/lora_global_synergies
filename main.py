@@ -3,6 +3,7 @@ import os
 import sys
 from pprint import pprint
 
+import torch
 import transformers
 import datasets
 from datasets import load_dataset
@@ -158,14 +159,23 @@ def t():
     datasets_ = load_dataset("glue", "rte")
     print(type(datasets_))
     tokenizer = AutoTokenizer.from_pretrained("facebook/opt-125m")
-    encoded_dataset = datasets_.map(lambda examples: tokenizer(*(examples['sentence1'], examples['sentence2']), padding=True), batched=True, batch_size=2)
+    encoded_dataset = datasets_.map(
+        lambda examples: tokenizer(
+            *(examples['sentence1'], examples['sentence2']),
+            padding='max_length',
+            max_length=min(tokenizer.model_max_length, 512),
+        ),
+        batched=True,
+        # batch_size=32,
+    )
     pprint(encoded_dataset['train'][:3])
-    dataloader = DataLoader(encoded_dataset['train'], batch_size=2, shuffle=False)
+    dataloader = DataLoader(encoded_dataset['train'], batch_size=32, shuffle=False)
     for i, data in enumerate(dataloader):
         if i >= 1:
             break
         print(data)
-        print(type(data['input_ids'][0]))
+        print(data['input_ids'])
+        print(torch.stack(data['input_ids']).shape)
 
 
 if __name__ == "__main__":
