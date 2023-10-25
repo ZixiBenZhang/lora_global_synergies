@@ -4,6 +4,7 @@ from .sentiment_analysis_datasets import *
 
 def get_nlp_dataset(
     name: str,
+    splits: str | list[str],
     tokenizer,
     max_token_len: int,
     num_workers: int,
@@ -37,6 +38,7 @@ def get_nlp_dataset(
 
     dataset = dataset_cls(
         tokenizer,
+        splits,
         max_token_len,
         num_workers,
         load_from_cache_file,

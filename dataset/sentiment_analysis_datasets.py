@@ -17,6 +17,7 @@ class SentimentAnalysisDatasetBase(Dataset):
 
     def __init__(
         self,
+        splits: str | list[str],
         tokenizer,
         max_token_len: int,
         num_workers: int,

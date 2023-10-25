@@ -14,6 +14,7 @@ class TextEntailmentDatasetBase(Dataset):
 
     def __init__(
         self,
+        split_names: str | list[str],
         tokenizer,
         max_token_len: int,
         num_workers: int,
@@ -21,11 +22,12 @@ class TextEntailmentDatasetBase(Dataset):
         auto_setup: bool = True,
     ):
         super().__init__()
+        self.split_names = split_names
         self.tokenizer = tokenizer
         self.max_token_len = max_token_len
         self.num_workers = num_workers
         self.load_from_cache_file = load_from_cache_file
-        self.data_ = None
+        self.data = None
 
         if self.special_token_mapping is not None:
             self.tokenizer.add_special_tokens(self.special_token_mapping)
@@ -41,24 +43,25 @@ class TextEntailmentDatasetBase(Dataset):
         self._download_dataset()
 
     def setup(self):
-        self.data_ = self._download_dataset()
+        self.data = self._download_dataset()
+        # Todo: concatenate splits
 
     def __len__(self):
-        if self.data_ is None:
+        if self.data is None:
             raise ValueError(
                 "Dataset is not setup. Please call `dataset.prepare_data()` + `dataset.setup()` or pass `auto_setup=True` before using the dataset."
             )
-        return len(self.data_)
+        return len(self.data)
 
     def __getitem__(self, index):
-        if self.data_ is None:
+        if self.data is None:
             raise ValueError(
                 "Dataset is not setup. Please call `dataset.prepare_data()` + `dataset.setup()` or pass `auto_setup=True` before using the dataset."
             )
-        data_row = self.data_[index]
-        question = data_row[self.sent1_col_name]
-        answer = data_row[self.sent2_col_name]
-        labels = data_row[self.label_col_name]
+        datarow = self.data[index]
+        question = datarow[self.sent1_col_name]
+        answer = datarow[self.sent2_col_name]
+        labels = datarow[self.label_col_name]
         encoding = self.tokenizer(
             question,
             answer,
