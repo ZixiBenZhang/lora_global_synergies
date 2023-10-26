@@ -1,0 +1,8 @@
+torch
+transformers
+datasets
+evaluate
+lightning
+tensorboard
+optuna
+tabulate
