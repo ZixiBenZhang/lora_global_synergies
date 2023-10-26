@@ -55,6 +55,10 @@ class AgsDataModule(pl.LightningDataModule):
         self.testing_dataset = None
         self.prediction_dataset = None
 
+        self.save_hyperparameters(
+            ignore=["training_dataset", "validation_dataset", "testing_dataset", "prediction_dataset"]
+        )
+
     # Called on rank 0
     def prepare_data(self) -> None:
         # Accept only datasets in the project plan

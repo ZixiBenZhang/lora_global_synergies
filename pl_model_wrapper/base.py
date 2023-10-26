@@ -41,6 +41,8 @@ class PlWrapperBase(pl.LightningModule):
         self.acc_test = Accuracy("multiclass", num_classes=self.num_classes)
         self.loss_test = MeanMetric()
 
+        self.save_hyperparameters()
+
     def forward(self, x):
         return self.model(x)
 
