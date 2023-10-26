@@ -6,3 +6,4 @@ lightning
 tensorboard
 optuna
 tabulate
+toml
