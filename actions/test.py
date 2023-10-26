@@ -30,7 +30,7 @@ def test(
     if save_path is not None:
         if not os.path.isdir(save_path):
             os.makedirs(save_path)
-        tb_logger = TensorBoardLogger(save_dir=save_path, name="logs_test-sw")
+        tb_logger = TensorBoardLogger(save_dir=save_path, name="logs_test")
         pl_trainer_args["callbacks"] = []
         pl_trainer_args["logger"] = tb_logger
 
