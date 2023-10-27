@@ -100,14 +100,14 @@ class PlWrapperBase(pl.LightningModule):
                 lr=self.learning_rate,
                 weight_decay=self.weight_decay,
             )
-            scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=1e-6)
+            scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=self.learning_rate * 0.1)
         elif self.optimizer == "adam":
             opt = torch.optim.Adam(
                 self.trainer.model.parameters(),
                 lr=self.learning_rate,
                 weight_decay=self.weight_decay,
             )
-            scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=1e-6)
+            scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=self.learning_rate * 0.1)
         elif self.optimizer in ["sgd_no_warmup", "sgd"]:
             opt = torch.optim.SGD(
                 self.trainer.model.parameters(),
