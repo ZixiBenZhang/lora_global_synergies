@@ -123,7 +123,7 @@ def search():
     study_name = "lr_grid_search"
     study = optuna.create_study(
         study_name=study_name,
-        storage_name="sqlite:///{}.db".format(study_name),
+        storage="sqlite:///{}.db".format(study_name),
         load_if_exists=True,
         sampler=optuna.samplers.GridSampler(search_space),
         direction="minimize",
