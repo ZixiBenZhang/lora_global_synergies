@@ -7,9 +7,10 @@ import torch.nn.functional as F
 import pytorch_lightning as pl
 from datasets import load_dataset, load_metric
 from pytorch_lightning.loggers import TensorBoardLogger
-from tools.checkpoint_load import load_model_chkpt
 
+from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
+from metrics_callback import ValidationMetricsCallback
 
 
 logger = logging.getLogger(__name__)
@@ -46,9 +47,14 @@ def train(
         )
         # Monitoring lr for the lr_scheduler
         lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval="step")
+        # TensorBoard logger
         tb_logger = pl.loggers.TensorBoardLogger(save_dir=save_path, name="logs")
         pl_trainer_args["callbacks"] = [checkpoint_callback, lr_monitor_callback]
         pl_trainer_args["logger"] = tb_logger
+
+    # Validation metrics history
+    val_history = ValidationMetricsCallback()
+    pl_trainer_args["callbacks"].append(val_history)
 
     # TODO: setup environment plugins if necessary
     plugins = None
@@ -75,3 +81,16 @@ def train(
     # TODO: save the trained model graph if there are architectural changes.
     # NOTE: This is important if the model was previously transformed with architectural
     # changes. The state dictionary that's saved by PyTorch Lightning wouldn't work.
+
+    match task:
+        case "classification":
+            val_metric = val_history.val_history_metrics["val_acc_epoch"]
+            best_perf = max(val_metric)
+        case "summarization":
+            val_metric = trainer.callback_metrics["val_rouge_epoch"]
+            best_perf = max(val_metric)
+        case _:
+            val_metric = trainer.callback_metrics["val_acc_epoch"]
+            best_perf = max(val_metric)
+
+    return best_perf
