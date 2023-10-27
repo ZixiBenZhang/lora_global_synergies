@@ -25,6 +25,8 @@ def search_lr_objective(trial: optuna.Trial):
     args.__setattr__("project_dir", "./ags_lr_search")
     args.__setattr__("learning_rate", lr_suggested)
 
+    logger.info(f"Training with learning rate {lr_suggested}.")
+
     pl.seed_everything(args.seed)
 
     match args.log_level:
