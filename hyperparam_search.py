@@ -120,7 +120,14 @@ def search_lr_objective(trial: optuna.Trial):
 
 def search():
     search_space = {"lr": [1e-5, 5e-6, 1e-6, 5e-7, 1e-7, 5e-8, 1e-8]}
-    study = optuna.create_study(sampler=optuna.samplers.GridSampler(search_space))
+    study_name = "lr_grid_search"
+    study = optuna.create_study(
+        study_name=study_name,
+        storage_name="sqlite:///{}.db".format(study_name),
+        load_if_exists=True,
+        sampler=optuna.samplers.GridSampler(search_space),
+        direction="minimize",
+    )
     study.optimize(search_lr_objective)
 
 

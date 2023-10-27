@@ -82,15 +82,17 @@ def train(
     # NOTE: This is important if the model was previously transformed with architectural
     # changes. The state dictionary that's saved by PyTorch Lightning wouldn't work.
 
-    match task:
-        case "classification":
-            val_metric = val_history.val_history_metrics["val_acc_epoch"]
-            best_perf = max(val_metric)
-        case "summarization":
-            val_metric = trainer.callback_metrics["val_rouge_epoch"]
-            best_perf = max(val_metric)
-        case _:
-            val_metric = trainer.callback_metrics["val_acc_epoch"]
-            best_perf = max(val_metric)
+    # match task:
+    #     case "classification":
+    #         val_metric = val_history.val_history_metrics["val_acc_epoch"]
+    #         best_perf = max(val_metric)
+    #     case "summarization":
+    #         val_metric = trainer.callback_metrics["val_rouge_epoch"]
+    #         best_perf = max(val_metric)
+    #     case _:
+    #         val_metric = trainer.callback_metrics["val_acc_epoch"]
+    #         best_perf = max(val_metric)
+    val_metric = val_history.val_history_metrics["val_loss_epoch"]
+    best_perf = min(val_metric)
 
     return best_perf
