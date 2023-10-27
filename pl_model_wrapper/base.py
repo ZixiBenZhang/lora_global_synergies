@@ -93,6 +93,7 @@ class PlWrapperBase(pl.LightningModule):
     ) -> torch.optim.Optimizer | dict[
         str, torch.optim.Optimizer | torch.optim.lr_scheduler.LRScheduler
     ]:
+        scheduler = None
         # Use self.trainer.model.parameters() instead of self.parameters() to support FullyShared (Model paralleled) training
         if self.optimizer == "adamw":
             opt = torch.optim.AdamW(
@@ -100,14 +101,14 @@ class PlWrapperBase(pl.LightningModule):
                 lr=self.learning_rate,
                 weight_decay=self.weight_decay,
             )
-            scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=self.learning_rate * 0.1)
+            # scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=self.learning_rate * 0.1)
         elif self.optimizer == "adam":
             opt = torch.optim.Adam(
                 self.trainer.model.parameters(),
                 lr=self.learning_rate,
                 weight_decay=self.weight_decay,
             )
-            scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=self.learning_rate * 0.1)
+            # scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=self.learning_rate * 0.1)
         elif self.optimizer in ["sgd_no_warmup", "sgd"]:
             opt = torch.optim.SGD(
                 self.trainer.model.parameters(),
@@ -116,9 +117,9 @@ class PlWrapperBase(pl.LightningModule):
                 weight_decay=0.0005,
                 nesterov=True,
             )
-            scheduler = None
             if self.optimizer == "sgd":
-                scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=0.0)
+                pass
+                # scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=0.0)
         else:
             raise ValueError(f"Unsupported optimizer name {self.optimizer}")
         return {"optimizer": opt, "lr_scheduler": scheduler}
