@@ -174,6 +174,20 @@ def t():
         print(data["input_ids"])
         print(data["input_ids"].shape)
 
+    # parser = argparse.ArgumentParser(add_help=False)
+    # parser.add_argument("--flag")
+    #
+    # args1 = parser.parse_args()
+    # a = args1.flag
+    # print(a)
+    #
+    # parser = argparse.ArgumentParser(add_help=False)
+    # parser.add_argument("--flag")
+    #
+    # args2 = parser.parse_args()
+    # b = args2.flag
+    # print(b)
+
 
 if __name__ == "__main__":
     main()
