@@ -103,8 +103,8 @@ dataset_info: !!python/object:datasets.info.DatasetInfo
     patch: 0
     version_str: 1.0.0
 dataset_name: rte
-epochs: 15
-learning_rate: 1.0e-08
+epochs: 10
+learning_rate: 5.0e-09
 load_from_cache_file: true
 max_token_len: 512
 num_workers: 40
