@@ -114,6 +114,7 @@ def main():
                 "save_path": os.path.join(output_dir, "training_ckpts"),
                 "load_name": load_name,
                 "load_type": args.load_type,
+                "resume_training": args.resume_training,
             }
 
             logger.info(f"##### WEIGHT DECAY ##### {args.weight_decay}")

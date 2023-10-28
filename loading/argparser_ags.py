@@ -127,6 +127,13 @@ def get_arg_parser():
         metavar="LOAD_TYPE",
     )
     general_group.add_argument(
+        "--resume-training",
+        dest="resume_training",
+        action="store_true",
+        help="resume full training from checkpoint. "
+             "It is designed to and must be used in tandem with --load and --load-type pl.",
+    )
+    general_group.add_argument(
         "--batch-size",
         dest="batch_size",
         type=int,

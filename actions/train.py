@@ -31,6 +31,7 @@ def train(
     save_path,  # path for saving checkpoints
     load_name,  # path to the saved checkpoint
     load_type,  # model checkpoint's type: ['pt', 'pl']
+    resume_training,  # whether resume full training from the checkpoint
 ):
     if save_path is not None:  # if save_path is None, model won't be saved
         # setup callbacks
@@ -62,26 +63,45 @@ def train(
 
     wrapper_pl_model = pl_model_wrapper.get_model_wrapper(model_info, task)
 
-    # load model checkpoint
-    if load_name is not None:
-        model = load_model_chkpt(load_name, load_type=load_type, model=model)
+    if resume_training:
+        # resume full training from pl checkpoint
+        if load_name is None:
+            raise ValueError("Path to checkpoint required for resuming training. Please use --load PATH.")
+        if load_type != "pl":
+            raise ValueError("Load-type pl is required for resuming training. Please use --load-type pl.")
+        logger.warning(
+            f"Resume full training state from pl checkpoint {load_name}. Entered hyperparameter configuration ignored."
+        )
 
-    pl_model: pl.LightningModule = wrapper_pl_model(
-        model,
-        dataset_info=dataset_info,
-        learning_rate=learning_rate,
-        weight_decay=weight_decay,
-        epochs=pl_trainer_args["max_epochs"],
-        optimizer=optimizer,
-    )
+        pl_model = wrapper_pl_model.load_from_checkpoint(load_name)
 
-    trainer = pl.Trainer(**pl_trainer_args)
-    trainer.fit(pl_model, datamodule=data_module)
+        trainer = pl.Trainer(**pl_trainer_args)
+        trainer.fit(
+            pl_model,
+            datamodule=data_module,
+            ckpt_path=load_name,
+        )
+    else:
+        # load model checkpoint
+        if load_name is not None:
+            model = load_model_chkpt(load_name, load_type=load_type, model=model)
+        pl_model: pl.LightningModule = wrapper_pl_model(
+            model,
+            dataset_info=dataset_info,
+            learning_rate=learning_rate,
+            weight_decay=weight_decay,
+            epochs=pl_trainer_args["max_epochs"],
+            optimizer=optimizer,
+        )
+
+        trainer = pl.Trainer(**pl_trainer_args)
+        trainer.fit(pl_model, datamodule=data_module)
 
     # TODO: save the trained model graph if there are architectural changes.
     # NOTE: This is important if the model was previously transformed with architectural
     # changes. The state dictionary that's saved by PyTorch Lightning wouldn't work.
 
+    # Compute metric for hyperparameter search
     # match task:
     #     case "classification":
     #         val_metric = val_history.val_history_metrics["val_acc_epoch"]
