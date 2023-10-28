@@ -70,14 +70,15 @@ class LoraLinear(nn.Linear, LoRALayer):
         self.weight.requires_grad = False
 
         self.config = config
-        r, lora_alpha, lora_dropout_p, adapter_name = (
+        r, lora_alpha, lora_dropout_p, adapter_name, disable_adapter = (
             config["r"],
             config["lora_alpha"],
             float(config["lora_dropout"]),
             config["adapter_name"],
+            config["disable_adapter"],
         )
-
-        init_lora_weights = kwargs.pop("init_lora_weights", default=True)
+        init_lora_weights = config.get("init_lora_weights", default=True)
+        self.disable_adapters = disable_adapter
         self.fan_in_fan_out = config.get("fan_in_fan_out", default=False)
         if self.fan_in_fan_out:
             self.weight.data = self.weight.data.T
