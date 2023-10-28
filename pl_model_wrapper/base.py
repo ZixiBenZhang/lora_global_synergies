@@ -122,4 +122,6 @@ class PlWrapperBase(pl.LightningModule):
                 # scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=0.0)
         else:
             raise ValueError(f"Unsupported optimizer name {self.optimizer}")
+        # return {"optimizer": opt, "lr_scheduler": scheduler}
         return {"optimizer": opt}
+
