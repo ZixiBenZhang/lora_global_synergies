@@ -77,7 +77,7 @@ def train(
 
         pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
 
-        logger.info(
+        logger.warning(
             f"Resuming hyperparameters: {pl_model.hparams}"
         )
 
