@@ -124,4 +124,3 @@ class PlWrapperBase(pl.LightningModule):
             raise ValueError(f"Unsupported optimizer name {self.optimizer}")
         # return {"optimizer": opt, "lr_scheduler": scheduler}
         return {"optimizer": opt}
-
