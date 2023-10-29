@@ -3,7 +3,7 @@ import toml
 
 from tools.config_load import convert_strna_to_none
 
-'''
+"""
 LoRA config format:
 lora_config = {
     default: {r, lora_alpha, lora_dropout_p, adapter_name, disable_adapter},
@@ -38,10 +38,12 @@ Head-wise:
     Head-wise:
         specify a mat config for each proj_type (i, [q_proj, k_proj, v_proj], j) in "model_layer_{i}_{proj_type}_head{j}";
         specify a mat config for each proj_type (i, [o_proj, w1, w2]) in "model_layer_{i}_{proj_type}"
-'''
+"""
 
 
-def parse_lora_config(config: str | dict, num_hidden_layers: int, num_heads: int | dict[str, int]) -> dict:
+def parse_lora_config(
+    config: str | dict, num_hidden_layers: int, num_heads: int | dict[str, int]
+) -> dict:
     assert isinstance(config, (str, dict)), "config must be a str path to toml or dict"
     if isinstance(config, str):
         config = toml.load(config)
@@ -63,9 +65,13 @@ def parse_lora_config(config: str | dict, num_hidden_layers: int, num_heads: int
             raise ValueError(f"Unsupported config granularity: {granularity}")
 
 
-def parse_by_network(config: dict, num_hidden_layers: int, num_heads: dict[str, int]) -> dict:
+def parse_by_network(
+    config: dict, num_hidden_layers: int, num_heads: dict[str, int]
+) -> dict:
     assert "default" in config, "Must provide default config"
-    default_lc: dict = get_mat_config(config["default"])  # same config for QKV in all layers
+    default_lc: dict = get_mat_config(
+        config["default"]
+    )  # same config for QKV in all layers
     all_layers_lc: dict = config.get("all_layers", None)  # config mat for all layers
 
     p_config = {}
@@ -76,7 +82,9 @@ def parse_by_network(config: dict, num_hidden_layers: int, num_heads: dict[str, 
         for proj in ["q", "k", "v"]:
             for j in range(num_heads[proj]):
                 head_entry = f"head_{j}"
-                p_config[layer_entry][f"{proj}_proj"][head_entry] = create_a_mat_config(all_layers_lc, default_lc)
+                p_config[layer_entry][f"{proj}_proj"][head_entry] = create_a_mat_config(
+                    all_layers_lc, default_lc
+                )
         # O projection
         p_config[layer_entry]["o_proj"] = create_a_mat_config(all_layers_lc, default_lc)
         # ffn
@@ -86,9 +94,13 @@ def parse_by_network(config: dict, num_hidden_layers: int, num_heads: dict[str, 
     return p_config
 
 
-def parse_by_layer(config: dict, num_hidden_layers: int, num_heads: dict[str, int]) -> dict:
+def parse_by_layer(
+    config: dict, num_hidden_layers: int, num_heads: dict[str, int]
+) -> dict:
     assert "default" in config, "Must provide default config"
-    default_lc: dict = get_mat_config(config["default"])  # same config for QKV in all layers
+    default_lc: dict = get_mat_config(
+        config["default"]
+    )  # same config for QKV in all layers
 
     p_config = {}
     for i in range(num_hidden_layers):
@@ -99,7 +111,9 @@ def parse_by_layer(config: dict, num_hidden_layers: int, num_heads: dict[str, in
         for proj in ["q", "k", "v"]:
             for j in range(num_heads[proj]):
                 head_entry = f"head_{j}"
-                p_config[layer_entry][f"{proj}_proj"][head_entry] = create_a_mat_config(layer_lc, default_lc)
+                p_config[layer_entry][f"{proj}_proj"][head_entry] = create_a_mat_config(
+                    layer_lc, default_lc
+                )
         # O projection
         p_config[layer_entry]["o_proj"] = create_a_mat_config(layer_lc, default_lc)
         # ffn
@@ -109,9 +123,13 @@ def parse_by_layer(config: dict, num_hidden_layers: int, num_heads: dict[str, in
     return p_config
 
 
-def parse_by_head(config: dict, num_hidden_layers: int, num_heads: dict[str, int]) -> dict:
+def parse_by_head(
+    config: dict, num_hidden_layers: int, num_heads: dict[str, int]
+) -> dict:
     assert "default" in config, "Must provide default config"
-    default_lc: dict = get_mat_config(config["default"])  # same config for QKV in all layers
+    default_lc: dict = get_mat_config(
+        config["default"]
+    )  # same config for QKV in all layers
 
     p_config = {}
     for i in range(num_hidden_layers):
@@ -121,25 +139,35 @@ def parse_by_head(config: dict, num_hidden_layers: int, num_heads: dict[str, int
         for proj in ["q", "k", "v"]:
             for j in range(num_heads[proj]):
                 head_entry = f"head_{j}"
-                head_default_lc: dict = config.get(f"{proj}_proj_{head_entry}", None)  # config heads respectively for all layers
-                head_lc: dict = config.get(f"{layer_entry}_{proj}_proj_{head_entry}", None)  # config heads respectively for each layer
+                head_default_lc: dict = config.get(
+                    f"{proj}_proj_{head_entry}", None
+                )  # config heads respectively for all layers
+                head_lc: dict = config.get(
+                    f"{layer_entry}_{proj}_proj_{head_entry}", None
+                )  # config heads respectively for each layer
                 p_config[layer_entry][f"{proj}_proj"][head_entry] = create_a_mat_config(
                     head_lc, create_a_mat_config(head_default_lc, default_lc)
                 )
         # O projection
         o_default_lc: dict = config.get(f"o_proj", None)  # config o_proj for all layers
-        o_lc: dict = config.get(f"{layer_entry}_o_proj", None)  # config o_proj respectively for each layer
+        o_lc: dict = config.get(
+            f"{layer_entry}_o_proj", None
+        )  # config o_proj respectively for each layer
         p_config[layer_entry]["o_proj"] = create_a_mat_config(
             o_lc, create_a_mat_config(o_default_lc, default_lc)
         )
         # ffn
         w1_default_lc: dict = config.get(f"w1", None)  # config o_proj for all layers
-        w1_lc: dict = config.get(f"{layer_entry}_w1", None)  # config o_proj respectively for each layer
+        w1_lc: dict = config.get(
+            f"{layer_entry}_w1", None
+        )  # config o_proj respectively for each layer
         p_config[layer_entry]["w1"] = create_a_mat_config(
             w1_lc, create_a_mat_config(w1_default_lc, default_lc)
         )
         w2_default_lc: dict = config.get(f"w2", None)  # config o_proj for all layers
-        w2_lc: dict = config.get(f"{layer_entry}_w2", None)  # config o_proj respectively for each layer
+        w2_lc: dict = config.get(
+            f"{layer_entry}_w2", None
+        )  # config o_proj respectively for each layer
         p_config[layer_entry]["w2"] = create_a_mat_config(
             w2_lc, create_a_mat_config(w2_default_lc, default_lc)
         )

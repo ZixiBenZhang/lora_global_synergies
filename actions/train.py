@@ -66,7 +66,9 @@ def train(
     if resume_training:
         # resume full training from pl checkpoint
         if load_name is None:
-            raise ValueError("Path to checkpoint required for resuming training. Please use --load PATH.")
+            raise ValueError(
+                "Path to checkpoint required for resuming training. Please use --load PATH."
+            )
         model = load_model_chkpt(load_name, load_type=load_type, model=model)
 
         # if load_type != "pl":
@@ -77,9 +79,7 @@ def train(
 
         pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
 
-        logger.warning(
-            f"Resuming hyperparameters: {pl_model.hparams}"
-        )
+        logger.warning(f"Resuming hyperparameters: {pl_model.hparams}")
 
         trainer = pl.Trainer(**pl_trainer_args)
         trainer.fit(

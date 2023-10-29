@@ -117,7 +117,9 @@ def search_lr_objective(trial: optuna.Trial):
             return best_perf
 
         case _:
-            raise ValueError("Invalid action. Optuna hyperparameter only support 'train' action.")
+            raise ValueError(
+                "Invalid action. Optuna hyperparameter only support 'train' action."
+            )
 
 
 def search():

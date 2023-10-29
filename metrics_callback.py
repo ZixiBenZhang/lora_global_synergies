@@ -8,7 +8,9 @@ class ValidationMetricsCallback(pl.Callback):
         super().__init__()
         self.val_history_metrics: dict[str, list[Tensor]] = {}
 
-    def on_validation_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+    def on_validation_epoch_end(
+        self, trainer: "pl.Trainer", pl_module: "pl.LightningModule"
+    ) -> None:
         metrics = trainer.callback_metrics
         for k in metrics:
             if "val" not in k:
