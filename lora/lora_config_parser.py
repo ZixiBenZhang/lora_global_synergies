@@ -6,29 +6,29 @@ from tools.config_load import convert_strna_to_none
 """
 LoRA config format:
 lora_config = {
-    default: {r, lora_alpha, lora_dropout_p, adapter_name, disable_adapter},
+    default: {r, lora_alpha, lora_dropout, adapter_name, disable_adapter},
     transformer_layer_{i}: {
         q_proj: {
-            head_{j}: {r, lora_alpha, lora_dropout_p, adapter_name, disable_adapter},
+            head_{j}: {r, lora_alpha, lora_dropout, adapter_name, disable_adapter},
             ... 
         },
         k_proj: {
-            head_{j}: {r, lora_alpha, lora_dropout_p, adapter_name, disable_adapter},
+            head_{j}: {r, lora_alpha, lora_dropout, adapter_name, disable_adapter},
             ...
         },
         v_proj: {
-            head_{j}: {r, lora_alpha, lora_dropout_p, adapter_name, disable_adapter},
+            head_{j}: {r, lora_alpha, lora_dropout, adapter_name, disable_adapter},
             ...
         },
-        o_proj: {r, lora_alpha, lora_dropout_p, adapter_name, disable_adapter},
-        w1: {r, lora_alpha, lora_dropout_p, adapter_name, disable_adapter},
-        w2: {r, lora_alpha, lora_dropout_p, adapter_name, disable_adapter},
+        o_proj: {r, lora_alpha, lora_dropout, adapter_name, disable_adapter},
+        w1: {r, lora_alpha, lora_dropout, adapter_name, disable_adapter},
+        w2: {r, lora_alpha, lora_dropout, adapter_name, disable_adapter},
     },
     ...
 }
 
 Granularity:
-Default: a mat config i.e. {r, lora_alpha, lora_dropout_p, adapter_name, disable_adapter}
+Default: a mat config i.e. {r, lora_alpha, lora_dropout, adapter_name, disable_adapter}
 Network: specify a mat config in "all_layers"
 Layer-wise: specify a mat config for each (i) in "model_layer_{i}"
 Head-wise:

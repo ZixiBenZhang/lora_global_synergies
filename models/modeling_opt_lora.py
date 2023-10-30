@@ -35,6 +35,8 @@ from transformers.utils import (
     logging,
     replace_return_docstrings,
 )
+
+from lora.lora_modules import LoraLinear
 from .configuration_opt_lora import OPTLoraConfig
 
 
@@ -46,7 +48,6 @@ _CONFIG_FOR_DOC = "OPTLoraConfig"
 # Base model docstring
 _EXPECTED_OUTPUT_SHAPE = [1, 8, 1024]
 
-# TODO: edit SequenceClassification docstring
 # SequenceClassification docstring
 _CHECKPOINT_FOR_SEQUENCE_CLASSIFICATION = "ArthurZ/opt-350m-dummy-sc"
 _SEQ_CLASS_EXPECTED_LOSS = 1.71
@@ -120,18 +121,22 @@ class OPTLearnedPositionalEmbedding(nn.Embedding):
         return super().forward(positions + self.offset)
 
 
+# Q, K, V, O in here
 class OPTAttention(nn.Module):
     """Multi-headed attention from 'Attention Is All You Need' paper"""
 
     def __init__(
         self,
+        config: OPTLoraConfig,
         embed_dim: int,
         num_heads: int,
+        layer_id: int = 0,
         dropout: float = 0.0,
         is_decoder: bool = False,
-        bias: bool = True,
+        bias: bool = False,
     ):
         super().__init__()
+        self.config = config
         self.embed_dim = embed_dim
         self.num_heads = num_heads
         self.dropout = dropout
@@ -145,10 +150,33 @@ class OPTAttention(nn.Module):
         self.scaling = self.head_dim**-0.5
         self.is_decoder = is_decoder
 
-        self.k_proj = nn.Linear(embed_dim, embed_dim, bias=bias)
-        self.v_proj = nn.Linear(embed_dim, embed_dim, bias=bias)
-        self.q_proj = nn.Linear(embed_dim, embed_dim, bias=bias)
-        self.out_proj = nn.Linear(embed_dim, embed_dim, bias=bias)
+        layer_lora_config = config.lora_config[f"model_layer_{layer_id}"]
+        # Currently same config for all heads. TODO: apply head-wise config
+        self.k_proj = LoraLinear(
+            in_features=embed_dim,
+            out_features=embed_dim,
+            bias=bias,
+            config=layer_lora_config["k_proj"]["head_0"],
+        )
+        self.v_proj = LoraLinear(
+            in_features=embed_dim,
+            out_features=embed_dim,
+            bias=bias,
+            config=layer_lora_config["v_proj"]["head_0"],
+        )
+        self.q_proj = LoraLinear(
+            in_features=embed_dim,
+            out_features=embed_dim,
+            bias=bias,
+            config=layer_lora_config["q_proj"]["head_0"],
+        )
+        self.out_proj = LoraLinear(
+            in_features=embed_dim,
+            out_features=embed_dim,
+            bias=bias,
+            config=layer_lora_config["o_proj"],
+        )
+        self.layer_lora_config = layer_lora_config
 
     def _shape(self, tensor: torch.Tensor, seq_len: int, bsz: int):
         return tensor.view(bsz, seq_len, self.num_heads, self.head_dim).transpose(1, 2).contiguous()
@@ -170,7 +198,7 @@ class OPTAttention(nn.Module):
 
         bsz, tgt_len, _ = hidden_states.size()
 
-        # get query proj
+        # get query proj, with the scaling sqrt(d_k)
         query_states = self.q_proj(hidden_states) * self.scaling
         # get key, value proj
         if is_cross_attention and past_key_value is not None:
@@ -188,7 +216,7 @@ class OPTAttention(nn.Module):
             key_states = torch.cat([past_key_value[0], key_states], dim=2)
             value_states = torch.cat([past_key_value[1], value_states], dim=2)
         else:
-            # self_attention
+            # self_attention, as default...
             key_states = self._shape(self.k_proj(hidden_states), -1, bsz)
             value_states = self._shape(self.v_proj(hidden_states), -1, bsz)
 
@@ -208,6 +236,7 @@ class OPTAttention(nn.Module):
         value_states = value_states.view(*proj_shape)
 
         src_len = key_states.size(1)
+        # attn_weight = (Q/sqrt(d_k) @ K^T
         attn_weights = torch.bmm(query_states, key_states.transpose(1, 2))
 
         if attn_weights.size() != (bsz * self.num_heads, tgt_len, src_len):
@@ -216,6 +245,7 @@ class OPTAttention(nn.Module):
                 f" {attn_weights.size()}"
             )
 
+        # apply attention mask
         if attention_mask is not None:
             if attention_mask.size() != (bsz, 1, tgt_len, src_len):
                 raise ValueError(
@@ -227,12 +257,14 @@ class OPTAttention(nn.Module):
             )
             attn_weights = attn_weights.view(bsz * self.num_heads, tgt_len, src_len)
 
+        # softmax(attn_weight)
         # upcast to fp32 if the weights are in fp16. Please see https://github.com/huggingface/transformers/pull/17437
         if attn_weights.dtype == torch.float16:
             attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(torch.float16)
         else:
             attn_weights = nn.functional.softmax(attn_weights, dim=-1)
 
+        # apply head mask
         if layer_head_mask is not None:
             if layer_head_mask.size() != (self.num_heads,):
                 raise ValueError(
@@ -254,6 +286,7 @@ class OPTAttention(nn.Module):
 
         attn_probs = nn.functional.dropout(attn_weights, p=self.dropout, training=self.training)
 
+        # attn_output = attn_weight * V
         attn_output = torch.bmm(attn_probs, value_states)
 
         if attn_output.size() != (bsz * self.num_heads, tgt_len, self.head_dim):
@@ -265,22 +298,28 @@ class OPTAttention(nn.Module):
         attn_output = attn_output.view(bsz, self.num_heads, tgt_len, self.head_dim)
         attn_output = attn_output.transpose(1, 2)
 
+        # concatenate heads' attn_output
         # Use the `embed_dim` from the config (stored in the class) rather than `hidden_state` because `attn_output` can be
         # partitioned aross GPUs when using tensor-parallelism.
         attn_output = attn_output.reshape(bsz, tgt_len, self.embed_dim)
 
+        # heads_attn_output @ O
         attn_output = self.out_proj(attn_output)
 
         return attn_output, attn_weights_reshaped, past_key_value
 
 
+# W1, W2 in here
 class OPTDecoderLayer(nn.Module):
-    def __init__(self, config: OPTConfig):
+    def __init__(self, config: OPTLoraConfig, layer_id: int = 0):
         super().__init__()
         self.embed_dim = config.hidden_size
+        self.layer_id = layer_id
         self.self_attn = OPTAttention(
+            config=config,
             embed_dim=self.embed_dim,
             num_heads=config.num_attention_heads,
+            layer_id=layer_id,
             dropout=config.attention_dropout,
             is_decoder=True,
             bias=config.enable_bias,
@@ -292,8 +331,20 @@ class OPTDecoderLayer(nn.Module):
         self.self_attn_layer_norm = nn.LayerNorm(
             self.embed_dim, elementwise_affine=config.layer_norm_elementwise_affine
         )
-        self.fc1 = nn.Linear(self.embed_dim, config.ffn_dim, bias=config.enable_bias)
-        self.fc2 = nn.Linear(config.ffn_dim, self.embed_dim, bias=config.enable_bias)
+
+        layer_lora_config = config.lora_config[f"model_layer_{layer_id}"]
+        self.fc1 = LoraLinear(
+            in_features=self.embed_dim,
+            out_features=config.ffn_dim,
+            config=layer_lora_config["w1"],
+            bias=config.enable_bias,
+        )
+        self.fc2 = LoraLinear(
+            in_features=config.ffn_dim,
+            out_features=self.embed_dim,
+            config=layer_lora_config["w2"],
+            bias=config.enable_bias,
+        )
         self.final_layer_norm = nn.LayerNorm(self.embed_dim, elementwise_affine=config.layer_norm_elementwise_affine)
 
     def forward(
@@ -327,14 +378,20 @@ class OPTDecoderLayer(nn.Module):
         if self.do_layer_norm_before:
             hidden_states = self.self_attn_layer_norm(hidden_states)
 
-        # Self Attention
+        # Self Attention (thus key_value_states and past_key_value should be None)
         hidden_states, self_attn_weights, present_key_value = self.self_attn(
             hidden_states=hidden_states,
+            # Todo: resolve key_value_state i.e. K, V before projection, for cross-attention
+            # key_value_states=None,
             past_key_value=past_key_value,
             attention_mask=attention_mask,
             layer_head_mask=layer_head_mask,
             output_attentions=output_attentions,
         )
+        hidden_states: torch.Tensor
+        self_attn_weights: Optional[torch.Tensor]
+        present_key_value: Optional[Tuple[torch.Tensor]]
+
         hidden_states = nn.functional.dropout(hidden_states, p=self.dropout, training=self.training)
         hidden_states = residual + hidden_states
 
@@ -347,7 +404,7 @@ class OPTDecoderLayer(nn.Module):
         hidden_states = hidden_states.reshape(-1, hidden_states.size(-1))
         residual = hidden_states
 
-        # 125m, 1.7B, ..., 175B applies layer norm BEFORE attention
+        # 125m, 1.7B, ..., 175B applies layer norm BEFORE ffn
         if self.do_layer_norm_before:
             hidden_states = self.final_layer_norm(hidden_states)
 
@@ -359,7 +416,7 @@ class OPTDecoderLayer(nn.Module):
 
         hidden_states = (residual + hidden_states).view(hidden_states_shape)
 
-        # 350m applies layer norm AFTER attention
+        # 350m applies layer norm AFTER ffn
         if not self.do_layer_norm_before:
             hidden_states = self.final_layer_norm(hidden_states)
 
@@ -396,7 +453,7 @@ OPT_START_DOCSTRING = r"""
     OPT_START_DOCSTRING,
 )
 class OPTPreTrainedModel(PreTrainedModel):
-    config_class = OPTConfig
+    config_class = OPTLoraConfig
     base_model_prefix = "model"
     supports_gradient_checkpointing = True
     _no_split_modules = ["OPTDecoderLayer"]
@@ -484,10 +541,10 @@ class OPTDecoder(OPTPreTrainedModel):
     Transformer decoder consisting of *config.num_hidden_layers* layers. Each layer is a [`OPTDecoderLayer`]
 
     Args:
-        config: OPTConfig
+        config: OPTLoraConfig
     """
 
-    def __init__(self, config: OPTConfig):
+    def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
         self.dropout = config.dropout
         self.layerdrop = config.layerdrop
@@ -518,7 +575,7 @@ class OPTDecoder(OPTPreTrainedModel):
         else:
             self.final_layer_norm = None
 
-        self.layers = nn.ModuleList([OPTDecoderLayer(config) for _ in range(config.num_hidden_layers)])
+        self.layers = nn.ModuleList([OPTDecoderLayer(config, i) for i in range(config.num_hidden_layers)])
 
         self.gradient_checkpointing = False
         # Initialize weights and apply final processing
@@ -648,7 +705,8 @@ class OPTDecoder(OPTPreTrainedModel):
                 f"The provided attention mask has length {attention_mask.shape[1]}, but its length should be "
                 f"{mask_seq_length} (sum of the lengths of current and past inputs)"
             )
-        causal_attention_mask = self._prepare_decoder_attention_mask(
+
+        attention_mask = self._prepare_decoder_attention_mask(
             attention_mask, input_shape, inputs_embeds, past_key_values_length
         )
         pos_embeds = self.embed_positions(attention_mask, past_key_values_length)
@@ -660,7 +718,7 @@ class OPTDecoder(OPTPreTrainedModel):
 
         if self.gradient_checkpointing and self.training:
             if use_cache:
-                logger.warning_once(
+                logger.warning(
                     "`use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`..."
                 )
                 use_cache = False
@@ -703,14 +761,14 @@ class OPTDecoder(OPTPreTrainedModel):
                 layer_outputs = torch.utils.checkpoint.checkpoint(
                     create_custom_forward(decoder_layer),
                     hidden_states,
-                    causal_attention_mask,
+                    attention_mask,
                     head_mask[idx] if head_mask is not None else None,
                     None,
                 )
             else:
                 layer_outputs = decoder_layer(
                     hidden_states,
-                    attention_mask=causal_attention_mask,
+                    attention_mask=attention_mask,
                     layer_head_mask=(head_mask[idx] if head_mask is not None else None),
                     past_key_value=past_key_value,
                     output_attentions=output_attentions,
@@ -751,7 +809,7 @@ class OPTDecoder(OPTPreTrainedModel):
     OPT_START_DOCSTRING,
 )
 class OPTModel(OPTPreTrainedModel):
-    def __init__(self, config: OPTConfig):
+    def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
         self.decoder = OPTDecoder(config)
         # Initialize weights and apply final processing
@@ -819,7 +877,7 @@ class OPTModel(OPTPreTrainedModel):
 class OPTForCausalLM(OPTPreTrainedModel):
     _tied_weights_keys = ["lm_head.weight"]
 
-    def __init__(self, config):
+    def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
         self.model = OPTModel(config)
 
@@ -980,7 +1038,12 @@ class OPTForCausalLM(OPTPreTrainedModel):
         )
 
     def prepare_inputs_for_generation(
-        self, input_ids, past_key_values=None, attention_mask=None, inputs_embeds=None, **kwargs
+        self,
+        input_ids,
+        past_key_values=None,
+        attention_mask=None,
+        inputs_embeds=None,
+        **kwargs,
     ):
         if past_key_values:
             input_ids = input_ids[:, -1:]
@@ -1025,8 +1088,9 @@ class OPTForCausalLM(OPTPreTrainedModel):
     """,
     OPT_START_DOCSTRING,
 )
+# TODO: check the following
 class OPTForSequenceClassification(OPTPreTrainedModel):
-    def __init__(self, config: OPTConfig):
+    def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
         self.num_labels = config.num_labels
         self.model = OPTModel(config)
