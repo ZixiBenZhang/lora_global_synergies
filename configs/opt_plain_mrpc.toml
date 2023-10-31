@@ -3,8 +3,10 @@ model = "facebook/opt-125m"
 dataset = "mrpc"
 # training
 training_optimizer = "adamw"
-#learning_rate = 1e-6
+learning_rate = 1e-6
 weight_decay = 0.01
+lr_scheduler = "cosine_annealing"
+eta_min = 1e-7
 max_epochs = 10
 batch_size = 32
 log_every_n_steps = 30
