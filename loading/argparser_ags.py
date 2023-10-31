@@ -13,7 +13,7 @@ LOAD_TYPE = [
     "hf",  # HuggingFace's checkpoint directory saved by 'save_pretrained'
 ]
 OPTIMIZERS = ["adam", "sgd", "adamw"]
-SCHEDULER = ["none", "cosine_annealing"]
+SCHEDULERS = ["none", "cosine_annealing"]
 LOG_LEVELS = ["debug", "info", "warning", "error", "critical"]
 STRATEGIES = [
     "ddp",
@@ -44,7 +44,7 @@ CLI_DEFAULTS = {
     # "trainer_precision": TRAINER_PRECISION[1],
     "learning_rate": 1e-5,
     "weight_decay": 0,
-    "lr_scheduler": SCHEDULER[0],
+    "lr_scheduler": SCHEDULERS[0],
     "eta_min": 0,
     "max_epochs": 20,
     "max_steps": -1,
