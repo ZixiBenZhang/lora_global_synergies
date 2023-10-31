@@ -1,13 +1,11 @@
 # basics
 model = "facebook/opt-125m"
-dataset = "mrpc"
+dataset = "qqp"
 # training
 training_optimizer = "adamw"
-learning_rate = 1e-6
+learning_rate = 1e-5
 weight_decay = 0.01
-#lr_scheduler = "cosine_annealing"
-#eta_min = 1e-7
-max_epochs = 10
+max_epochs = 4
 batch_size = 32
 log_every_n_steps = 30
 # torch lightning
