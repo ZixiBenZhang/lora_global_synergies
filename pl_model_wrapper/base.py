@@ -93,6 +93,7 @@ class PlWrapperBase(pl.LightningModule):
     ) -> torch.optim.Optimizer | dict[
         str, torch.optim.Optimizer | torch.optim.lr_scheduler.LRScheduler
     ]:
+        # TODO: add back LR scheduler
         scheduler = None
         # Use self.trainer.model.parameters() instead of self.parameters() to support FullyShared (Model paralleled) training
         if self.optimizer == "adamw":
