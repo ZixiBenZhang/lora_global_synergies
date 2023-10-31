@@ -13,6 +13,7 @@ LOAD_TYPE = [
     "hf",  # HuggingFace's checkpoint directory saved by 'save_pretrained'
 ]
 OPTIMIZERS = ["adam", "sgd", "adamw"]
+SCHEDULER = ["none", "cosine_annealing"]
 LOG_LEVELS = ["debug", "info", "warning", "error", "critical"]
 STRATEGIES = [
     "ddp",
@@ -43,6 +44,8 @@ CLI_DEFAULTS = {
     # "trainer_precision": TRAINER_PRECISION[1],
     "learning_rate": 1e-5,
     "weight_decay": 0,
+    "lr_scheduler": SCHEDULER[0],
+    "eta_min": 0,
     "max_epochs": 20,
     "max_steps": -1,
     "accumulate_grad_batches": 1,
@@ -187,6 +190,20 @@ def get_arg_parser():
         dest="weight_decay",
         type=float,
         help="initial learning rate for training. (default: %(default)s)",
+        metavar="NUM",
+    )
+    trainer_group.add_argument(
+        "--lr-scheduler",
+        dest="lr_scheduler",
+        choices=SCHEDULERS,
+        help=f"type of learning rate scheduler. One of {'(' + '|'.join(SCHEDULERS) + ')'} (default: %(default)s)",
+        metavar="TYPE",
+    )
+    trainer_group.add_argument(
+        "--eta-min",
+        dest="eta_min",
+        type=float,
+        help="min learning rate for scheduling. (default: %(default)s)",
         metavar="NUM",
     )
     trainer_group.add_argument(

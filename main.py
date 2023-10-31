@@ -109,6 +109,8 @@ def main():
                 "optimizer": args.training_optimizer,
                 "learning_rate": args.learning_rate,
                 "weight_decay": args.weight_decay,
+                "lr_scheduler": args.lr_scheduler,
+                "eta_min": args.eta_min,
                 "pl_trainer_args": pl_trainer_args,
                 "auto_requeue": args.is_to_auto_requeue,
                 "save_path": os.path.join(output_dir, "training_ckpts"),

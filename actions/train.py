@@ -26,6 +26,8 @@ def train(
     optimizer,  # optimizer for pl trainer
     learning_rate,  # lr for optimizer. lr_scheduler is default as CosineAnnealingLR
     weight_decay,  # weight_decay for optimizer
+    lr_scheduler,  # for building lr scheduler
+    eta_min,  # for building lr scheduler
     pl_trainer_args,  # args for pl trainer; include e.g. "max_epochs" for setting up lr_scheduler
     auto_requeue,  # for setting up SLURMEnvironment, environment for distributed launch
     save_path,  # path for saving checkpoints
@@ -96,6 +98,8 @@ def train(
             dataset_info=dataset_info,
             learning_rate=learning_rate,
             weight_decay=weight_decay,
+            lr_scheduler=lr_scheduler,  # for building lr scheduler
+            eta_min=eta_min,  # for building lr scheduler
             epochs=pl_trainer_args["max_epochs"],
             optimizer=optimizer,
         )
