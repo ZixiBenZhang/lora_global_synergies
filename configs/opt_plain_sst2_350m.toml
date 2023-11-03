@@ -1,5 +1,5 @@
 # basics
-model = "facebook/opt-125m"
+model = "facebook/opt-350m"
 dataset = "sst2"
 # training
 training_optimizer = "adamw"
