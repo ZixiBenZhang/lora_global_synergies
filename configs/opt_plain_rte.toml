@@ -7,7 +7,7 @@ training_optimizer = "adamw"
 weight_decay = 0.01
 #max_epochs = 15
 batch_size = 32
-log_every_n_steps = 30
+log_every_n_steps = 10
 # torch lightning
 task = "classification"
 #num_workers = 0
