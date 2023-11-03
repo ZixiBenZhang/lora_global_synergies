@@ -40,19 +40,24 @@ def train(
         if not os.path.isdir(save_path):
             os.makedirs(save_path)
         # Saving checkpoints
-        checkpoint_callback = pl.callbacks.ModelCheckpoint(
+        best_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
             filename="best_chkpt",
             save_top_k=1,
             monitor="val_loss_epoch",
             mode="min",
+            # save_last=True,
+        )
+        latest_checkpoint_callback = pl.callbacks.ModelCheckpoint(
+            dirpath=save_path,
+            filename="last_chkpt",
             save_last=True,
         )
         # Monitoring lr for the lr_scheduler
         lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval="step")
         # TensorBoard logger
         tb_logger = pl.loggers.TensorBoardLogger(save_dir=save_path, name="logs")
-        pl_trainer_args["callbacks"] = [checkpoint_callback, lr_monitor_callback]
+        pl_trainer_args["callbacks"] = [best_checkpoint_callback, latest_checkpoint_callback, lr_monitor_callback]
         pl_trainer_args["logger"] = tb_logger
 
     # Validation metrics history
