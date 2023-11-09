@@ -15,4 +15,5 @@ task = "classification"
 #num_workers = 0
 num_devices = 1
 #accelerator = "cpu"
+is_pretrained = true
 project_dir = "./ags_output"
