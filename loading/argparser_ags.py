@@ -59,6 +59,7 @@ CLI_DEFAULTS = {
     "is_to_auto_requeue": False,
     "github_ci": False,
     "disable_dataset_cache": False,
+    "dataset_saved_path": None,
     # Hardware generation options
     "target": "xcu250-figd2104-2L-e",
     "num_targets": 100,
@@ -293,6 +294,14 @@ def get_arg_parser():
         help="""
                     disable caching of datasets. (default: %(default)s)
                 """,
+    )
+    runtime_group.add_argument(
+        "--dataset-saved-path",
+        dest="dataset_saved_path",
+        help="""
+                        directory of saved datasets. (default: %(default)s)
+                    """,
+        metavar="DIR_PATH"
     )
     # TODO: args for runtime environment SLURM and GitHub CI
     # runtime_group.add_argument(
