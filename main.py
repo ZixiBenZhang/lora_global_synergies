@@ -160,22 +160,29 @@ def main():
 
 
 def t():
-    tokenizer = AutoTokenizer.from_pretrained("facebook/opt-125m")
-    datasets_ = get_nlp_dataset_split(
-        name="rte",
-        split="train",
-        tokenizer=tokenizer,
-        max_token_len=512,
-        num_workers=1,
-    )
-    print(type(datasets_))
-    dataloader = DataLoader(datasets_, batch_size=32, shuffle=False)
-    for i, data in enumerate(dataloader):
-        if i >= 1:
-            break
-        print(data)
-        print(data["input_ids"])
-        print(data["input_ids"].shape)
+    # tokenizer = AutoTokenizer.from_pretrained("facebook/opt-125m")
+    # datasets_ = get_nlp_dataset_split(
+    #     name="rte",
+    #     split="train",
+    #     tokenizer=tokenizer,
+    #     max_token_len=512,
+    #     num_workers=1,
+    # )
+    # print(type(datasets_))
+    # dataloader = DataLoader(datasets_, batch_size=32, shuffle=False)
+    # for i, data in enumerate(dataloader):
+    #     if i >= 1:
+    #         break
+    #     print(data)
+    #     print(data["input_ids"])
+    #     print(data["input_ids"].shape)
+
+    print(datasets.get_dataset_config_names("glue"))
+    configs = datasets.get_dataset_config_names("glue")
+    for c in configs:
+        dataset = datasets.load_dataset("glue", c)
+        print(type(dataset))
+
 
     # parser = argparse.ArgumentParser(add_help=False)
     # parser.add_argument("--flag")
