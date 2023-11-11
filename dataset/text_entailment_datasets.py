@@ -19,6 +19,7 @@ class TextEntailmentDatasetBase(Dataset):
         max_token_len: int,
         num_workers: int,
         load_from_cache_file: bool = True,
+        load_from_saved_path: str = None,
         auto_setup: bool = True,
     ):
         super().__init__()
@@ -27,6 +28,7 @@ class TextEntailmentDatasetBase(Dataset):
         self.max_token_len = max_token_len
         self.num_workers = num_workers
         self.load_from_cache_file = load_from_cache_file
+        self.load_from_saved_path = load_from_saved_path
         self.data = None
 
         if self.special_token_mapping is not None:
@@ -92,7 +94,10 @@ class TextEntailmentDatasetQNLI(TextEntailmentDatasetBase):
     label_col_name = "label"
 
     def _download_dataset(self) -> datasets.DatasetDict:
-        dataset_dict = datasets.load_dataset("glue", "qnli")
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset("glue", "qnli", cache_dir=self.load_from_saved_path)
+        else:
+            dataset_dict = datasets.load_dataset("glue", "qnli")
         return dataset_dict
 
 
@@ -102,7 +107,10 @@ class TextEntailmentDatasetWNLI(TextEntailmentDatasetBase):
     label_col_name = "label"
 
     def _download_dataset(self) -> datasets.DatasetDict:
-        dataset_dict = datasets.load_dataset("glue", "wnli")
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset("glue", "wnli", cache_dir=self.load_from_saved_path)
+        else:
+            dataset_dict = datasets.load_dataset("glue", "wnli")
         return dataset_dict
 
 
@@ -112,7 +120,10 @@ class TextEntailmentDatasetMNLI(TextEntailmentDatasetBase):
     label_col_name = "label"
 
     def _download_dataset(self) -> datasets.DatasetDict:
-        dataset_dict = datasets.load_dataset("glue", "mnli")
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset("glue", "sst2", cache_dir=self.load_from_saved_path)
+        else:
+            dataset_dict = datasets.load_dataset("glue", "mnli")
         return dataset_dict
 
 
@@ -122,7 +133,10 @@ class TextEntailmentDatasetRTE(TextEntailmentDatasetBase):
     label_col_name = "label"
 
     def _download_dataset(self) -> datasets.DatasetDict:
-        dataset_dict = datasets.load_dataset("glue", "rte")
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset("glue", "sst2", cache_dir=self.load_from_saved_path)
+        else:
+            dataset_dict = datasets.load_dataset("glue", "rte")
         return dataset_dict
 
 
@@ -132,7 +146,10 @@ class TextEntailmentDatasetQQP(TextEntailmentDatasetBase):
     label_col_name = "label"
 
     def _download_dataset(self) -> datasets.DatasetDict:
-        dataset_dict = datasets.load_dataset("glue", "qqp")
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset("glue", "sst2", cache_dir=self.load_from_saved_path)
+        else:
+            dataset_dict = datasets.load_dataset("glue", "qqp")
         return dataset_dict
 
 
@@ -142,7 +159,10 @@ class TextEntailmentDatasetMRPC(TextEntailmentDatasetBase):
     label_col_name = "label"
 
     def _download_dataset(self) -> datasets.DatasetDict:
-        dataset_dict = datasets.load_dataset("glue", "mrpc")
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset("glue", "sst2", cache_dir=self.load_from_saved_path)
+        else:
+            dataset_dict = datasets.load_dataset("glue", "mrpc")
         return dataset_dict
 
 
@@ -152,7 +172,10 @@ class TextEntailmentDatasetSTSB(TextEntailmentDatasetBase):
     label_col_name = "label"
 
     def _download_dataset(self) -> datasets.DatasetDict:
-        dataset_dict = datasets.load_dataset("glue", "stsb")
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset("glue", "sst2", cache_dir=self.load_from_saved_path)
+        else:
+            dataset_dict = datasets.load_dataset("glue", "stsb")
         return dataset_dict
 
 
@@ -166,5 +189,8 @@ class TextEntailmentDatasetBoolQ(TextEntailmentDatasetBase):
     label_col_name = "label"
 
     def _download_dataset(self) -> datasets.DatasetDict:
-        dataset_dict = datasets.load_dataset("super_glue", "boolq")
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset("super_glue", "boolq", cache_dir=self.load_from_saved_path)
+        else:
+            dataset_dict = datasets.load_dataset("super_glue", "boolq")
         return dataset_dict

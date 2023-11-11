@@ -9,6 +9,7 @@ def get_nlp_dataset_split(
     max_token_len: int,
     num_workers: int,
     load_from_cache_file: bool = True,
+    load_from_saved_path: str = None,
     auto_setup: bool = True,
 ) -> Dataset:
     match name:
@@ -42,6 +43,7 @@ def get_nlp_dataset_split(
         max_token_len,
         num_workers,
         load_from_cache_file,
+        load_from_saved_path,
         auto_setup,
     )
     return dataset

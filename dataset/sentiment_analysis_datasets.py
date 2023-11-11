@@ -22,6 +22,7 @@ class SentimentAnalysisDatasetBase(Dataset):
         max_token_len: int,
         num_workers: int,
         load_from_cache_file: bool = True,
+        load_from_saved_path: str = None,
         auto_setup: bool = True,
     ):
         super().__init__()
@@ -30,6 +31,7 @@ class SentimentAnalysisDatasetBase(Dataset):
         self.max_token_len = max_token_len
         self.num_workers = num_workers
         self.load_from_cache_file = load_from_cache_file
+        self.load_from_saved_path = load_from_saved_path
         self.data_ = None
 
         if self.special_token_mapping is not None:
@@ -87,7 +89,10 @@ class SentimentalAnalysisDatasetSST2(SentimentAnalysisDatasetBase):
     label_col_name = "label"
 
     def _download_dataset(self) -> datasets.DatasetDict:
-        dataset_dict = datasets.load_dataset("glue", "sst2")
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset("glue", "sst2", cache_dir=self.load_from_saved_path)
+        else:
+            dataset_dict = datasets.load_dataset("glue", "sst2")
         return dataset_dict
 
 
@@ -100,5 +105,8 @@ class SentimentalAnalysisDatasetCoLa(SentimentAnalysisDatasetBase):
     label_col_name = "label"
 
     def _download_dataset(self) -> datasets.DatasetDict:
-        dataset_dict = datasets.load_dataset("glue", "cola")
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset("glue", "cola", cache_dir=self.load_from_saved_path)
+        else:
+            dataset_dict = datasets.load_dataset("glue", "cola")
         return dataset_dict

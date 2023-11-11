@@ -36,6 +36,7 @@ class AgsDataModule(pl.LightningDataModule):
         max_token_len: int,  # for tokenizing
         num_workers: int = None,
         load_from_cache_file: bool = True,
+        load_from_saved_path: str = None
     ):
         super().__init__()
 
@@ -48,6 +49,7 @@ class AgsDataModule(pl.LightningDataModule):
         self.max_token_len = max_token_len
         self.num_workers = num_workers
         self.load_from_cache_file = load_from_cache_file
+        self.load_from_saved_path = load_from_saved_path
         self.dataset_info = get_dataset_info(dataset_name)
 
         self.training_dataset = None
@@ -106,6 +108,7 @@ class AgsDataModule(pl.LightningDataModule):
                     max_token_len=self.max_token_len,
                     num_workers=self.num_workers,
                     load_from_cache_file=self.load_from_cache_file,
+                    load_from_saved_path=self.load_from_saved_path,
                     auto_setup=False,
                 )
                 for split_name in train_split_names
@@ -122,6 +125,7 @@ class AgsDataModule(pl.LightningDataModule):
                     max_token_len=self.max_token_len,
                     num_workers=self.num_workers,
                     load_from_cache_file=self.load_from_cache_file,
+                    load_from_saved_path=self.load_from_saved_path,
                     auto_setup=False,
                 )
                 for split_name in val_split_names
@@ -138,6 +142,7 @@ class AgsDataModule(pl.LightningDataModule):
                     max_token_len=self.max_token_len,
                     num_workers=self.num_workers,
                     load_from_cache_file=self.load_from_cache_file,
+                    load_from_saved_path=self.load_from_saved_path,
                     auto_setup=False,
                 )
                 for split_name in test_split_names
@@ -154,6 +159,7 @@ class AgsDataModule(pl.LightningDataModule):
                     max_token_len=self.max_token_len,
                     num_workers=self.num_workers,
                     load_from_cache_file=self.load_from_cache_file,
+                    load_from_saved_path=self.load_from_saved_path,
                     auto_setup=False,
                 )
                 for split_name in pred_split_names
@@ -204,6 +210,7 @@ class AgsDataModule(pl.LightningDataModule):
                             max_token_len=self.max_token_len,
                             num_workers=self.num_workers,
                             load_from_cache_file=self.load_from_cache_file,
+                            load_from_saved_path=self.load_from_saved_path,
                             auto_setup=True,
                         )
                         for split_name in train_split_names
@@ -223,6 +230,7 @@ class AgsDataModule(pl.LightningDataModule):
                             max_token_len=self.max_token_len,
                             num_workers=self.num_workers,
                             load_from_cache_file=self.load_from_cache_file,
+                            load_from_saved_path=self.load_from_saved_path,
                             auto_setup=True,
                         )
                         for split_name in val_split_names
@@ -242,6 +250,7 @@ class AgsDataModule(pl.LightningDataModule):
                             max_token_len=self.max_token_len,
                             num_workers=self.num_workers,
                             load_from_cache_file=self.load_from_cache_file,
+                            load_from_saved_path=self.load_from_saved_path,
                             auto_setup=True,
                         )
                         for split_name in test_split_names
@@ -261,6 +270,7 @@ class AgsDataModule(pl.LightningDataModule):
                             max_token_len=self.max_token_len,
                             num_workers=self.num_workers,
                             load_from_cache_file=self.load_from_cache_file,
+                            load_from_saved_path=self.load_from_saved_path,
                             auto_setup=True,
                         )
                         for split_name in pred_split_names
