@@ -177,11 +177,8 @@ def t():
     #     print(data["input_ids"])
     #     print(data["input_ids"].shape)
 
-    print(datasets.get_dataset_config_names("glue"))
-    configs = datasets.get_dataset_config_names("glue")
-    for c in configs:
-        dataset = datasets.load_dataset("glue", c)
-        print(type(dataset))
+    info = datasets.get_dataset_infos("xsum")["default"]
+    print(info)
 
 
     # parser = argparse.ArgumentParser(add_help=False)
