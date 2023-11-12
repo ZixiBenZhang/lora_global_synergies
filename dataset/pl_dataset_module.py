@@ -5,7 +5,7 @@ from datasets import DatasetInfo
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizer
 
-from dataset import get_nlp_dataset_split
+from dataset import get_nlp_dataset_split, get_config_names, get_split_names
 
 
 # Only using the task names
@@ -70,10 +70,10 @@ class AgsDataModule(pl.LightningDataModule):
     def prepare_data(self) -> None:
         # Accept only datasets in the project plan
         assert self.dataset_name in task_to_keys.keys()
-        if self.dataset_name in datasets.get_dataset_config_names("glue"):
+        if self.dataset_name in get_config_names("glue"):
             path = "glue"
             name = self.dataset_name
-        elif self.dataset_name in datasets.get_dataset_config_names("super_glue"):
+        elif self.dataset_name in get_config_names("super_glue"):
             path = "super_glue"
             name = self.dataset_name
         elif self.dataset_name == "xsum":
@@ -85,16 +85,16 @@ class AgsDataModule(pl.LightningDataModule):
             )
 
         train_split_names = [
-            n for n in datasets.get_dataset_split_names(path, name) if "train" in n
+            n for n in get_split_names(path, name, self.load_from_saved_path) if "train" in n
         ]
         val_split_names = [
-            n for n in datasets.get_dataset_split_names(path, name) if "validation" in n
+            n for n in get_split_names(path, name, self.load_from_saved_path) if "validation" in n
         ]
         test_split_names = [
-            n for n in datasets.get_dataset_split_names(path, name) if "test" in n
+            n for n in get_split_names(path, name, self.load_from_saved_path) if "test" in n
         ]
         pred_split_names = [
-            n for n in datasets.get_dataset_split_names(path, name) if "pred" in n
+            n for n in get_split_names(path, name, self.load_from_saved_path) if "pred" in n
         ]
 
         _training_dataset = (
@@ -170,10 +170,10 @@ class AgsDataModule(pl.LightningDataModule):
     def setup(self, stage: str = None) -> None:
         # Accept only datasets in the project plan
         assert self.dataset_name in task_to_keys.keys()
-        if self.dataset_name in datasets.get_dataset_config_names("glue"):
+        if self.dataset_name in get_config_names("glue"):
             path = "glue"
             name = self.dataset_name
-        elif self.dataset_name in datasets.get_dataset_config_names("super_glue"):
+        elif self.dataset_name in get_config_names("super_glue"):
             path = "super_glue"
             name = self.dataset_name
         elif self.dataset_name == "xsum":
@@ -185,16 +185,16 @@ class AgsDataModule(pl.LightningDataModule):
             )
 
         train_split_names = [
-            n for n in datasets.get_dataset_split_names(path, name) if "train" in n
+            n for n in get_split_names(path, name) if "train" in n
         ]
         val_split_names = [
-            n for n in datasets.get_dataset_split_names(path, name) if "validation" in n
+            n for n in get_split_names(path, name) if "validation" in n
         ]
         test_split_names = [
-            n for n in datasets.get_dataset_split_names(path, name) if "test" in n
+            n for n in get_split_names(path, name) if "test" in n
         ]
         pred_split_names = [
-            n for n in datasets.get_dataset_split_names(path, name) if "pred" in n
+            n for n in get_split_names(path, name) if "pred" in n
         ]
 
         if stage in ["fit", None]:
@@ -320,14 +320,16 @@ class AgsDataModule(pl.LightningDataModule):
 
 
 def get_dataset_info(dataset_name) -> DatasetInfo:
+    # TODO: make functions involving datasets accommodate Cirrus
+
     # Accept only datasets in the project plan
     assert dataset_name in task_to_keys.keys()
-    if dataset_name in datasets.get_dataset_config_names("glue"):
+    if dataset_name in get_config_names("glue"):
         info = datasets.get_dataset_config_info("glue", dataset_name)
         if any(
             [
                 "test" in split_name
-                for split_name in datasets.get_dataset_split_names("glue", dataset_name)
+                for split_name in get_split_names("glue", dataset_name)
             ]
         ):
             info.__setattr__("test_split_available", True)
@@ -336,18 +338,18 @@ def get_dataset_info(dataset_name) -> DatasetInfo:
         if any(
             [
                 "pred" in split_name
-                for split_name in datasets.get_dataset_split_names("glue", dataset_name)
+                for split_name in get_split_names("glue", dataset_name)
             ]
         ):
             info.__setattr__("pred_split_available", True)
         else:
             info.__setattr__("pred_split_available", False)
-    elif dataset_name in datasets.get_dataset_config_names("super_glue"):
+    elif dataset_name in get_config_names("super_glue"):
         info = datasets.get_dataset_config_info("super_glue", dataset_name)
         if any(
             [
                 "test" in split_name
-                for split_name in datasets.get_dataset_split_names(
+                for split_name in get_split_names(
                     "super_glue", dataset_name
                 )
             ]
@@ -358,7 +360,7 @@ def get_dataset_info(dataset_name) -> DatasetInfo:
         if any(
             [
                 "pred" in split_name
-                for split_name in datasets.get_dataset_split_names(
+                for split_name in get_split_names(
                     "super_glue", dataset_name
                 )
             ]
@@ -371,7 +373,7 @@ def get_dataset_info(dataset_name) -> DatasetInfo:
         if any(
             [
                 "test" in split_name
-                for split_name in datasets.get_dataset_split_names(dataset_name, None)
+                for split_name in get_split_names(dataset_name, None)
             ]
         ):
             info.__setattr__("test_split_available", True)
@@ -380,7 +382,7 @@ def get_dataset_info(dataset_name) -> DatasetInfo:
         if any(
             [
                 "pred" in split_name
-                for split_name in datasets.get_dataset_split_names(dataset_name, None)
+                for split_name in get_split_names(dataset_name, None)
             ]
         ):
             info.__setattr__("pred_split_available", True)
