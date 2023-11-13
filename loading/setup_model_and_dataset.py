@@ -29,7 +29,7 @@ def setup_model_and_dataset(
     pl.LightningDataModule,
     datasets.DatasetInfo,
 ]:
-    dataset_info = get_dataset_info(args.dataset)
+    dataset_info = get_dataset_info(args.dataset, args.dataset_saved_path)
 
     checkpoint = None
     if args.load_name is not None and args.load_type == "hf":
