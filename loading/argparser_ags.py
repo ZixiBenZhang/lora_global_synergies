@@ -39,6 +39,7 @@ CLI_DEFAULTS = {
     "to_debug": False,
     "log_level": LOG_LEVELS[1],
     "seed": 0,
+    "lora_config": None,
     # Trainer options
     "training_optimizer": OPTIMIZERS[0],
     # "trainer_precision": TRAINER_PRECISION[1],
@@ -144,16 +145,6 @@ def get_arg_parser():
         help="batch size for training and evaluation. (default: %(default)s)",
         metavar="NUM",
     )
-    general_group.add_argument(
-        "--seed",
-        dest="seed",
-        type=int,
-        help="""
-                    seed for random number generators set via Pytorch Lightning's
-                    seed_everything function. (default: %(default)s)
-                """,
-        metavar="NUM",
-    )
     # debug mode, for detailed logging
     general_group.add_argument(
         "--log-level",
@@ -165,6 +156,26 @@ def get_arg_parser():
                     (default: %(default)s)
                 """,
         metavar="",
+    )
+    general_group.add_argument(
+        "--seed",
+        dest="seed",
+        type=int,
+        help="""
+                    seed for random number generators set via Pytorch Lightning's
+                    seed_everything function. (default: %(default)s)
+                """,
+        metavar="NUM",
+    )
+    general_group.add_argument(
+        "--lora-config",
+        dest="lora_config",
+        type=_valid_filepath,
+        help="""
+                    path to a configuration file in the TOML format. Manual CLI overrides
+                    for arguments have a higher precedence. (default: %(default)s)
+                """,
+        metavar="TOML",
     )
 
     # Trainer options
