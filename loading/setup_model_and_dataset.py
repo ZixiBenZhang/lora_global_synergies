@@ -3,6 +3,7 @@ import pytorch_lightning as pl
 from transformers import AutoTokenizer, PreTrainedModel, PreTrainedTokenizer
 
 from dataset.pl_dataset_module import AgsDataModule, get_dataset_info
+from loading.config_load import load_config
 from models.model_info import get_model_info, AgsModelInfo
 from loading.model_loader import get_model
 
@@ -37,6 +38,10 @@ def setup_model_and_dataset(
 
     tokenizer = AutoTokenizer.from_pretrained(args.model)
 
+    lora_config = None
+    if args.lora_config is not None:
+        lora_config = load_config(args.lora_config)
+
     data_module = AgsDataModule(
         dataset_name=args.dataset,
         batch_size=args.batch_size,
@@ -55,8 +60,7 @@ def setup_model_and_dataset(
         dataset_info=dataset_info,
         pretrained=args.is_pretrained,
         checkpoint=checkpoint,
-        # TODO: pass in LoRA config
-        lora_config=None,
+        lora_config=lora_config,
     )
 
     return model, model_info, tokenizer, data_module, dataset_info
