@@ -62,6 +62,7 @@ class LoRALayer:
 
 class LoraLinear(nn.Linear, LoRALayer):
     # nn.Linear with LoRA
+    # TODO: load head-wise lora config
     def __init__(
         self, in_features: int, out_features: int, config: dict = None, **kwargs
     ):

@@ -61,12 +61,9 @@ def main():
             optuna.logging.set_verbosity(optuna.logging.CRITICAL)
             logger.setLevel(logging.CRITICAL)
 
-    # TODO: load & apply fine-grained LoRA configuration
     args = post_parse_load_config(args, CLI_DEFAULTS)
     if not args.model or not args.dataset:
         raise ValueError("No model and/or dataset provided! These are required.")
-
-    # TODO: hf type checkpoint loading??
 
     if args.model is None or args.dataset is None:
         raise ValueError("No model and/or dataset provided.")
