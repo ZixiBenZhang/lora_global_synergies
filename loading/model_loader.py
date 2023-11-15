@@ -50,6 +50,20 @@ def get_hf_model(
     pretrained: bool,
     checkpoint: str | PathLike = None,
 ) -> PreTrainedModel:
+    """
+    Args:
+        name: The name of the model.
+        task: The task type.
+        dataset_info: The dataset info.
+        pretrained: Whether to load the pretrained model dict.
+        checkpoint: The path to the checkpoint.
+
+    ---
+    A HuggingFace model checkpoint includes both config and model dict.
+    - if `pretrained` is False, we will load the config from name/checkpoint and initialize the model randomly.
+    - if `pretrained` is True, we will load the config and model dict from name/checkpoint.
+    """
+
     model_info = get_model_info(name)
 
     match task:
@@ -105,6 +119,22 @@ def get_manual_model(
     checkpoint: str | PathLike,
     lora_config: dict = None,
 ) -> PreTrainedModel:
+    """
+    Args:
+        name: The name of the model.
+        task: The task type.
+        dataset_info: The dataset info.
+        pretrained: Whether to load the model dict.
+        checkpoint: The checkpoint path (For HuggingFace Models this means both config and model dict).
+        lora_config: The LoRA config.
+
+    ---
+    Arg `pretrained` and `checkpoint`:
+    - if pretrained and checkpoint: load pretrained config and model dict
+    - if (not pretrained) and checkpoint: load pretrained config only, e.g., num_hidden_layers, num_attention_heads, etc.
+    - else: raise RuntimeError
+    """
+
     model_info = get_model_info(name)
 
     match task:

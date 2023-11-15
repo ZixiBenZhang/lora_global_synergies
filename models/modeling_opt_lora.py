@@ -122,7 +122,7 @@ class OPTLearnedPositionalEmbedding(nn.Embedding):
 
 
 # Q, K, V, O in here
-class OPTAttention(nn.Module):
+class OPTLoraAttention(nn.Module):
     """Multi-headed attention from 'Attention Is All You Need' paper"""
 
     def __init__(
@@ -310,12 +310,12 @@ class OPTAttention(nn.Module):
 
 
 # W1, W2 in here
-class OPTDecoderLayer(nn.Module):
+class OPTLoraDecoderLayer(nn.Module):
     def __init__(self, config: OPTLoraConfig, layer_id: int = 0):
         super().__init__()
         self.embed_dim = config.hidden_size
         self.layer_id = layer_id
-        self.self_attn = OPTAttention(
+        self.self_attn = OPTLoraAttention(
             config=config,
             embed_dim=self.embed_dim,
             num_heads=config.num_attention_heads,
@@ -452,11 +452,11 @@ OPT_START_DOCSTRING = r"""
     "The bare OPT Model outputting raw hidden-states without any specific head on top.",
     OPT_START_DOCSTRING,
 )
-class OPTPreTrainedModel(PreTrainedModel):
+class OPTLoraPreTrainedModel(PreTrainedModel):
     config_class = OPTLoraConfig
     base_model_prefix = "model"
     supports_gradient_checkpointing = True
-    _no_split_modules = ["OPTDecoderLayer"]
+    _no_split_modules = ["OPTLoraDecoderLayer"]
 
     def _init_weights(self, module):
         std = self.config.init_std
@@ -470,7 +470,7 @@ class OPTPreTrainedModel(PreTrainedModel):
                 module.weight.data[module.padding_idx].zero_()
 
     def _set_gradient_checkpointing(self, module, value=False):
-        if isinstance(module, (OPTDecoder)):
+        if isinstance(module, (OPTLoraDecoder)):
             module.gradient_checkpointing = value
 
 
@@ -536,7 +536,7 @@ OPT_INPUTS_DOCSTRING = r"""
 """
 
 
-class OPTDecoder(OPTPreTrainedModel):
+class OPTLoraDecoder(OPTLoraPreTrainedModel):
     """
     Transformer decoder consisting of *config.num_hidden_layers* layers. Each layer is a [`OPTDecoderLayer`]
 
@@ -575,7 +575,7 @@ class OPTDecoder(OPTPreTrainedModel):
         else:
             self.final_layer_norm = None
 
-        self.layers = nn.ModuleList([OPTDecoderLayer(config, i) for i in range(config.num_hidden_layers)])
+        self.layers = nn.ModuleList([OPTLoraDecoderLayer(config, i) for i in range(config.num_hidden_layers)])
 
         self.gradient_checkpointing = False
         # Initialize weights and apply final processing
@@ -808,10 +808,10 @@ class OPTDecoder(OPTPreTrainedModel):
     "The bare OPT Model outputting raw hidden-states without any specific head on top.",
     OPT_START_DOCSTRING,
 )
-class OPTModel(OPTPreTrainedModel):
+class OPTLoraModel(OPTLoraPreTrainedModel):
     def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
-        self.decoder = OPTDecoder(config)
+        self.decoder = OPTLoraDecoder(config)
         # Initialize weights and apply final processing
         self.post_init()
 
@@ -874,12 +874,12 @@ class OPTModel(OPTPreTrainedModel):
         )
 
 
-class OPTForCausalLM(OPTPreTrainedModel):
+class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
     _tied_weights_keys = ["lm_head.weight"]
 
     def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
-        self.model = OPTModel(config)
+        self.model = OPTLoraModel(config)
 
         # the lm_head weight is automatically tied to the embed tokens weight
         self.lm_head = nn.Linear(config.word_embed_proj_dim, config.vocab_size, bias=False)
@@ -1088,12 +1088,11 @@ class OPTForCausalLM(OPTPreTrainedModel):
     """,
     OPT_START_DOCSTRING,
 )
-# TODO: check the following
-class OPTForSequenceClassification(OPTPreTrainedModel):
+class OPTLoraForSequenceClassification(OPTLoraPreTrainedModel):
     def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
         self.num_labels = config.num_labels
-        self.model = OPTModel(config)
+        self.model = OPTLoraModel(config)
         self.score = nn.Linear(config.word_embed_proj_dim, self.num_labels, bias=False)
 
         # Initialize weights and apply final processing
@@ -1211,10 +1210,10 @@ class OPTForSequenceClassification(OPTPreTrainedModel):
     """,
     OPT_START_DOCSTRING,
 )
-class OPTForQuestionAnswering(OPTPreTrainedModel):
-    def __init__(self, config: OPTConfig):
+class OPTLoraForQuestionAnswering(OPTLoraPreTrainedModel):
+    def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
-        self.model = OPTModel(config)
+        self.model = OPTLoraModel(config)
         self.qa_outputs = nn.Linear(config.word_embed_proj_dim, 2)
 
         # Initialize weights and apply final processing

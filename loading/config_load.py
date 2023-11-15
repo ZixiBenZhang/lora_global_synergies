@@ -68,7 +68,7 @@ def post_parse_load_config(args, defaults):
         raise ValueError(f"expected .toml configuration file, got {args.config}")
 
     # Helper function to colour the output gray
-    fmt_gray = lambda x: f"\033[38;5;8m{x}\033[0m"
+    fmt_gray = (lambda x: f"\033[38;5;8m{x}\033[0m")
 
     fields = ["Name", "Default", "Config. File", "Manual Override", "Effective"]
     table = []
