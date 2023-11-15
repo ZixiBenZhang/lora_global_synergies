@@ -14,6 +14,9 @@ from transformers import (
     OPTForCausalLM,
 )
 
+from models.configuration_opt_lora import OPTLoraConfig
+from models.modeling_opt_lora import OPTLoraForSequenceClassification, OPTLoraForCausalLM
+
 
 class ModelSource(Enum):
     """
@@ -190,7 +193,21 @@ MANUAL_MODELS = {
         "sequence_classification": OPTForSequenceClassification,
         "causal_LM": OPTForCausalLM,
     },
-    # TODO: LoRA model info
+    "opt_lora": {
+        "config_cls": OPTLoraConfig,
+        "tokenizer_cls": GPT2Tokenizer,
+        "info": AgsModelInfo(
+            "opt_lora",
+            model_source="manual",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+            is_lora=True,
+        ),
+        "sequence_classification": OPTLoraForSequenceClassification,
+        "causal_LM": OPTLoraForCausalLM,
+    },
+    # TODO: more LoRA model info
 }
 
 
