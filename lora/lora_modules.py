@@ -116,16 +116,17 @@ class LoraLinear(nn.Linear, LoRALayer):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # input_dtype = x.dtype
         if self.active_adapter not in self.lora_A.keys():
-            res = F.linear(
+            return F.linear(
                 x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
-        elif self.disable_adapters:
+        if self.disable_adapters:
             if self.r[self.active_adapter] > 0 and self.merged:
                 self.unmerge()
             res = F.linear(
                 x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
         elif self.r[self.active_adapter] > 0 and not self.merged:
+            # LoRA dropout used
             res = F.linear(
                 x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
@@ -138,6 +139,7 @@ class LoraLinear(nn.Linear, LoRALayer):
                 )
             ) * self.scaling[self.active_adapter]
         else:
+            # LoRA dropout unused
             res = F.linear(
                 x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
