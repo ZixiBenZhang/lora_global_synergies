@@ -113,8 +113,8 @@ def post_parse_load_config(args, defaults):
             headers=fields,
             colalign=["left"] + ["center"] * (len(fields) - 1),
             tablefmt="pretty",
-            maxheadercolwidths=24,
-            maxcolwidths=24,
+            maxheadercolwidths=23,
+            maxcolwidths=23,
             disable_numparse=True,
         )
     )
