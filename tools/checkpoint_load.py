@@ -4,6 +4,8 @@ import torch
 
 def load_model_chkpt(load_name: str, load_type: str, model: torch.nn.Module = None):
     match load_type:
+        case "hf":
+            model = type(model).from_pretrained(load_name)
         case "pt":  # PyTorch type checkpoint
             state_dict = torch.load(load_name)
             if "state_dict" in state_dict:
@@ -23,7 +25,7 @@ def load_model_chkpt(load_name: str, load_type: str, model: torch.nn.Module = No
             model.load_state_dict(state_dict=new_tgt_state_dict)
         case _:
             raise ValueError(
-                "Only support loading PyTorch or Lightning model checkpoint."
+                "Only support loading HuggingFace, PyTorch or Lightning model checkpoint."
             )
 
     return model

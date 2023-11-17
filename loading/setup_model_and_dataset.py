@@ -36,6 +36,7 @@ def setup_model_and_dataset(
     checkpoint = None
     if args.load_name is not None and args.load_type == "hf":
         checkpoint = args.load_name
+    # Todo: when loading pl checkpoint, how to decide the name for get_model & get_tokenizer?
 
     tokenizer = get_tokenizer(args.model, checkpoint)
 
