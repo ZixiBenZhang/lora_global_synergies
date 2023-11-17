@@ -1,7 +1,7 @@
 import torch
 import toml
 
-from tools.config_load import convert_strna_to_none
+from loading.config_load import convert_str_na_to_none
 
 """
 LoRA config format:
@@ -50,7 +50,7 @@ def parse_lora_config(
         config = toml.load(config)
     if isinstance(num_heads, int):
         num_heads = {proj: num_heads for proj in ["q", "k", "v"]}
-    config = convert_strna_to_none(config)
+    config: dict = convert_str_na_to_none(config)
     granularity = config.pop("granularity", "network")
     match granularity:
         case "network":
