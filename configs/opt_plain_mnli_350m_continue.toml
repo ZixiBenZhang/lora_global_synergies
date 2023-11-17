@@ -16,6 +16,6 @@ num_devices = 2
 # language model options
 is_pretrained = false
 project_dir = "./ags_output"
-load_name = "./ags_output/facebook-opt-350m_classification_mnli_2023-11-17/traning_ckpts/last_chkpt.ckpt"
+load_name = "./ags_output/facebook-opt-350m_classification_mnli_2023-11-17/training_ckpts/last_chkpt.ckpt"
 load_type = "pl"
 resume_training = true

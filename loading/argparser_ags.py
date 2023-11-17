@@ -35,6 +35,7 @@ CLI_DEFAULTS = {
     "task": TASKS[0],
     "load_name": None,
     "load_type": LOAD_TYPE[2],
+    "resume_training": False,
     "batch_size": 128,
     "to_debug": False,
     "log_level": LOG_LEVELS[1],
