@@ -4,6 +4,7 @@ from transformers import AutoTokenizer, PreTrainedModel, PreTrainedTokenizer
 
 from dataset.pl_dataset_module import AgsDataModule, get_dataset_info
 from loading.config_load import load_config
+from loading.tokenizer_loader import get_tokenizer
 from models.model_info import get_model_info, AgsModelInfo
 from loading.model_loader import get_model
 
@@ -36,7 +37,7 @@ def setup_model_and_dataset(
     if args.load_name is not None and args.load_type == "hf":
         checkpoint = args.load_name
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
+    tokenizer = get_tokenizer(args.model, checkpoint)
 
     lora_config = None
     if args.lora_config is not None:
