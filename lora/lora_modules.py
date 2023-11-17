@@ -78,9 +78,9 @@ class LoraLinear(nn.Linear, LoRALayer):
             config["adapter_name"],
             config["disable_adapter"],
         )
-        init_lora_weights = config.get("init_lora_weights", default=True)
+        init_lora_weights = config.get("init_lora_weights", True)
         self.disable_adapters = disable_adapter
-        self.fan_in_fan_out = config.get("fan_in_fan_out", default=False)
+        self.fan_in_fan_out = config.get("fan_in_fan_out", False)
         if self.fan_in_fan_out:
             self.weight.data = self.weight.data.T
 
