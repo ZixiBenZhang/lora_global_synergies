@@ -125,18 +125,20 @@ def get_arg_parser():
         dest="load_type",
         choices=LOAD_TYPE,
         help=f"""
-                    the type of checkpoint to be loaded; it's disregarded if --load is NOT
-                    specified. It is designed to and must be used in tandem with --load.
-                    One of {'(' + '|'.join(LOAD_TYPE) + ')'} (default: %(default)s)
-                """,
+            the type of checkpoint to be loaded; it's disregarded if --load is NOT
+            specified. It is designed to and must be used in tandem with --load.
+            One of {'(' + '|'.join(LOAD_TYPE) + ')'} (default: %(default)s)
+        """,
         metavar="LOAD_TYPE",
     )
     general_group.add_argument(
         "--resume-training",
         dest="resume_training",
         action="store_true",
-        help="resume full training from checkpoint. "
-        "It is designed to and must be used in tandem with --load and --load-type pl.",
+        help="""
+            resume full training from checkpoint. 
+            It is designed to and must be used in tandem with --load and --load-type pl.
+        """,
     )
     general_group.add_argument(
         "--batch-size",
@@ -151,10 +153,10 @@ def get_arg_parser():
         dest="log_level",
         choices=LOG_LEVELS,
         help=f"""
-                    verbosity level of the logger; it's only effective when --debug flag is
-                    NOT passed in. One of {'(' + '|'.join(LOG_LEVELS) + ')'}
-                    (default: %(default)s)
-                """,
+            verbosity level of the logger; it's only effective when --debug flag is
+            NOT passed in. One of {'(' + '|'.join(LOG_LEVELS) + ')'}
+            (default: %(default)s)
+        """,
         metavar="",
     )
     general_group.add_argument(
@@ -162,9 +164,9 @@ def get_arg_parser():
         dest="seed",
         type=int,
         help="""
-                    seed for random number generators set via Pytorch Lightning's
-                    seed_everything function. (default: %(default)s)
-                """,
+            seed for random number generators set via Pytorch Lightning's
+            seed_everything function. (default: %(default)s)
+        """,
         metavar="NUM",
     )
     general_group.add_argument(
@@ -172,9 +174,9 @@ def get_arg_parser():
         dest="lora_config",
         type=_valid_filepath,
         help="""
-                    path to a configuration file in the TOML format. Manual CLI overrides
-                    for arguments have a higher precedence. (default: %(default)s)
-                """,
+            path to a configuration file in the TOML format. Manual CLI overrides
+            for arguments have a higher precedence. (default: %(default)s)
+        """,
         metavar="TOML",
     )
 
@@ -185,9 +187,9 @@ def get_arg_parser():
         dest="optimizer",
         choices=OPTIMIZERS,
         help=f"""
-                    name of supported optimiser for training. One of
-                    {'(' + '|'.join(OPTIMIZERS) + ')'} (default: %(default)s)
-                """,
+            name of supported optimiser for training. One of
+            {'(' + '|'.join(OPTIMIZERS) + ')'} (default: %(default)s)
+        """,
         metavar="TYPE",
     )
     trainer_group.add_argument(
@@ -230,9 +232,9 @@ def get_arg_parser():
         dest="max_steps",
         type=_positive_int,
         help="""
-                    maximum number of steps for training. A negative value disables this
-                    option. (default: %(default)s)
-                """,
+            maximum number of steps for training. A negative value disables this
+            option. (default: %(default)s)
+        """,
         metavar="NUM",
     )
     trainer_group.add_argument(
@@ -258,9 +260,9 @@ def get_arg_parser():
         dest="num_workers",
         type=_positive_int,
         help="""
-                    number of CPU workers; the default varies across systems and is set to
-                    os.cpu_count(). (default: %(default)s)
-                """,
+            number of CPU workers; the default varies across systems and is set to
+            os.cpu_count(). (default: %(default)s)
+        """,
         metavar="NUM",
     )
     runtime_group.add_argument(
@@ -283,9 +285,9 @@ def get_arg_parser():
         dest="accelerator",
         choices=ACCELERATORS,
         help=f"""
-                    type of accelerator for training. One of
-                    {'(' + '|'.join(ACCELERATORS) + ')'} (default: %(default)s)
-                """,
+            type of accelerator for training. One of
+            {'(' + '|'.join(ACCELERATORS) + ')'} (default: %(default)s)
+        """,
         metavar="TYPE",
     )
     runtime_group.add_argument(
@@ -293,9 +295,9 @@ def get_arg_parser():
         dest="strategy",
         choices=STRATEGIES,
         help=f"""
-                    type of strategy for training. One of
-                    {'(' + '|'.join(STRATEGIES) + ')'} (default: %(default)s)
-                """,
+            type of strategy for training. One of
+            {'(' + '|'.join(STRATEGIES) + ')'} (default: %(default)s)
+        """,
         metavar="TYPE",
     )
     runtime_group.add_argument(
@@ -303,15 +305,15 @@ def get_arg_parser():
         dest="disable_dataset_cache",
         action="store_true",
         help="""
-                    disable caching of datasets. (default: %(default)s)
-                """,
+            disable caching of datasets. (default: %(default)s)
+        """,
     )
     runtime_group.add_argument(
         "--dataset-saved-path",
         dest="dataset_saved_path",
         help="""
-                        directory of saved datasets. (default: %(default)s)
-                    """,
+            directory of saved datasets. (default: %(default)s)
+        """,
         metavar="DIR_PATH"
     )
     # TODO: args for runtime environment SLURM and GitHub CI
@@ -320,19 +322,19 @@ def get_arg_parser():
     #     dest="is_to_auto_requeue",
     #     action="store_true",
     #     help="""
-    #                 enable automatic job resubmission on SLURM managed cluster. (default:
-    #                 %(default)s)
-    #             """,
+    #         enable automatic job resubmission on SLURM managed cluster. (default:
+    #         %(default)s)
+    #     """,
     # )
     # runtime_group.add_argument(
     #     "--github-ci",
     #     action="store_true",
     #     dest="github_ci",
     #     help="""
-    #                 set the execution environment to GitHub's CI pipeline; it's used in the
-    #                 MASE verilog emitter transform pass to skip simulations.
-    #                 (default: %(default)s)
-    #                 """,
+    #         set the execution environment to GitHub's CI pipeline; it's used in the
+    #         MASE verilog emitter transform pass to skip simulations.
+    #         (default: %(default)s)
+    #     """,
     # )
 
     # Language model options
@@ -364,9 +366,9 @@ def get_arg_parser():
         "--project",
         dest="project",
         help="""
-                    name of the project.
-                    (default: {MODEL-NAME}_{TASK-TYPE}_{DATASET-NAME}_{TIMESTAMP})
-                """,
+            name of the project.
+            (default: {MODEL-NAME}_{TASK-TYPE}_{DATASET-NAME}_{TIMESTAMP})
+        """,
         metavar="NAME",
     )
 
