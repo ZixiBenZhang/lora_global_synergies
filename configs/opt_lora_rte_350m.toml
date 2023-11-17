@@ -1,6 +1,8 @@
 # basics
 model = "opt_lora"
 dataset = "rte"
+load_name = "facebook/opt-350m"
+load_type = "hf"
 # training
 training_optimizer = "adamw"
 learning_rate = 4e-4
