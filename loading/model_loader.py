@@ -1,4 +1,5 @@
 from os import PathLike
+from pprint import pprint
 
 import datasets
 from datasets import DatasetInfo
@@ -31,6 +32,7 @@ def get_model(
     }
     if model_info.is_lora:
         model_kwargs["lora_config"] = lora_config
+    print(f"is_lora: {model_info.is_lora}")
 
     match model_info.model_source:
         case ModelSource.HF_TRANSFORMERS:
@@ -136,6 +138,7 @@ def get_manual_model(
     """
 
     model_info = get_model_info(name)
+    pprint(lora_config)
 
     match task:
         case "classification":

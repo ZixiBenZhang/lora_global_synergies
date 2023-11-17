@@ -45,7 +45,7 @@ def setup_model_and_dataset(
     lora_config = None
     if args.lora_config is not None:
         lora_config = load_config(args.lora_config)
-    pprint(lora_config)
+    # pprint(lora_config)
 
     data_module = AgsDataModule(
         dataset_name=args.dataset,
