@@ -692,7 +692,7 @@ class OPTLoraDecoder(OPTLoraPreTrainedModel):
         if inputs_embeds is None:
             inputs_embeds = self.embed_tokens(input_ids)
 
-        batch_size, seq_length = input_shape
+        batch_size, seq_length = input_shape[:2]
         past_key_values_length = past_key_values[0][0].shape[2] if past_key_values is not None else 0
         # required mask seq length can be calculated via length of past
         mask_seq_length = past_key_values_length + seq_length
