@@ -17,3 +17,8 @@ def print_trainable_parameters(model: nn.Module):
         f"All param number: {total_param} || "
         f"Trainable %: {100 * trainable_param / total_param:.2f}"
     )
+    print(
+        f"Trainable param number: {trainable_param} || "
+        f"All param number: {total_param} || "
+        f"Trainable %: {100 * trainable_param / total_param:.2f}"
+    )

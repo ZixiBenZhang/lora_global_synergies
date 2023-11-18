@@ -11,7 +11,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 from metrics_callback import ValidationMetricsCallback
-
+from tools.trainable_param_printer import print_trainable_parameters
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +99,9 @@ def train(
         # load model checkpoint
         if load_name is not None:
             model = load_model_chkpt(load_name, load_type=load_type, model=model)
+
+        print_trainable_parameters(model)
+
         pl_model: pl.LightningModule = wrapper_pl_model(
             model,
             dataset_info=dataset_info,
