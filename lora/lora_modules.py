@@ -145,3 +145,23 @@ class LoraLinear(nn.Linear, LoRALayer):
             )
         # res = res.to(input_dtype)
         return res
+
+
+def mark_only_lora_as_trainable(model: nn.Module, bias: str = "none") -> None:
+    # Paramter: bias -> Which modules should be marked as trainable based on the given options
+    for n, p in model.named_parameters():
+        if "lora_" not in n:
+            p.requires_grad = False
+
+    if bias == "none":
+        pass
+    elif bias == "all":
+        for n, p in model.named_parameters():
+            if "bias" in n:
+                p.requires_grad = True
+    elif bias == "lora_only":
+        for m in model.modules():
+            if isinstance(m, LoRALayer) and hasattr(m, "bias") and m.bias is not None:
+                m.bias.requires_grad = True
+    else:
+        raise ValueError(f"Unsupported bias option {bias}")
