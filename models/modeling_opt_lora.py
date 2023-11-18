@@ -715,7 +715,6 @@ class OPTLoraDecoder(OPTLoraPreTrainedModel):
         if self.project_in is not None:
             inputs_embeds = self.project_in(inputs_embeds)
 
-        # TODO: debug "The size of tensor a (4) must match the size of tensor b (512) at non-singleton dimension 2" <- batch_size dimension
         hidden_states = inputs_embeds + pos_embeds
 
         if self.gradient_checkpointing and self.training:
