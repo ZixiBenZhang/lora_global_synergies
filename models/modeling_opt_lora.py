@@ -706,14 +706,16 @@ class OPTLoraDecoder(OPTLoraPreTrainedModel):
                 f"{mask_seq_length} (sum of the lengths of current and past inputs)"
             )
 
+        attention_mask_ = attention_mask
         attention_mask = self._prepare_decoder_attention_mask(
             attention_mask, input_shape, inputs_embeds, past_key_values_length
         )
-        pos_embeds = self.embed_positions(attention_mask, past_key_values_length)
+        pos_embeds = self.embed_positions(attention_mask_, past_key_values_length)
 
         if self.project_in is not None:
             inputs_embeds = self.project_in(inputs_embeds)
 
+        # TODO: debug "The size of tensor a (4) must match the size of tensor b (512) at non-singleton dimension 2" <- batch_size dimension
         hidden_states = inputs_embeds + pos_embeds
 
         if self.gradient_checkpointing and self.training:
