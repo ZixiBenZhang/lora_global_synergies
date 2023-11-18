@@ -85,6 +85,8 @@ def train(
             f"Resume full training state from pl checkpoint {load_name}. Entered hyperparameter configuration ignored."
         )
 
+        print_trainable_parameters(model)
+
         pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
 
         logger.warning(f"Resuming hyperparameters: {pl_model.hparams}")
