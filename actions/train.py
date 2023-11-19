@@ -9,6 +9,7 @@ from datasets import load_dataset, load_metric
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from lora.lora_modules import mark_only_lora_as_trainable
+from models.model_info import AgsModelInfo
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 from metrics_callback import ValidationMetricsCallback
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 def train(
     model: torch.nn.Module | torch.fx.GraphModule,
     tokenizer,
-    model_info,  # dataclass of model's task type and name
+    model_info: AgsModelInfo,  # dataclass of model's task type and name
     data_module: pl.LightningDataModule,  # for preparing and loading datasets for pl trainer
     dataset_info,  # dataclass including e.g. number of classes for the pl model wrapper
     task,  # to decide the pl model wrapper of which type should be used
@@ -86,8 +87,9 @@ def train(
             f"Resume full training state from pl checkpoint {load_name}. Entered hyperparameter configuration ignored."
         )
 
-        mark_only_lora_as_trainable(model, bias="none")
-        print_trainable_parameters(model)
+        if model_info.is_lora:
+            mark_only_lora_as_trainable(model, bias="none")
+            print_trainable_parameters(model)
 
         pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
 
@@ -104,8 +106,9 @@ def train(
         if load_name is not None:
             model = load_model_chkpt(load_name, load_type=load_type, model=model)
 
-        mark_only_lora_as_trainable(model, bias="none")
-        print_trainable_parameters(model)
+        if model_info.is_lora:
+            mark_only_lora_as_trainable(model, bias="none")
+            print_trainable_parameters(model)
 
         pl_model: pl.LightningModule = wrapper_pl_model(
             model,
