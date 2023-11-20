@@ -75,7 +75,13 @@ def get_split_names(path: str, name: str = None, load_from_saved_path: str = Non
                 case "cola":
                     return ["train", "validation", "test"]
                 case "mnli":
-                    return ["train", "validation_matched", "validation_mismatched", "test_matched", "test_mismatched"]
+                    return [
+                        "train",
+                        "validation_matched",
+                        # "validation_mismatched",
+                        "test_matched",
+                        # "test_mismatched",
+                    ]
                 case "mnli_matched":
                     return ["validation", "test"]
                 case "mnli_mismatched":
