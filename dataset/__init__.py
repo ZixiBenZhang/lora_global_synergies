@@ -66,14 +66,14 @@ def get_config_names(path: str, load_from_saved_path: str = None) -> list:
 def get_split_names(path: str, name: str = None, load_from_saved_path: str = None) -> list:
     if load_from_saved_path is None:
         splits = datasets.get_dataset_split_names(path, name)
-        if name == "mnli":
-            return [
-                        "train",
-                        "validation_matched",
-                        # "validation_mismatched",
-                        "test_matched",
-                        # "test_mismatched",
-                    ]
+        # if name == "mnli":
+        #     return [
+        #                 "train",
+        #                 "validation_matched",
+        #                 # "validation_mismatched",
+        #                 "test_matched",
+        #                 # "test_mismatched",
+        #             ]
         return splits
 
     else:
@@ -87,9 +87,9 @@ def get_split_names(path: str, name: str = None, load_from_saved_path: str = Non
                     return [
                         "train",
                         "validation_matched",
-                        # "validation_mismatched",
+                        "validation_mismatched",
                         "test_matched",
-                        # "test_mismatched",
+                        "test_mismatched",
                     ]
                 case "mnli_matched":
                     return ["validation", "test"]
