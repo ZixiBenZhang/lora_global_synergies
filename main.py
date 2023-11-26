@@ -174,7 +174,7 @@ def t():
     #     print(data["input_ids"])
     #     print(data["input_ids"].shape)
 
-    info = datasets.get_dataset_infos("xsum")["default"]
+    info = datasets.DatasetInfo.from_directory("./zzz")
     print(info)
 
 

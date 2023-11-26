@@ -1,16 +1,36 @@
 import datasets
-from datasets import DatasetDict
+from datasets import DatasetDict, DatasetInfo
 
-if __name__ == "__main__":
+
+def download_datasets():
     config_names = datasets.get_dataset_config_names("glue")
     for c in config_names:
-        dataset: DatasetDict = datasets.load_dataset("glue", c)
-        info = datasets.get_dataset_config_info("glue", c)
+        dataset: DatasetDict = datasets.load_dataset("glue", c, save_infos=True)
+        # info = datasets.get_dataset_config_info("glue", c)
 
-    dataset = datasets.load_dataset("xsum")
-    info = datasets.get_dataset_infos("xsum")["default"]
+    dataset = datasets.load_dataset("xsum", save_infos=True)
+    # info = datasets.get_dataset_infos("xsum")["default"]
 
     config_names = datasets.get_dataset_config_names("super_glue")
     for c in config_names:
-        dataset: DatasetDict = datasets.load_dataset("super_glue", c)
-        info = datasets.get_dataset_config_info("super_glue", c)
+        dataset: DatasetDict = datasets.load_dataset("super_glue", c, save_infos=True)
+        # info = datasets.get_dataset_config_info("super_glue", c)
+
+
+# def save_dataset_info():
+#     config_names = datasets.get_dataset_config_names("glue")
+#     for c in config_names:
+#         info = datasets.get_dataset_config_info("glue", c)
+#         info.write_to_directory("~/.cache", pretty_print=True)
+#
+#     info: DatasetInfo = datasets.get_dataset_infos("xsum")["default"]
+#     info.write_to_directory("", pretty_print=True)
+#
+#     config_names = datasets.get_dataset_config_names("super_glue")
+#     for c in config_names:
+#         info = datasets.get_dataset_config_info("super_glue", c)
+#         info.write_to_directory("", pretty_print=True)
+
+
+if __name__ == "__main__":
+    download_datasets()
