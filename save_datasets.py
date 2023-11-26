@@ -24,6 +24,7 @@ def save_dataset_info():
     for c in config_names:
         info = datasets.get_dataset_config_info("glue", c)
         save_path = f"~/.cache/huggingface/datasets/dataset_info/{c}/"
+        print(f"GLUE {c} existence: {os.path.isdir(save_path)}")
         if not os.path.isdir(save_path):
             os.makedirs(save_path)
             print(f"Created {save_path}")
@@ -31,7 +32,6 @@ def save_dataset_info():
 
     info: DatasetInfo = datasets.get_dataset_infos("xsum")["default"]
     save_path = "~/.cache/huggingface/datasets/dataset_info/xsum/"
-    print(f"XSum existence: {os.path.isdir(save_path)}")
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
         print(f"Created {save_path}")
