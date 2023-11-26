@@ -327,17 +327,20 @@ class AgsDataModule(pl.LightningDataModule):
         )
 
 
-def get_dataset_info(dataset_name, dataset_saved_path=None) -> DatasetInfo:
+def get_dataset_info(dataset_name, load_from_saved_path=None) -> DatasetInfo:
     # TODO: make functions involving datasets accommodate Cirrus
 
     # Accept only datasets in the project plan
     assert dataset_name in task_to_keys.keys()
-    if dataset_name in get_config_names("glue", dataset_saved_path):
-        info = datasets.get_dataset_config_info("glue", dataset_name)
+    if dataset_name in get_config_names("glue", load_from_saved_path):
+        if load_from_saved_path is None:
+            info = datasets.get_dataset_config_info("glue", dataset_name)
+        else:
+            info = DatasetInfo.from_directory(f"{load_from_saved_path}/dataset_info/{dataset_name}")
         if any(
             [
                 "test" in split_name
-                for split_name in get_split_names("glue", dataset_name, dataset_saved_path)
+                for split_name in get_split_names("glue", dataset_name, load_from_saved_path)
             ]
         ):
             info.__setattr__("test_split_available", True)
@@ -346,19 +349,22 @@ def get_dataset_info(dataset_name, dataset_saved_path=None) -> DatasetInfo:
         if any(
             [
                 "pred" in split_name
-                for split_name in get_split_names("glue", dataset_name, dataset_saved_path)
+                for split_name in get_split_names("glue", dataset_name, load_from_saved_path)
             ]
         ):
             info.__setattr__("pred_split_available", True)
         else:
             info.__setattr__("pred_split_available", False)
-    elif dataset_name in get_config_names("super_glue", dataset_saved_path):
-        info = datasets.get_dataset_config_info("super_glue", dataset_name)
+    elif dataset_name in get_config_names("super_glue", load_from_saved_path):
+        if load_from_saved_path is None:
+            info = datasets.get_dataset_config_info("super_glue", dataset_name)
+        else:
+            info = DatasetInfo.from_directory(f"{load_from_saved_path}/dataset_info/{dataset_name}")
         if any(
             [
                 "test" in split_name
                 for split_name in get_split_names(
-                    "super_glue", dataset_name, dataset_saved_path
+                    "super_glue", dataset_name, load_from_saved_path
                 )
             ]
         ):
@@ -369,7 +375,7 @@ def get_dataset_info(dataset_name, dataset_saved_path=None) -> DatasetInfo:
             [
                 "pred" in split_name
                 for split_name in get_split_names(
-                    "super_glue", dataset_name, dataset_saved_path
+                    "super_glue", dataset_name, load_from_saved_path
                 )
             ]
         ):
@@ -377,11 +383,14 @@ def get_dataset_info(dataset_name, dataset_saved_path=None) -> DatasetInfo:
         else:
             info.__setattr__("pred_split_available", False)
     else:
-        info = datasets.get_dataset_infos(dataset_name)["default"]
+        if load_from_saved_path is None:
+            info = datasets.get_dataset_infos(dataset_name)["default"]
+        else:
+            info = DatasetInfo.from_directory(f"{load_from_saved_path}/dataset_info/{dataset_name}")
         if any(
             [
                 "test" in split_name
-                for split_name in get_split_names(dataset_name, None, dataset_saved_path)
+                for split_name in get_split_names(dataset_name, None, load_from_saved_path)
             ]
         ):
             info.__setattr__("test_split_available", True)
@@ -390,7 +399,7 @@ def get_dataset_info(dataset_name, dataset_saved_path=None) -> DatasetInfo:
         if any(
             [
                 "pred" in split_name
-                for split_name in get_split_names(dataset_name, None, dataset_saved_path)
+                for split_name in get_split_names(dataset_name, None, load_from_saved_path)
             ]
         ):
             info.__setattr__("pred_split_available", True)
