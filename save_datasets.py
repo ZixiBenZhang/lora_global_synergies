@@ -17,20 +17,20 @@ def download_datasets():
         # info = datasets.get_dataset_config_info("super_glue", c)
 
 
-# def save_dataset_info():
-#     config_names = datasets.get_dataset_config_names("glue")
-#     for c in config_names:
-#         info = datasets.get_dataset_config_info("glue", c)
-#         info.write_to_directory("~/.cache", pretty_print=True)
-#
-#     info: DatasetInfo = datasets.get_dataset_infos("xsum")["default"]
-#     info.write_to_directory("", pretty_print=True)
-#
-#     config_names = datasets.get_dataset_config_names("super_glue")
-#     for c in config_names:
-#         info = datasets.get_dataset_config_info("super_glue", c)
-#         info.write_to_directory("", pretty_print=True)
+def save_dataset_info():
+    config_names = datasets.get_dataset_config_names("glue")
+    for c in config_names:
+        info = datasets.get_dataset_config_info("glue", c)
+        info.write_to_directory(f"~/.cache/huggingface/datasets/datasetinfo/{c}", pretty_print=True)
+
+    info: DatasetInfo = datasets.get_dataset_infos("xsum")["default"]
+    info.write_to_directory("~/.cache/huggingface/datasets/datasetinfo/xsum", pretty_print=True)
+
+    config_names = datasets.get_dataset_config_names("super_glue")
+    for c in config_names:
+        info = datasets.get_dataset_config_info("super_glue", c)
+        info.write_to_directory(f"~/.cache/huggingface/datasets/datasetinfo/{c}", pretty_print=True)
 
 
 if __name__ == "__main__":
-    download_datasets()
+    save_dataset_info()
