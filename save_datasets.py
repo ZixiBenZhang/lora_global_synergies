@@ -24,22 +24,26 @@ def save_dataset_info():
     for c in config_names:
         info = datasets.get_dataset_config_info("glue", c)
         save_path = f"~/.cache/huggingface/datasets/dataset_info/{c}/"
-        # if not os.path.isdir(save_path):
-        os.makedirs(save_path, exist_ok=True)
+        if not os.path.isdir(save_path):
+            os.makedirs(save_path)
+            print(f"Created {save_path}")
         info.write_to_directory(save_path, pretty_print=True)
 
     info: DatasetInfo = datasets.get_dataset_infos("xsum")["default"]
     save_path = "~/.cache/huggingface/datasets/dataset_info/xsum/"
-    # if not os.path.isdir(save_path):
-    os.makedirs(save_path, exist_ok=True)
+    print(f"XSum existence: {os.path.isdir(save_path)}")
+    if not os.path.isdir(save_path):
+        os.makedirs(save_path)
+        print(f"Created {save_path}")
     info.write_to_directory(save_path, pretty_print=True)
 
     config_names = datasets.get_dataset_config_names("super_glue")
     for c in config_names:
         info = datasets.get_dataset_config_info("super_glue", c)
         save_path = f"~/.cache/huggingface/datasets/dataset_info/{c}/"
-        # if not os.path.isdir(save_path):
-        os.makedirs(save_path, exist_ok=True)
+        if not os.path.isdir(save_path):
+            os.makedirs(save_path)
+            print(f"Created {save_path}")
         info.write_to_directory(save_path, pretty_print=True)
 
 
