@@ -10,5 +10,4 @@ source /work/ec249/ec249/zzhang/torch_lora/bin/activate
 export HUGGINGFACE_HUB_CACHE="/work/ec249/ec249/zzhang/hf_cache/hub"
 export HF_DATASETS_CACHE="/work/ec249/ec249/zzhang/hf_cache/datasets"
 export HF_MODULES_CACHE="/work/ec249/ec249/zzhang/hf_cache/modules"
-python -m main train --config configs/opt_plain_qqp_350m.toml \
---dataset-saved-path /work/ec249/ec249/zzhang/saved_hf_datasets
+python -m main train --config configs/opt_plain_qqp_350m.toml
