@@ -15,7 +15,9 @@ from transformers import (
 )
 
 from models.configuration_opt_lora import OPTLoraConfig
+from models.configuration_roberta_lora import RobertaLoraConfig
 from models.modeling_opt_lora import OPTLoraForSequenceClassification, OPTLoraForCausalLM
+from models.modeling_roberta_lora import RobertaLoraForSequenceClassification, RobertaLoraForCausalLM
 
 
 class ModelSource(Enum):
@@ -206,6 +208,20 @@ MANUAL_MODELS = {
         ),
         "sequence_classification": OPTLoraForSequenceClassification,
         "causal_LM": OPTLoraForCausalLM,
+    },
+    "roberta_lora": {
+        "config_cls": RobertaLoraConfig,
+        "tokenizer_cls": RobertaTokenizer,
+        "info": AgsModelInfo(
+            "roberta_lora",
+            model_source="manual",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+            is_lora=True,
+        ),
+        "sequence_classification": RobertaLoraForSequenceClassification,
+        "causal_LM": RobertaLoraForCausalLM,
     },
     # TODO: more LoRA model info
 }

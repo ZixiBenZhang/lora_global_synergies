@@ -45,7 +45,7 @@ from transformers.utils import (
 )
 
 from lora.lora_modules import LoraLinear
-from .configuration_roberta_lora import RobertaConfig
+from .configuration_roberta_lora import RobertaLoraConfig
 
 
 logger = logging.get_logger(__name__)
@@ -64,7 +64,7 @@ ROBERTA_PRETRAINED_MODEL_ARCHIVE_LIST = [
 ]
 
 
-class RobertaEmbeddings(nn.Module):
+class RobertaLoraEmbeddings(nn.Module):
     """
     Same as BertEmbeddings with a tiny tweak for positional embeddings indexing.
     """
@@ -155,7 +155,7 @@ class RobertaEmbeddings(nn.Module):
 
 # Q, K, V in here
 # Copied from transformers.models.bert.modeling_bert.BertSelfAttention with Bert->Roberta
-class RobertaSelfAttention(nn.Module):
+class RobertaLoraSelfAttention(nn.Module):
     def __init__(self, config, layer_id: int = 0, position_embedding_type=None):
         super().__init__()
         if config.hidden_size % config.num_attention_heads != 0 and not hasattr(config, "embedding_size"):
@@ -305,7 +305,7 @@ class RobertaSelfAttention(nn.Module):
 
 # O in here
 # Copied from transformers.models.bert.modeling_bert.BertSelfOutput
-class RobertaSelfOutput(nn.Module):
+class RobertaLoraSelfOutput(nn.Module):
     def __init__(self, config, layer_id: int = 0):
         super().__init__()
         layer_lora_config = config.lora_config[f"model_layer_{layer_id}"]
@@ -325,11 +325,11 @@ class RobertaSelfOutput(nn.Module):
 
 
 # Copied from transformers.models.bert.modeling_bert.BertAttention with Bert->Roberta
-class RobertaAttention(nn.Module):
+class RobertaLoraAttention(nn.Module):
     def __init__(self, config, layer_id: int = 0, position_embedding_type=None):
         super().__init__()
-        self.self = RobertaSelfAttention(config, layer_id=layer_id, position_embedding_type=position_embedding_type)
-        self.output = RobertaSelfOutput(config, layer_id=layer_id)
+        self.self = RobertaLoraSelfAttention(config, layer_id=layer_id, position_embedding_type=position_embedding_type)
+        self.output = RobertaLoraSelfOutput(config, layer_id=layer_id)
         self.pruned_heads = set()
 
     def prune_heads(self, heads):
@@ -376,7 +376,7 @@ class RobertaAttention(nn.Module):
 
 # W1 in here
 # Copied from transformers.models.bert.modeling_bert.BertIntermediate
-class RobertaIntermediate(nn.Module):
+class RobertaLoraIntermediate(nn.Module):
     def __init__(self, config, layer_id: int = 0):
         super().__init__()
         layer_lora_config = config.lora_config[f"model_layer_{layer_id}"]
@@ -398,7 +398,7 @@ class RobertaIntermediate(nn.Module):
 
 # W2 in here
 # Copied from transformers.models.bert.modeling_bert.BertOutput
-class RobertaOutput(nn.Module):
+class RobertaLoraOutput(nn.Module):
     def __init__(self, config, layer_id: int = 0):
         super().__init__()
         layer_lora_config = config.lora_config[f"model_layer_{layer_id}"]
@@ -418,20 +418,20 @@ class RobertaOutput(nn.Module):
 
 
 # Copied from transformers.models.bert.modeling_bert.BertLayer with Bert->Roberta
-class RobertaLayer(nn.Module):
+class RobertaLoraLayer(nn.Module):
     def __init__(self, config, layer_id: int = 0):
         super().__init__()
         self.chunk_size_feed_forward = config.chunk_size_feed_forward
         self.seq_len_dim = 1
-        self.attention = RobertaAttention(config, layer_id=layer_id)
+        self.attention = RobertaLoraAttention(config, layer_id=layer_id)
         self.is_decoder = config.is_decoder
         self.add_cross_attention = config.add_cross_attention
         if self.add_cross_attention:
             if not self.is_decoder:
                 raise ValueError(f"{self} should be used as a decoder model if cross attention is added")
-            self.crossattention = RobertaAttention(config, layer_id=layer_id, position_embedding_type="absolute")
-        self.intermediate = RobertaIntermediate(config, layer_id=layer_id)
-        self.output = RobertaOutput(config, layer_id=layer_id)
+            self.crossattention = RobertaLoraAttention(config, layer_id=layer_id, position_embedding_type="absolute")
+        self.intermediate = RobertaLoraIntermediate(config, layer_id=layer_id)
+        self.output = RobertaLoraOutput(config, layer_id=layer_id)
 
     def forward(
         self,
@@ -505,11 +505,11 @@ class RobertaLayer(nn.Module):
 
 
 # Copied from transformers.models.bert.modeling_bert.BertEncoder with Bert->Roberta
-class RobertaEncoder(nn.Module):
+class RobertaLoraEncoder(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        self.layer = nn.ModuleList([RobertaLayer(config, layer_id=i) for i in range(config.num_hidden_layers)])
+        self.layer = nn.ModuleList([RobertaLoraLayer(config, layer_id=i) for i in range(config.num_hidden_layers)])
         self.gradient_checkpointing = False
 
     def forward(
@@ -604,7 +604,7 @@ class RobertaEncoder(nn.Module):
 
 
 # Copied from transformers.models.bert.modeling_bert.BertPooler
-class RobertaPooler(nn.Module):
+class RobertaLoraPooler(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
@@ -619,13 +619,13 @@ class RobertaPooler(nn.Module):
         return pooled_output
 
 
-class RobertaPreTrainedModel(PreTrainedModel):
+class RobertaLoraPreTrainedModel(PreTrainedModel):
     """
     An abstract class to handle weights initialization and a simple interface for downloading and loading pretrained
     models.
     """
 
-    config_class = RobertaConfig
+    config_class = RobertaLoraConfig
     base_model_prefix = "roberta"
     supports_gradient_checkpointing = True
     _no_split_modules = ["RobertaEmbeddings", "RobertaSelfAttention"]
@@ -648,7 +648,7 @@ class RobertaPreTrainedModel(PreTrainedModel):
             module.weight.data.fill_(1.0)
 
     def _set_gradient_checkpointing(self, module, value=False):
-        if isinstance(module, RobertaEncoder):
+        if isinstance(module, RobertaLoraEncoder):
             module.gradient_checkpointing = value
 
 
@@ -723,7 +723,7 @@ ROBERTA_INPUTS_DOCSTRING = r"""
     "The bare RoBERTa Model transformer outputting raw hidden-states without any specific head on top.",
     ROBERTA_START_DOCSTRING,
 )
-class RobertaModel(RobertaPreTrainedModel):
+class RobertaLoraModel(RobertaLoraPreTrainedModel):
     """
 
     The model can behave as an encoder (with only self-attention) as well as a decoder, in which case a layer of
@@ -744,10 +744,10 @@ class RobertaModel(RobertaPreTrainedModel):
         super().__init__(config)
         self.config = config
 
-        self.embeddings = RobertaEmbeddings(config)
-        self.encoder = RobertaEncoder(config)
+        self.embeddings = RobertaLoraEmbeddings(config)
+        self.encoder = RobertaLoraEncoder(config)
 
-        self.pooler = RobertaPooler(config) if add_pooling_layer else None
+        self.pooler = RobertaLoraPooler(config) if add_pooling_layer else None
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -907,7 +907,7 @@ class RobertaModel(RobertaPreTrainedModel):
 @add_start_docstrings(
     """RoBERTa Model with a `language modeling` head on top for CLM fine-tuning.""", ROBERTA_START_DOCSTRING
 )
-class RobertaForCausalLM(RobertaPreTrainedModel):
+class RobertaLoraForCausalLM(RobertaLoraPreTrainedModel):
     _tied_weights_keys = ["lm_head.decoder.weight", "lm_head.decoder.bias"]
 
     def __init__(self, config):
@@ -916,8 +916,8 @@ class RobertaForCausalLM(RobertaPreTrainedModel):
         if not config.is_decoder:
             logger.warning("If you want to use `RobertaLMHeadModel` as a standalone, add `is_decoder=True.`")
 
-        self.roberta = RobertaModel(config, add_pooling_layer=False)
-        self.lm_head = RobertaLMHead(config)
+        self.roberta = RobertaLoraModel(config, add_pooling_layer=False)
+        self.lm_head = RobertaLoraLMHead(config)
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -1058,7 +1058,7 @@ class RobertaForCausalLM(RobertaPreTrainedModel):
 
 
 @add_start_docstrings("""RoBERTa Model with a `language modeling` head on top.""", ROBERTA_START_DOCSTRING)
-class RobertaForMaskedLM(RobertaPreTrainedModel):
+class RobertaLoraForMaskedLM(RobertaLoraPreTrainedModel):
     _tied_weights_keys = ["lm_head.decoder.weight", "lm_head.decoder.bias"]
 
     def __init__(self, config):
@@ -1070,8 +1070,8 @@ class RobertaForMaskedLM(RobertaPreTrainedModel):
                 "bi-directional self-attention."
             )
 
-        self.roberta = RobertaModel(config, add_pooling_layer=False)
-        self.lm_head = RobertaLMHead(config)
+        self.roberta = RobertaLoraModel(config, add_pooling_layer=False)
+        self.lm_head = RobertaLoraLMHead(config)
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -1151,7 +1151,7 @@ class RobertaForMaskedLM(RobertaPreTrainedModel):
         )
 
 
-class RobertaLMHead(nn.Module):
+class RobertaLoraLMHead(nn.Module):
     """Roberta Head for masked language modeling."""
 
     def __init__(self, config):
@@ -1189,14 +1189,14 @@ class RobertaLMHead(nn.Module):
     """,
     ROBERTA_START_DOCSTRING,
 )
-class RobertaForSequenceClassification(RobertaPreTrainedModel):
+class RobertaLoraForSequenceClassification(RobertaLoraPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
         self.config = config
 
-        self.roberta = RobertaModel(config, add_pooling_layer=False)
-        self.classifier = RobertaClassificationHead(config)
+        self.roberta = RobertaLoraModel(config, add_pooling_layer=False)
+        self.classifier = RobertaLoraClassificationHead(config)
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -1288,11 +1288,11 @@ class RobertaForSequenceClassification(RobertaPreTrainedModel):
     """,
     ROBERTA_START_DOCSTRING,
 )
-class RobertaForMultipleChoice(RobertaPreTrainedModel):
+class RobertaLoraForMultipleChoice(RobertaLoraPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
 
-        self.roberta = RobertaModel(config)
+        self.roberta = RobertaLoraModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, 1)
 
@@ -1380,12 +1380,12 @@ class RobertaForMultipleChoice(RobertaPreTrainedModel):
     """,
     ROBERTA_START_DOCSTRING,
 )
-class RobertaForTokenClassification(RobertaPreTrainedModel):
+class RobertaLoraForTokenClassification(RobertaLoraPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
 
-        self.roberta = RobertaModel(config, add_pooling_layer=False)
+        self.roberta = RobertaLoraModel(config, add_pooling_layer=False)
         classifier_dropout = (
             config.classifier_dropout if config.classifier_dropout is not None else config.hidden_dropout_prob
         )
@@ -1458,7 +1458,7 @@ class RobertaForTokenClassification(RobertaPreTrainedModel):
         )
 
 
-class RobertaClassificationHead(nn.Module):
+class RobertaLoraClassificationHead(nn.Module):
     """Head for sentence-level classification tasks."""
 
     def __init__(self, config):
@@ -1487,12 +1487,12 @@ class RobertaClassificationHead(nn.Module):
     """,
     ROBERTA_START_DOCSTRING,
 )
-class RobertaForQuestionAnswering(RobertaPreTrainedModel):
+class RobertaLoraForQuestionAnswering(RobertaLoraPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
 
-        self.roberta = RobertaModel(config, add_pooling_layer=False)
+        self.roberta = RobertaLoraModel(config, add_pooling_layer=False)
         self.qa_outputs = nn.Linear(config.hidden_size, config.num_labels)
 
         # Initialize weights and apply final processing

@@ -35,7 +35,7 @@ ROBERTA_PRETRAINED_CONFIG_ARCHIVE_MAP = {
 }
 
 
-class RobertaConfig(PretrainedConfig):
+class RobertaLoraConfig(PretrainedConfig):
     r"""
     This is the configuration class to store the configuration of a [`RobertaModel`] or a [`TFRobertaModel`]. It is
     used to instantiate a RoBERTa model according to the specified arguments, defining the model architecture.
@@ -156,7 +156,7 @@ class RobertaConfig(PretrainedConfig):
         return super().__setattr__(key, value)
 
 
-class RobertaOnnxConfig(OnnxConfig):
+class RobertaLoraOnnxConfig(OnnxConfig):
     @property
     def inputs(self) -> Mapping[str, Mapping[int, str]]:
         if self.task == "multiple-choice":
