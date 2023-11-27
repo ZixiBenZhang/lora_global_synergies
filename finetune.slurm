@@ -1,5 +1,6 @@
 #!/bin/bash
 #SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:4
 #SBATCH --qos=gpu
