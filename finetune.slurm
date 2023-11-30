@@ -5,11 +5,10 @@
 #SBATCH --qos=gpu
 #SBATCH --time=48:00:00
 #SBATCH --account=ec249
-#SBATCH --exclusive
-#SBATCH --ntasks=1
 
 source /work/ec249/ec249/zzhang/torch_lora/bin/activate
 export HUGGINGFACE_HUB_CACHE="/work/ec249/ec249/zzhang/hf_cache/hub"
 export HF_DATASETS_CACHE="/work/ec249/ec249/zzhang/hf_cache/datasets"
 export HF_MODULES_CACHE="/work/ec249/ec249/zzhang/hf_cache/modules"
-python -m main train --config configs/opt_lora_qqp_350m.toml
+
+srun python -m main train --config configs/opt_lora_qqp_350m.toml
