@@ -6,6 +6,7 @@
 #SBATCH --time=48:00:00
 #SBATCH --account=ec249
 #SBATCH --exclusive
+#SBATCH --ntasks=1
 
 source /work/ec249/ec249/zzhang/torch_lora/bin/activate
 export HUGGINGFACE_HUB_CACHE="/work/ec249/ec249/zzhang/hf_cache/hub"
