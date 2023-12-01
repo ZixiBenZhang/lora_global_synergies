@@ -20,6 +20,7 @@ def get_model(
     pretrained: bool,
     checkpoint: str | PathLike = None,
     lora_config: dict = None,
+    shortcut_config: dict = None,
 ) -> PreTrainedModel:
     model_info = get_model_info(name)
     model_kwargs = {
@@ -31,6 +32,9 @@ def get_model(
     }
     if model_info.is_lora:
         model_kwargs["lora_config"] = lora_config
+
+    if model_info.is_ags:
+        model_kwargs["shortcut_config"] = shortcut_config
 
     match model_info.model_source:
         case ModelSource.HF_TRANSFORMERS:
@@ -118,6 +122,7 @@ def get_manual_model(
     pretrained: bool,
     checkpoint: str | PathLike,
     lora_config: dict = None,
+    shortcut_config: dict = None,
 ) -> PreTrainedModel:
     """
     Args:
@@ -127,6 +132,7 @@ def get_manual_model(
         pretrained: Whether to load the model dict.
         checkpoint: The checkpoint path (For HuggingFace Models this means both config and model dict).
         lora_config: The LoRA config.
+        shortcut_config: The AGS shortcut config.
 
     ---
     Arg `pretrained` and `checkpoint`:
@@ -134,7 +140,6 @@ def get_manual_model(
     - if (not pretrained) and checkpoint: load pretrained config only, e.g., num_hidden_layers, num_attention_heads, etc.
     - else: raise RuntimeError
     """
-
     model_info = get_model_info(name)
 
     match task:
@@ -144,10 +149,23 @@ def get_manual_model(
             ), f"Task {task} is not supported for {name}"
             assert "label" in dataset_info.features.keys()
             num_classes = dataset_info.features["label"].num_classes
-            if lora_config is not None:
+            if lora_config is not None and shortcut_config is not None:
                 config = MANUAL_MODELS[name]["config_cls"].from_pretrained(
                     checkpoint,
                     lora_config=lora_config,
+                    shortcut_config=shortcut_config,
+                    num_labels=num_classes,
+                )
+            elif lora_config is not None:
+                config = MANUAL_MODELS[name]["config_cls"].from_pretrained(
+                    checkpoint,
+                    lora_config=lora_config,
+                    num_labels=num_classes,
+                )
+            elif shortcut_config is not None:
+                config = MANUAL_MODELS[name]["config_cls"].from_pretrained(
+                    checkpoint,
+                    shortcut_config=shortcut_config,
                     num_labels=num_classes,
                 )
             else:
@@ -158,20 +176,42 @@ def get_manual_model(
             model_cls = MANUAL_MODELS[name]["sequence_classification"]
         case "causal_language_modeling":
             assert model_info.causal_LM, f"Task {task} is not supported for {name}"
-            if lora_config is not None:
+            if lora_config is not None and shortcut_config is not None:
                 config = MANUAL_MODELS[name]["config_cls"].from_pretrained(
                     checkpoint,
                     lora_config=lora_config,
+                    shortcut_config=shortcut_config,
+                )
+            elif lora_config is not None:
+                config = MANUAL_MODELS[name]["config_cls"].from_pretrained(
+                    checkpoint,
+                    lora_config=lora_config,
+                )
+            elif shortcut_config is not None:
+                config = MANUAL_MODELS[name]["config_cls"].from_pretrained(
+                    checkpoint,
+                    shortcut_config=shortcut_config,
                 )
             else:
                 config = MANUAL_MODELS[name]["config_cls"].from_pretrained(checkpoint)
             model_cls = MANUAL_MODELS[name]["causal_LM"]
         case "summarization":
             assert model_info.seq2seqLM, f"Task {task} is not supported for {name}"
-            if lora_config is not None:
+            if lora_config is not None and shortcut_config is not None:
                 config = MANUAL_MODELS[name]["config_cls"].from_pretrained(
                     checkpoint,
                     lora_config=lora_config,
+                    shortcut_config=shortcut_config,
+                )
+            elif lora_config is not None:
+                config = MANUAL_MODELS[name]["config_cls"].from_pretrained(
+                    checkpoint,
+                    lora_config=lora_config,
+                )
+            elif shortcut_config is not None:
+                config = MANUAL_MODELS[name]["config_cls"].from_pretrained(
+                    checkpoint,
+                    shortcut_config=shortcut_config,
                 )
             else:
                 config = MANUAL_MODELS[name]["config_cls"].from_pretrained(checkpoint)

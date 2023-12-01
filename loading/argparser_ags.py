@@ -41,6 +41,7 @@ CLI_DEFAULTS = {
     "log_level": LOG_LEVELS[1],
     "seed": 0,
     "lora_config": None,
+    "shortcut_config": None,
     # Trainer options
     "training_optimizer": OPTIMIZERS[0],
     # "trainer_precision": TRAINER_PRECISION[1],
@@ -173,6 +174,16 @@ def get_arg_parser():
     general_group.add_argument(
         "--lora-config",
         dest="lora_config",
+        type=_valid_filepath,
+        help="""
+            path to a configuration file in the TOML format. Manual CLI overrides
+            for arguments have a higher precedence. (default: %(default)s)
+        """,
+        metavar="TOML",
+    )
+    general_group.add_argument(
+        "--shortcut-config",
+        dest="shortcut_config",
         type=_valid_filepath,
         help="""
             path to a configuration file in the TOML format. Manual CLI overrides

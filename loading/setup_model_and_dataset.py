@@ -47,6 +47,11 @@ def setup_model_and_dataset(
         lora_config = load_config(args.lora_config)
     # pprint(lora_config)
 
+    shortcut_config = None
+    if args.shortcut_config is not None:
+        shortcut_config = load_config(args.shortcut_config)
+    # pprint(shortcut_config)
+
     data_module = AgsDataModule(
         dataset_name=args.dataset,
         batch_size=args.batch_size,
@@ -66,6 +71,7 @@ def setup_model_and_dataset(
         pretrained=args.is_pretrained,
         checkpoint=checkpoint,
         lora_config=lora_config,
+        shortcut_config=shortcut_config,
     )
 
     return model, model_info, tokenizer, data_module, dataset_info
