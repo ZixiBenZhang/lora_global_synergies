@@ -15,8 +15,10 @@ from transformers import (
 )
 
 from models.configuration_opt_lora import OPTLoraConfig
+from models.configuration_opt_lora_residual_shortcuts import OPTLoraAgsResConfig
 from models.configuration_roberta_lora import RobertaLoraConfig
 from models.modeling_opt_lora import OPTLoraForSequenceClassification, OPTLoraForCausalLM
+from models.modeling_opt_lora_residual_shortcuts import OPTLoraAgsResForSequenceClassification, OPTLoraAgsResForCausalLM
 from models.modeling_roberta_lora import RobertaLoraForSequenceClassification, RobertaLoraForCausalLM
 
 
@@ -42,6 +44,7 @@ class AgsModelInfo:
     causal_LM: bool = False
     # Manual models
     is_lora: bool = False
+    is_ags: bool = False
 
     def __post_init__(self):
         self.model_source = (
@@ -54,6 +57,10 @@ class AgsModelInfo:
             assert (
                 self.model_source == ModelSource.MANUAL
             ), "LoRA model must be a manual model."
+        if self.is_ags:
+            assert (
+                self.model_source == ModelSource.MANUAL
+            ), "AGS shortcut model must be a manual model."
 
 
 HF_NLP_MODELS = {
@@ -222,6 +229,21 @@ MANUAL_MODELS = {
         ),
         "sequence_classification": RobertaLoraForSequenceClassification,
         "causal_LM": RobertaLoraForCausalLM,
+    },
+    "opt_lora_ags_residual": {
+        "config_cls": OPTLoraAgsResConfig,
+        "tokenizer_cls": GPT2Tokenizer,
+        "info": AgsModelInfo(
+            "opt_lora_ags_residual",
+            model_source="manual",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+            is_lora=True,
+            is_ags=True,
+        ),
+        "sequence_classification": OPTLoraAgsResForSequenceClassification,
+        "causal_LM": OPTLoraAgsResForCausalLM,
     },
     # TODO: more LoRA model info
 }
