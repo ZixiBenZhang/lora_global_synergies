@@ -123,7 +123,7 @@ class OPTLearnedPositionalEmbedding(nn.Embedding):
 
 
 # Q, K, V, O in here
-class OPTAgsResAttention(nn.Module):
+class OPTLoraAgsResAttention(nn.Module):
     """Multi-headed attention from 'Attention Is All You Need' paper"""
 
     def __init__(
@@ -312,12 +312,12 @@ class OPTAgsResAttention(nn.Module):
 
 # W1, W2 in here
 # Residual shortcut projections in here
-class OPTAgsResDecoderLayer(nn.Module):
+class OPTLoraAgsResDecoderLayer(nn.Module):
     def __init__(self, config: OPTLoraConfig, layer_id: int = 0):
         super().__init__()
         self.embed_dim = config.hidden_size
         self.layer_id = layer_id
-        self.self_attn = OPTAgsResAttention(
+        self.self_attn = OPTLoraAgsResAttention(
             config=config,
             embed_dim=self.embed_dim,
             num_heads=config.num_attention_heads,
@@ -466,7 +466,7 @@ OPT_START_DOCSTRING = r"""
     "The bare OPT Model outputting raw hidden-states without any specific head on top.",
     OPT_START_DOCSTRING,
 )
-class OPTAgsResPreTrainedModel(PreTrainedModel):
+class OPTLoraAgsResPreTrainedModel(PreTrainedModel):
     config_class = OPTLoraConfig
     base_model_prefix = "model"
     supports_gradient_checkpointing = True
@@ -484,7 +484,7 @@ class OPTAgsResPreTrainedModel(PreTrainedModel):
                 module.weight.data[module.padding_idx].zero_()
 
     def _set_gradient_checkpointing(self, module, value=False):
-        if isinstance(module, (OPTAgsResDecoder)):
+        if isinstance(module, (OPTLoraAgsResDecoder)):
             module.gradient_checkpointing = value
 
 
@@ -550,7 +550,7 @@ OPT_INPUTS_DOCSTRING = r"""
 """
 
 
-class OPTAgsResDecoder(OPTAgsResPreTrainedModel):
+class OPTLoraAgsResDecoder(OPTLoraAgsResPreTrainedModel):
     """
     Transformer decoder consisting of *config.num_hidden_layers* layers. Each layer is a [`OPTDecoderLayer`]
 
@@ -589,7 +589,7 @@ class OPTAgsResDecoder(OPTAgsResPreTrainedModel):
         else:
             self.final_layer_norm = None
 
-        self.layers = nn.ModuleList([OPTAgsResDecoderLayer(config, i) for i in range(config.num_hidden_layers)])
+        self.layers = nn.ModuleList([OPTLoraAgsResDecoderLayer(config, i) for i in range(config.num_hidden_layers)])
 
         self.gradient_checkpointing = False
         # Initialize weights and apply final processing
@@ -823,10 +823,10 @@ class OPTAgsResDecoder(OPTAgsResPreTrainedModel):
     "The bare OPT Model outputting raw hidden-states without any specific head on top.",
     OPT_START_DOCSTRING,
 )
-class OPTAgsResModel(OPTAgsResPreTrainedModel):
+class OPTLoraAgsResModel(OPTLoraAgsResPreTrainedModel):
     def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
-        self.decoder = OPTAgsResDecoder(config)
+        self.decoder = OPTLoraAgsResDecoder(config)
         # Initialize weights and apply final processing
         self.post_init()
 
@@ -889,12 +889,12 @@ class OPTAgsResModel(OPTAgsResPreTrainedModel):
         )
 
 
-class OPTAgsResForCausalLM(OPTAgsResPreTrainedModel):
+class OPTLoraAgsResForCausalLM(OPTLoraAgsResPreTrainedModel):
     _tied_weights_keys = ["lm_head.weight"]
 
     def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
-        self.model = OPTAgsResModel(config)
+        self.model = OPTLoraAgsResModel(config)
 
         # the lm_head weight is automatically tied to the embed tokens weight
         self.lm_head = nn.Linear(config.word_embed_proj_dim, config.vocab_size, bias=False)
@@ -1103,11 +1103,11 @@ class OPTAgsResForCausalLM(OPTAgsResPreTrainedModel):
     """,
     OPT_START_DOCSTRING,
 )
-class OPTAgsResForSequenceClassification(OPTAgsResPreTrainedModel):
+class OPTLoraAgsResForSequenceClassification(OPTLoraAgsResPreTrainedModel):
     def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
         self.num_labels = config.num_labels
-        self.model = OPTAgsResModel(config)
+        self.model = OPTLoraAgsResModel(config)
         self.score = nn.Linear(config.word_embed_proj_dim, self.num_labels, bias=False)
 
         # Initialize weights and apply final processing
@@ -1225,10 +1225,10 @@ class OPTAgsResForSequenceClassification(OPTAgsResPreTrainedModel):
     """,
     OPT_START_DOCSTRING,
 )
-class OPTAgsResForQuestionAnswering(OPTAgsResPreTrainedModel):
+class OPTLoraAgsResForQuestionAnswering(OPTLoraAgsResPreTrainedModel):
     def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
-        self.model = OPTAgsResModel(config)
+        self.model = OPTLoraAgsResModel(config)
         self.qa_outputs = nn.Linear(config.word_embed_proj_dim, 2)
 
         # Initialize weights and apply final processing
