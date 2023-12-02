@@ -18,4 +18,4 @@ num_devices = 4
 # language model options
 is_pretrained = true
 project_dir = "./ags_output"
-lora_config = "./configs/lora/lora_networkwise_rte.toml"
+lora_config = "./configs/lora/lora_networkwise.toml"
