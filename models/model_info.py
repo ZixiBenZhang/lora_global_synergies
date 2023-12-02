@@ -15,10 +15,10 @@ from transformers import (
 )
 
 from models.configuration_opt_lora import OPTLoraConfig
-from models.configuration_opt_lora_residual_shortcuts import OPTLoraAgsResConfig
+from models.configuration_opt_lora_layer_residual_shortcuts import OPTLoraAgsResConfig
 from models.configuration_roberta_lora import RobertaLoraConfig
 from models.modeling_opt_lora import OPTLoraForSequenceClassification, OPTLoraForCausalLM
-from models.modeling_opt_lora_residual_shortcuts import OPTLoraAgsResForSequenceClassification, OPTLoraAgsResForCausalLM
+from models.modeling_opt_lora_layer_residual_shortcuts import OPTLoraAgsResForSequenceClassification, OPTLoraAgsResForCausalLM
 from models.modeling_roberta_lora import RobertaLoraForSequenceClassification, RobertaLoraForCausalLM
 
 

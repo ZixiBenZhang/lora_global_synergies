@@ -40,6 +40,7 @@ Head-wise: specify at least one of the following two
         specify a mat config for each proj_type (i, [q_proj, k_proj, v_proj], j) in "model_layer_{i}".proj_type."head{j}",
         specify a mat config for each proj_type (i, [o_proj, w1, w2]) in "model_layer_{i}".proj_type
 """
+# TODO: insert init_lora_weights and fan_in_fan_out to lora_config??
 
 
 def parse_lora_config(
