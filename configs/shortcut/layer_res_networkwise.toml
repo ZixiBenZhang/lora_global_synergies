@@ -9,7 +9,13 @@ init_lora_weghts = true
 fan_in_fan_out = false
 disable_projector = false
 
-[layer_residual.all_layers]
+[layer_residual.all_layers.residual1]
+r = 8
+proj_dropout = 0.0
+projector_name = "ags-layer-res-network-opt"
+disable_projector = false
+
+[layer_residual.all_layers.residual2]
 r = 8
 proj_dropout = 0.0
 projector_name = "ags-layer-res-network-opt"
