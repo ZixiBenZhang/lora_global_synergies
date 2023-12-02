@@ -38,7 +38,7 @@ from transformers.utils import (
 
 from lora.lora_modules import LoraLinear
 from projectors.shortcut_modules import ShortcutFromIdentity
-from .configuration_opt_lora_residual_shortcuts import OPTLoraAgsResConfig
+from .configuration_opt_lora_layer_residual_shortcuts import OPTLoraAgsResConfig
 
 logger = logging.get_logger(__name__)
 
@@ -348,7 +348,7 @@ class OPTLoraAgsResDecoderLayer(nn.Module):
         )
         self.final_layer_norm = nn.LayerNorm(self.embed_dim, elementwise_affine=config.layer_norm_elementwise_affine)
 
-        layer_shortcut_config = config.shortcut_config[f"model_layer_{layer_id}"]
+        layer_shortcut_config = config.shortcut_config["layer_residual"][f"model_layer_{layer_id}"]
         self.residual1 = ShortcutFromIdentity(
             in_out_features=self.embed_dim,
             config=layer_shortcut_config["residual1"],
