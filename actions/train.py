@@ -70,7 +70,7 @@ def train(
     plugins = None
     pl_trainer_args["plugins"] = plugins
 
-    wrapper_pl_model = pl_model_wrapper.get_model_wrapper(model_info, task)
+    wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(model_info, task)
 
     if resume_training:
         # resume full training from pl checkpoint

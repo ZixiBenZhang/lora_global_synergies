@@ -54,7 +54,7 @@ Head-wise: specify at least one of the following two
 layer_residual: network/layer-wise for each residual shortcut
 head_residual: network/layer-wise/head-wise for each head's shortcut
 """
-# TODO: insert init_lora_weights and fan_in_fan_out to shortcut_config??
+# TODO: insert init_proj_weights and fan_in_fan_out to shortcut_config??
 
 
 def parse_shortcut_config(
