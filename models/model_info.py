@@ -230,11 +230,11 @@ MANUAL_MODELS = {
         "sequence_classification": RobertaLoraForSequenceClassification,
         "causal_LM": RobertaLoraForCausalLM,
     },
-    "opt_lora_ags_residual": {
+    "opt_lora_ags_layer_residual": {
         "config_cls": OPTLoraAgsLayerResConfig,
         "tokenizer_cls": GPT2Tokenizer,
         "info": AgsModelInfo(
-            "opt_lora_ags_residual",
+            "opt_lora_ags_layer_residual",
             model_source="manual",
             task_type="nlp",
             sequence_classification=True,
