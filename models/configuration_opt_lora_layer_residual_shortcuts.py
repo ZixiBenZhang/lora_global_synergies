@@ -16,7 +16,7 @@ OPT_PRETRAINED_CONFIG_ARCHIVE_MAP = {
 }
 
 
-class OPTLoraAgsResConfig(PretrainedConfig):
+class OPTLoraAgsLayerResConfig(PretrainedConfig):
     r"""
         This is the configuration class to store the configuration of a [`OPTModel`]. It is used to instantiate a OPT model
         according to the specified arguments, defining the model architecture. Instantiating a configuration with the

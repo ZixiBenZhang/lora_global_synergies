@@ -38,7 +38,7 @@ from transformers.utils import (
 
 from lora.lora_modules import LoraLinear
 from projectors.shortcut_modules import ShortcutFromIdentity
-from .configuration_opt_lora_layer_residual_shortcuts import OPTLoraAgsResConfig
+from .configuration_opt_lora_layer_residual_shortcuts import OPTLoraAgsLayerResConfig
 
 logger = logging.get_logger(__name__)
 
@@ -122,12 +122,12 @@ class OPTLearnedPositionalEmbedding(nn.Embedding):
 
 
 # Q, K, V, O in here
-class OPTLoraAgsResAttention(nn.Module):
+class OPTLoraAgsLayerResAttention(nn.Module):
     """Multi-headed attention from 'Attention Is All You Need' paper"""
 
     def __init__(
         self,
-        config: OPTLoraAgsResConfig,
+        config: OPTLoraAgsLayerResConfig,
         embed_dim: int,
         num_heads: int,
         layer_id: int = 0,
@@ -311,12 +311,12 @@ class OPTLoraAgsResAttention(nn.Module):
 
 # W1, W2 in here
 # Residual shortcut projections in here
-class OPTLoraAgsResDecoderLayer(nn.Module):
-    def __init__(self, config: OPTLoraAgsResConfig, layer_id: int = 0):
+class OPTLoraAgsLayerResDecoderLayer(nn.Module):
+    def __init__(self, config: OPTLoraAgsLayerResConfig, layer_id: int = 0):
         super().__init__()
         self.embed_dim = config.hidden_size
         self.layer_id = layer_id
-        self.self_attn = OPTLoraAgsResAttention(
+        self.self_attn = OPTLoraAgsLayerResAttention(
             config=config,
             embed_dim=self.embed_dim,
             num_heads=config.num_attention_heads,
@@ -466,8 +466,8 @@ OPT_START_DOCSTRING = r"""
     "The bare OPT Model outputting raw hidden-states without any specific head on top.",
     OPT_START_DOCSTRING,
 )
-class OPTLoraAgsResPreTrainedModel(PreTrainedModel):
-    config_class = OPTLoraAgsResConfig
+class OPTLoraAgsLayerResPreTrainedModel(PreTrainedModel):
+    config_class = OPTLoraAgsLayerResConfig
     base_model_prefix = "model"
     supports_gradient_checkpointing = True
     _no_split_modules = ["OPTLoraDecoderLayer"]
@@ -484,7 +484,7 @@ class OPTLoraAgsResPreTrainedModel(PreTrainedModel):
                 module.weight.data[module.padding_idx].zero_()
 
     def _set_gradient_checkpointing(self, module, value=False):
-        if isinstance(module, (OPTLoraAgsResDecoder)):
+        if isinstance(module, (OPTLoraAgsLayerResDecoder)):
             module.gradient_checkpointing = value
 
 
@@ -550,7 +550,7 @@ OPT_INPUTS_DOCSTRING = r"""
 """
 
 
-class OPTLoraAgsResDecoder(OPTLoraAgsResPreTrainedModel):
+class OPTLoraAgsLayerResDecoder(OPTLoraAgsLayerResPreTrainedModel):
     """
     Transformer decoder consisting of *config.num_hidden_layers* layers. Each layer is a [`OPTDecoderLayer`]
 
@@ -558,7 +558,7 @@ class OPTLoraAgsResDecoder(OPTLoraAgsResPreTrainedModel):
         config: OPTLoraAgsResConfig
     """
 
-    def __init__(self, config: OPTLoraAgsResConfig):
+    def __init__(self, config: OPTLoraAgsLayerResConfig):
         super().__init__(config)
         self.dropout = config.dropout
         self.layerdrop = config.layerdrop
@@ -589,7 +589,7 @@ class OPTLoraAgsResDecoder(OPTLoraAgsResPreTrainedModel):
         else:
             self.final_layer_norm = None
 
-        self.layers = nn.ModuleList([OPTLoraAgsResDecoderLayer(config, i) for i in range(config.num_hidden_layers)])
+        self.layers = nn.ModuleList([OPTLoraAgsLayerResDecoderLayer(config, i) for i in range(config.num_hidden_layers)])
 
         self.gradient_checkpointing = False
         # Initialize weights and apply final processing
@@ -823,10 +823,10 @@ class OPTLoraAgsResDecoder(OPTLoraAgsResPreTrainedModel):
     "The bare OPT Model outputting raw hidden-states without any specific head on top.",
     OPT_START_DOCSTRING,
 )
-class OPTLoraAgsResModel(OPTLoraAgsResPreTrainedModel):
-    def __init__(self, config: OPTLoraAgsResConfig):
+class OPTLoraAgsLayerResModel(OPTLoraAgsLayerResPreTrainedModel):
+    def __init__(self, config: OPTLoraAgsLayerResConfig):
         super().__init__(config)
-        self.decoder = OPTLoraAgsResDecoder(config)
+        self.decoder = OPTLoraAgsLayerResDecoder(config)
         # Initialize weights and apply final processing
         self.post_init()
 
@@ -889,12 +889,12 @@ class OPTLoraAgsResModel(OPTLoraAgsResPreTrainedModel):
         )
 
 
-class OPTLoraAgsResForCausalLM(OPTLoraAgsResPreTrainedModel):
+class OPTLoraAgsLayerResForCausalLM(OPTLoraAgsLayerResPreTrainedModel):
     _tied_weights_keys = ["lm_head.weight"]
 
-    def __init__(self, config: OPTLoraAgsResConfig):
+    def __init__(self, config: OPTLoraAgsLayerResConfig):
         super().__init__(config)
-        self.model = OPTLoraAgsResModel(config)
+        self.model = OPTLoraAgsLayerResModel(config)
 
         # the lm_head weight is automatically tied to the embed tokens weight
         self.lm_head = nn.Linear(config.word_embed_proj_dim, config.vocab_size, bias=False)
@@ -1103,11 +1103,11 @@ class OPTLoraAgsResForCausalLM(OPTLoraAgsResPreTrainedModel):
     """,
     OPT_START_DOCSTRING,
 )
-class OPTLoraAgsResForSequenceClassification(OPTLoraAgsResPreTrainedModel):
-    def __init__(self, config: OPTLoraAgsResConfig):
+class OPTLoraAgsLayerResForSequenceClassification(OPTLoraAgsLayerResPreTrainedModel):
+    def __init__(self, config: OPTLoraAgsLayerResConfig):
         super().__init__(config)
         self.num_labels = config.num_labels
-        self.model = OPTLoraAgsResModel(config)
+        self.model = OPTLoraAgsLayerResModel(config)
         self.score = nn.Linear(config.word_embed_proj_dim, self.num_labels, bias=False)
 
         # Initialize weights and apply final processing
@@ -1225,10 +1225,10 @@ class OPTLoraAgsResForSequenceClassification(OPTLoraAgsResPreTrainedModel):
     """,
     OPT_START_DOCSTRING,
 )
-class OPTLoraAgsResForQuestionAnswering(OPTLoraAgsResPreTrainedModel):
-    def __init__(self, config: OPTLoraAgsResConfig):
+class OPTLoraAgsLayerResForQuestionAnswering(OPTLoraAgsLayerResPreTrainedModel):
+    def __init__(self, config: OPTLoraAgsLayerResConfig):
         super().__init__(config)
-        self.model = OPTLoraAgsResModel(config)
+        self.model = OPTLoraAgsLayerResModel(config)
         self.qa_outputs = nn.Linear(config.word_embed_proj_dim, 2)
 
         # Initialize weights and apply final processing

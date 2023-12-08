@@ -15,10 +15,10 @@ from transformers import (
 )
 
 from models.configuration_opt_lora import OPTLoraConfig
-from models.configuration_opt_lora_layer_residual_shortcuts import OPTLoraAgsResConfig
+from models.configuration_opt_lora_layer_residual_shortcuts import OPTLoraAgsLayerResConfig
 from models.configuration_roberta_lora import RobertaLoraConfig
 from models.modeling_opt_lora import OPTLoraForSequenceClassification, OPTLoraForCausalLM
-from models.modeling_opt_lora_layer_residual_shortcuts import OPTLoraAgsResForSequenceClassification, OPTLoraAgsResForCausalLM
+from models.modeling_opt_lora_layer_residual_shortcuts import OPTLoraAgsLayerResForSequenceClassification, OPTLoraAgsLayerResForCausalLM
 from models.modeling_roberta_lora import RobertaLoraForSequenceClassification, RobertaLoraForCausalLM
 
 
@@ -231,7 +231,7 @@ MANUAL_MODELS = {
         "causal_LM": RobertaLoraForCausalLM,
     },
     "opt_lora_ags_residual": {
-        "config_cls": OPTLoraAgsResConfig,
+        "config_cls": OPTLoraAgsLayerResConfig,
         "tokenizer_cls": GPT2Tokenizer,
         "info": AgsModelInfo(
             "opt_lora_ags_residual",
@@ -242,8 +242,8 @@ MANUAL_MODELS = {
             is_lora=True,
             is_ags=True,
         ),
-        "sequence_classification": OPTLoraAgsResForSequenceClassification,
-        "causal_LM": OPTLoraAgsResForCausalLM,
+        "sequence_classification": OPTLoraAgsLayerResForSequenceClassification,
+        "causal_LM": OPTLoraAgsLayerResForCausalLM,
     },
     # TODO: more LoRA model info
 }
