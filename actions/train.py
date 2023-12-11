@@ -79,6 +79,8 @@ def train(
         model_info, task
     )
 
+    torch.autograd.set_detect_anomaly(True)
+
     if resume_training:
         # resume full training from pl checkpoint
         if load_name is None:
