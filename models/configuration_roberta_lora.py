@@ -127,7 +127,12 @@ class RobertaLoraConfig(PretrainedConfig):
         lora_config: dict = None,
         **kwargs,
     ):
-        super().__init__(pad_token_id=pad_token_id, bos_token_id=bos_token_id, eos_token_id=eos_token_id, **kwargs)
+        super().__init__(
+            pad_token_id=pad_token_id,
+            bos_token_id=bos_token_id,
+            eos_token_id=eos_token_id,
+            **kwargs,
+        )
 
         self.vocab_size = vocab_size
         self.hidden_size = hidden_size
@@ -145,13 +150,17 @@ class RobertaLoraConfig(PretrainedConfig):
         self.use_cache = use_cache
         self.classifier_dropout = classifier_dropout
         if lora_config is not None:
-            lora_config = parse_lora_config(lora_config, num_hidden_layers, num_attention_heads)
+            lora_config = parse_lora_config(
+                lora_config, num_hidden_layers, num_attention_heads
+            )
         self.lora_config = lora_config
 
     def __setattr__(self, key, value):
         if key == "lora_config" and value is not None:
             value = parse_lora_config(
-                config=value, num_hidden_layers=self.num_hidden_layers, num_heads=self.num_attention_heads
+                config=value,
+                num_hidden_layers=self.num_hidden_layers,
+                num_heads=self.num_attention_heads,
             )
         return super().__setattr__(key, value)
 

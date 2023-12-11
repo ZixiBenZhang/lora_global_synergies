@@ -13,7 +13,9 @@ def get_tokenizer(name: str, checkpoint: str | PathLike = None):
         case ModelSource.MANUAL:
             tokenizer = get_manual_model_tokenizer(name, checkpoint)
         case _:
-            raise ValueError(f"Tokenizer for model source {model_info.model_source} not supported")
+            raise ValueError(
+                f"Tokenizer for model source {model_info.model_source} not supported"
+            )
     return tokenizer
 
 

@@ -70,11 +70,15 @@ def parse_shortcut_config(
 
     layer_res_config = config["layer_residual"]
     granularity = layer_res_config.pop("granularity", "network")
-    p_config["layer_residual"] = parse_layer_res_config(layer_res_config, granularity, num_hidden_layers, num_heads)
+    p_config["layer_residual"] = parse_layer_res_config(
+        layer_res_config, granularity, num_hidden_layers, num_heads
+    )
 
     head_res_config = config["head_residual"]
     granularity = head_res_config.pop("granularity", "network")
-    p_config["head_residual"] = parse_head_res_config(head_res_config, granularity, num_hidden_layers, num_heads)
+    p_config["head_residual"] = parse_head_res_config(
+        head_res_config, granularity, num_hidden_layers, num_heads
+    )
 
     # TODO: parse cross-layer shortcut config
 
@@ -92,7 +96,9 @@ def parse_layer_res_config(
             # same config for all heads in a layer
             return _parse_layer_res_by_layer(config, num_hidden_layers, num_heads)
         case _:
-            raise ValueError(f"Unsupported layer_residual config granularity: {granularity}")
+            raise ValueError(
+                f"Unsupported layer_residual config granularity: {granularity}"
+            )
 
 
 def parse_head_res_config(
@@ -109,10 +115,14 @@ def parse_head_res_config(
             # different config for different head
             return _parse_head_res_by_head(config, num_hidden_layers, num_heads)
         case _:
-            raise ValueError(f"Unsupported head_residual config granularity: {granularity}")
+            raise ValueError(
+                f"Unsupported head_residual config granularity: {granularity}"
+            )
 
 
-def _parse_layer_res_by_network(config: dict, num_hidden_layers: int, num_heads: dict[str, int]) -> dict:
+def _parse_layer_res_by_network(
+    config: dict, num_hidden_layers: int, num_heads: dict[str, int]
+) -> dict:
     assert "default" in config, "Must provide default config"
     default_sc: dict = get_mat_config(
         config["default"]
@@ -124,10 +134,18 @@ def _parse_layer_res_by_network(config: dict, num_hidden_layers: int, num_heads:
         p_config[layer_entry] = {}
 
         # Residual shortcut projections
-        all_layer_residual1_sc: dict = config.get("all_layers", {}).get("residual1", None)
-        p_config[layer_entry]["residual1"] = create_a_mat_config(all_layer_residual1_sc, default_sc)
-        all_layer_residual2_sc: dict = config.get("all_layers", {}).get("residual2", None)
-        p_config[layer_entry]["residual2"] = create_a_mat_config(all_layer_residual2_sc, default_sc)
+        all_layer_residual1_sc: dict = config.get("all_layers", {}).get(
+            "residual1", None
+        )
+        p_config[layer_entry]["residual1"] = create_a_mat_config(
+            all_layer_residual1_sc, default_sc
+        )
+        all_layer_residual2_sc: dict = config.get("all_layers", {}).get(
+            "residual2", None
+        )
+        p_config[layer_entry]["residual2"] = create_a_mat_config(
+            all_layer_residual2_sc, default_sc
+        )
 
     p_config["default"] = default_sc
     return p_config
@@ -148,15 +166,21 @@ def _parse_layer_res_by_layer(
 
         # Residual shortcut projections
         layer_residual1_sc: dict = config.get(layer_entry, {}).get("residual1", None)
-        p_config[layer_entry]["residual1"] = create_a_mat_config(layer_residual1_sc, default_sc)
+        p_config[layer_entry]["residual1"] = create_a_mat_config(
+            layer_residual1_sc, default_sc
+        )
         layer_residual2_sc: dict = config.get(layer_entry, {}).get("residual2", None)
-        p_config[layer_entry]["residual2"] = create_a_mat_config(layer_residual2_sc, default_sc)
+        p_config[layer_entry]["residual2"] = create_a_mat_config(
+            layer_residual2_sc, default_sc
+        )
 
     p_config["default"] = default_sc
     return p_config
 
 
-def _parse_head_res_by_network(config: dict, num_hidden_layers: int, num_heads: dict[str, int]) -> dict:
+def _parse_head_res_by_network(
+    config: dict, num_hidden_layers: int, num_heads: dict[str, int]
+) -> dict:
     assert "default" in config, "Must provide default config"
     default_sc: dict = get_mat_config(
         config["default"]
@@ -181,7 +205,9 @@ def _parse_head_res_by_network(config: dict, num_hidden_layers: int, num_heads: 
 
         # O projection
         all_layer_o_sc: dict = config.get("all_layers", {}).get("o_proj", None)
-        p_config[layer_entry]["o_proj"] = create_a_mat_config(all_layer_o_sc, default_sc)
+        p_config[layer_entry]["o_proj"] = create_a_mat_config(
+            all_layer_o_sc, default_sc
+        )
 
     p_config["default"] = default_sc
     return p_config
@@ -243,9 +269,17 @@ def _parse_head_res_by_head(
                 head_entry = f"head_{j}"
 
                 # Get type-wise & head-wise config that's same across layers
-                head_default_sc: dict = config.get("headwise_default").get(proj_entry, {}).get(head_entry, None)
+                head_default_sc: dict = (
+                    config.get("headwise_default")
+                    .get(proj_entry, {})
+                    .get(head_entry, None)
+                )
                 # Get layer-wise & type-wise & head-wise config
-                head_sc: dict = config.get(layer_entry, {}).get(proj_entry, {}).get(head_entry, None)
+                head_sc: dict = (
+                    config.get(layer_entry, {})
+                    .get(proj_entry, {})
+                    .get(head_entry, None)
+                )
 
                 p_config[layer_entry][proj_entry][head_entry] = create_a_mat_config(
                     head_sc, create_a_mat_config(head_default_sc, default_sc)

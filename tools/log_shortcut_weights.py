@@ -15,7 +15,8 @@ def get_opt_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor]:
             continue
 
         mat_name: str = re.findall(
-            r"layers\.\d+\.residual[1-2]\.proj_[A-B]\.ags-layer-res-network-opt\.weight", name
+            r"layers\.\d+\.residual[1-2]\.proj_[A-B]\.ags-layer-res-network-opt\.weight",
+            name,
         )[0]
         shortcut_weights[mat_name] = param.data
 
@@ -51,7 +52,9 @@ def get_roberta_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tens
 def compute_unevenness_metrics(singulars: Tensor) -> dict[str, float]:
     cv = torch.var(singulars) / torch.mean(singulars)
     max_deviation = (torch.max(singulars) - torch.min(singulars)) / torch.max(singulars)
-    mean_deviation = (torch.max(singulars) - torch.min(singulars)) / 2 / torch.mean(singulars)
+    mean_deviation = (
+        (torch.max(singulars) - torch.min(singulars)) / 2 / torch.mean(singulars)
+    )
     deviation = (torch.max(singulars) - torch.min(singulars)) / torch.mean(singulars)
     _normalised: Tensor = singulars / torch.sum(singulars)
     shannon_entropy = entropy(_normalised, base=2)

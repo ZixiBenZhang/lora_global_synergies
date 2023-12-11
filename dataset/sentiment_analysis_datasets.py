@@ -90,7 +90,9 @@ class SentimentalAnalysisDatasetSST2(SentimentAnalysisDatasetBase):
 
     def _download_dataset(self) -> datasets.DatasetDict:
         if self.load_from_cache_file and self.load_from_saved_path is not None:
-            dataset_dict = datasets.load_dataset("glue", "sst2", cache_dir=self.load_from_saved_path)
+            dataset_dict = datasets.load_dataset(
+                "glue", "sst2", cache_dir=self.load_from_saved_path
+            )
         else:
             dataset_dict = datasets.load_dataset("glue", "sst2")
         return dataset_dict
@@ -106,7 +108,9 @@ class SentimentalAnalysisDatasetCoLa(SentimentAnalysisDatasetBase):
 
     def _download_dataset(self) -> datasets.DatasetDict:
         if self.load_from_cache_file and self.load_from_saved_path is not None:
-            dataset_dict = datasets.load_dataset("glue", "cola", cache_dir=self.load_from_saved_path)
+            dataset_dict = datasets.load_dataset(
+                "glue", "cola", cache_dir=self.load_from_saved_path
+            )
         else:
             dataset_dict = datasets.load_dataset("glue", "cola")
         return dataset_dict

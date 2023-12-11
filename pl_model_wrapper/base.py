@@ -6,7 +6,10 @@ import pytorch_lightning as pl
 from datasets import DatasetInfo
 from transformers import PreTrainedModel
 
-from tools.log_shortcut_weights import get_opt_layer_res_shortcut_svd, get_roberta_layer_res_shortcut_svd
+from tools.log_shortcut_weights import (
+    get_opt_layer_res_shortcut_svd,
+    get_roberta_layer_res_shortcut_svd,
+)
 
 
 class PlWrapperBase(pl.LightningModule):
@@ -110,9 +113,10 @@ class PlWrapperBase(pl.LightningModule):
 
     def configure_optimizers(
         self,
-    ) -> torch.optim.Optimizer | dict[
-        str, torch.optim.Optimizer | torch.optim.lr_scheduler.LRScheduler
-    ]:
+    ) -> (
+        torch.optim.Optimizer
+        | dict[str, torch.optim.Optimizer | torch.optim.lr_scheduler.LRScheduler]
+    ):
         # TODO: add back LR scheduler
         scheduler = None
         # Use self.trainer.model.parameters() instead of self.parameters() to support FullyShared (Model paralleled) training
@@ -126,7 +130,9 @@ class PlWrapperBase(pl.LightningModule):
                 case "none":
                     scheduler = None
                 case "cosine_annealing":
-                    scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=self.eta_min)
+                    scheduler = CosineAnnealingLR(
+                        opt, T_max=self.epochs, eta_min=self.eta_min
+                    )
                 case _:
                     raise ValueError(f"Unsupported lr scheduler: {self.lr_scheduler}")
         elif self.optimizer == "adam":
@@ -139,7 +145,9 @@ class PlWrapperBase(pl.LightningModule):
                 case "none":
                     scheduler = None
                 case "cosine_annealing":
-                    scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=self.eta_min)
+                    scheduler = CosineAnnealingLR(
+                        opt, T_max=self.epochs, eta_min=self.eta_min
+                    )
                 case _:
                     raise ValueError(f"Unsupported lr scheduler: {self.lr_scheduler}")
         elif self.optimizer in ["sgd_no_warmup", "sgd"]:
@@ -155,9 +163,13 @@ class PlWrapperBase(pl.LightningModule):
                     case "none":
                         scheduler = None
                     case "cosine_annealing":
-                        scheduler = CosineAnnealingLR(opt, T_max=self.epochs, eta_min=self.eta_min)
+                        scheduler = CosineAnnealingLR(
+                            opt, T_max=self.epochs, eta_min=self.eta_min
+                        )
                     case _:
-                        raise ValueError(f"Unsupported lr scheduler: {self.lr_scheduler}")
+                        raise ValueError(
+                            f"Unsupported lr scheduler: {self.lr_scheduler}"
+                        )
         else:
             raise ValueError(f"Unsupported optimizer name {self.optimizer}")
 

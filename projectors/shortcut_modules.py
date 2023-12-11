@@ -25,9 +25,7 @@ class ProjectorLayer:
         self.disable_projectors = False
         self.merged = False
 
-    def set_projector(
-        self, projector_name, r, proj_dropout_p, init_proj_weights
-    ):
+    def set_projector(self, projector_name, r, proj_dropout_p, init_proj_weights):
         self.r[projector_name] = r
 
         if proj_dropout_p > 0:
@@ -57,9 +55,7 @@ class ProjectorLayer:
 
 
 class ShortcutFromIdentity(nn.Linear, ProjectorLayer):
-    def __init__(
-            self, in_out_features: int, config: dict = None, **kwargs
-    ):
+    def __init__(self, in_out_features: int, config: dict = None, **kwargs):
         nn.Linear.__init__(self, in_out_features, in_out_features, bias=False, **kwargs)
         ProjectorLayer.__init__(self, in_out_features, in_out_features)
         self.weight.requires_grad = False
@@ -107,7 +103,9 @@ class ShortcutFromIdentity(nn.Linear, ProjectorLayer):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # input_dtype = x.dtype
-        if self.active_projector not in self.proj_A.keys():  # active_projector wouldn't be in proj_A.keys() if r==0
+        if (
+            self.active_projector not in self.proj_A.keys()
+        ):  # active_projector wouldn't be in proj_A.keys() if r==0
             return x
         if self.disable_projectors:
             return x
@@ -116,12 +114,12 @@ class ShortcutFromIdentity(nn.Linear, ProjectorLayer):
             res = x
             # x = x.to(self.proj_A[self.active_projector].weight.dtype)
             res += (
-                       self.proj_B[self.active_projector](
-                           self.proj_A[self.active_projector](
-                               self.proj_dropout[self.active_projector](x)
-                           )
-                       )
-                   ) * self.scaling[self.active_projector]
+                self.proj_B[self.active_projector](
+                    self.proj_A[self.active_projector](
+                        self.proj_dropout[self.active_projector](x)
+                    )
+                )
+            ) * self.scaling[self.active_projector]
         else:
             # Projector dropout unused
             res = F.linear(

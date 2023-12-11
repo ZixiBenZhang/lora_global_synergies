@@ -56,14 +56,41 @@ def get_config_names(path: str, load_from_saved_path: str = None) -> list:
     else:
         match path:
             case "glue":
-                return ['cola', 'sst2', 'mrpc', 'qqp', 'stsb', 'mnli', 'mnli_mismatched', 'mnli_matched', 'qnli', 'rte', 'wnli', 'ax']
+                return [
+                    "cola",
+                    "sst2",
+                    "mrpc",
+                    "qqp",
+                    "stsb",
+                    "mnli",
+                    "mnli_mismatched",
+                    "mnli_matched",
+                    "qnli",
+                    "rte",
+                    "wnli",
+                    "ax",
+                ]
             case "super_glue":
-                return ['axb', 'axg', 'boolq', 'cb', 'copa', 'multirc', 'record', 'rte', 'wic', 'wsc', 'wsc.fixed']
+                return [
+                    "axb",
+                    "axg",
+                    "boolq",
+                    "cb",
+                    "copa",
+                    "multirc",
+                    "record",
+                    "rte",
+                    "wic",
+                    "wsc",
+                    "wsc.fixed",
+                ]
             case _:
                 raise ValueError(f"Unsupported dataset path: {path}")
 
 
-def get_split_names(path: str, name: str = None, load_from_saved_path: str = None) -> list:
+def get_split_names(
+    path: str, name: str = None, load_from_saved_path: str = None
+) -> list:
     if load_from_saved_path is None:
         splits = datasets.get_dataset_split_names(path, name)
         # if name == "mnli":
@@ -110,7 +137,9 @@ def get_split_names(path: str, name: str = None, load_from_saved_path: str = Non
                 case "wnli":
                     return ["train", "validation", "test"]
                 case _:
-                    raise ValueError(f"Invalid combination of dataset path and name: {path}, {name}.")
+                    raise ValueError(
+                        f"Invalid combination of dataset path and name: {path}, {name}."
+                    )
         elif path == "xsum":
             return ["train", "validation", "test"]
         elif path == "super_glue":
@@ -138,6 +167,8 @@ def get_split_names(path: str, name: str = None, load_from_saved_path: str = Non
                 case "wsc.fixed":
                     return ["train", "validation", "test"]
                 case _:
-                    raise ValueError(f"Invalid combination of dataset path and name: {path}, {name}.")
+                    raise ValueError(
+                        f"Invalid combination of dataset path and name: {path}, {name}."
+                    )
         else:
             raise ValueError(f"Unsupported dataset path: {path}")

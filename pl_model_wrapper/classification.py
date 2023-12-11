@@ -19,7 +19,14 @@ class NLPClassificationModelWrapper(PlWrapperBase):
         dataset_info: DatasetInfo = None,  # for getting num_classes for calculating Accuracy
     ):
         super().__init__(
-            model, optimizer, learning_rate, weight_decay, lr_scheduler, eta_min, epochs, dataset_info
+            model,
+            optimizer,
+            learning_rate,
+            weight_decay,
+            lr_scheduler,
+            eta_min,
+            epochs,
+            dataset_info,
         )
         # TODO: use metrics from evaluate.load('glue', ds) instead of specified torchmetrics??
 

@@ -36,7 +36,7 @@ class AgsDataModule(pl.LightningDataModule):
         max_token_len: int,  # for tokenizing
         num_workers: int = None,
         load_from_cache_file: bool = True,
-        load_from_saved_path: str = None
+        load_from_saved_path: str = None,
     ):
         super().__init__()
 
@@ -73,7 +73,9 @@ class AgsDataModule(pl.LightningDataModule):
         if self.dataset_name in get_config_names("glue", self.load_from_saved_path):
             path = "glue"
             name = self.dataset_name
-        elif self.dataset_name in get_config_names("super_glue", self.load_from_saved_path):
+        elif self.dataset_name in get_config_names(
+            "super_glue", self.load_from_saved_path
+        ):
             path = "super_glue"
             name = self.dataset_name
         elif self.dataset_name == "xsum":
@@ -85,16 +87,24 @@ class AgsDataModule(pl.LightningDataModule):
             )
 
         train_split_names = [
-            n for n in get_split_names(path, name, self.load_from_saved_path) if "train" in n
+            n
+            for n in get_split_names(path, name, self.load_from_saved_path)
+            if "train" in n
         ]
         val_split_names = [
-            n for n in get_split_names(path, name, self.load_from_saved_path) if "validation" in n
+            n
+            for n in get_split_names(path, name, self.load_from_saved_path)
+            if "validation" in n
         ]
         test_split_names = [
-            n for n in get_split_names(path, name, self.load_from_saved_path) if "test" in n
+            n
+            for n in get_split_names(path, name, self.load_from_saved_path)
+            if "test" in n
         ]
         pred_split_names = [
-            n for n in get_split_names(path, name, self.load_from_saved_path) if "pred" in n
+            n
+            for n in get_split_names(path, name, self.load_from_saved_path)
+            if "pred" in n
         ]
 
         _training_dataset = (
@@ -173,7 +183,9 @@ class AgsDataModule(pl.LightningDataModule):
         if self.dataset_name in get_config_names("glue", self.load_from_saved_path):
             path = "glue"
             name = self.dataset_name
-        elif self.dataset_name in get_config_names("super_glue", self.load_from_saved_path):
+        elif self.dataset_name in get_config_names(
+            "super_glue", self.load_from_saved_path
+        ):
             path = "super_glue"
             name = self.dataset_name
         elif self.dataset_name == "xsum":
@@ -185,16 +197,24 @@ class AgsDataModule(pl.LightningDataModule):
             )
 
         train_split_names = [
-            n for n in get_split_names(path, name, self.load_from_saved_path) if "train" in n
+            n
+            for n in get_split_names(path, name, self.load_from_saved_path)
+            if "train" in n
         ]
         val_split_names = [
-            n for n in get_split_names(path, name, self.load_from_saved_path) if "validation" in n
+            n
+            for n in get_split_names(path, name, self.load_from_saved_path)
+            if "validation" in n
         ]
         test_split_names = [
-            n for n in get_split_names(path, name, self.load_from_saved_path) if "test" in n
+            n
+            for n in get_split_names(path, name, self.load_from_saved_path)
+            if "test" in n
         ]
         pred_split_names = [
-            n for n in get_split_names(path, name, self.load_from_saved_path) if "pred" in n
+            n
+            for n in get_split_names(path, name, self.load_from_saved_path)
+            if "pred" in n
         ]
 
         print(
@@ -336,11 +356,15 @@ def get_dataset_info(dataset_name, load_from_saved_path=None) -> DatasetInfo:
         if load_from_saved_path is None:
             info = datasets.get_dataset_config_info("glue", dataset_name)
         else:
-            info = DatasetInfo.from_directory(f"{load_from_saved_path}/dataset_info/{dataset_name}")
+            info = DatasetInfo.from_directory(
+                f"{load_from_saved_path}/dataset_info/{dataset_name}"
+            )
         if any(
             [
                 "test" in split_name
-                for split_name in get_split_names("glue", dataset_name, load_from_saved_path)
+                for split_name in get_split_names(
+                    "glue", dataset_name, load_from_saved_path
+                )
             ]
         ):
             info.__setattr__("test_split_available", True)
@@ -349,7 +373,9 @@ def get_dataset_info(dataset_name, load_from_saved_path=None) -> DatasetInfo:
         if any(
             [
                 "pred" in split_name
-                for split_name in get_split_names("glue", dataset_name, load_from_saved_path)
+                for split_name in get_split_names(
+                    "glue", dataset_name, load_from_saved_path
+                )
             ]
         ):
             info.__setattr__("pred_split_available", True)
@@ -359,7 +385,9 @@ def get_dataset_info(dataset_name, load_from_saved_path=None) -> DatasetInfo:
         if load_from_saved_path is None:
             info = datasets.get_dataset_config_info("super_glue", dataset_name)
         else:
-            info = DatasetInfo.from_directory(f"{load_from_saved_path}/dataset_info/{dataset_name}")
+            info = DatasetInfo.from_directory(
+                f"{load_from_saved_path}/dataset_info/{dataset_name}"
+            )
         if any(
             [
                 "test" in split_name
@@ -386,11 +414,15 @@ def get_dataset_info(dataset_name, load_from_saved_path=None) -> DatasetInfo:
         if load_from_saved_path is None:
             info = datasets.get_dataset_infos(dataset_name)["default"]
         else:
-            info = DatasetInfo.from_directory(f"{load_from_saved_path}/dataset_info/{dataset_name}")
+            info = DatasetInfo.from_directory(
+                f"{load_from_saved_path}/dataset_info/{dataset_name}"
+            )
         if any(
             [
                 "test" in split_name
-                for split_name in get_split_names(dataset_name, None, load_from_saved_path)
+                for split_name in get_split_names(
+                    dataset_name, None, load_from_saved_path
+                )
             ]
         ):
             info.__setattr__("test_split_available", True)
@@ -399,7 +431,9 @@ def get_dataset_info(dataset_name, load_from_saved_path=None) -> DatasetInfo:
         if any(
             [
                 "pred" in split_name
-                for split_name in get_split_names(dataset_name, None, load_from_saved_path)
+                for split_name in get_split_names(
+                    dataset_name, None, load_from_saved_path
+                )
             ]
         ):
             info.__setattr__("pred_split_available", True)

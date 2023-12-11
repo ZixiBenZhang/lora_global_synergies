@@ -94,7 +94,9 @@ def parse_by_network(
 
         # O projection
         all_layer_o_lc: dict = config.get("all_layers", {}).get("o_proj", None)
-        p_config[layer_entry]["o_proj"] = create_a_mat_config(all_layer_o_lc, default_lc)
+        p_config[layer_entry]["o_proj"] = create_a_mat_config(
+            all_layer_o_lc, default_lc
+        )
 
         # FFN
         all_layer_w1_lc: dict = config.get("all_layers", {}).get("w1", None)
@@ -168,9 +170,17 @@ def parse_by_head(
                 head_entry = f"head_{j}"
 
                 # Get type-wise & head-wise config that's same across layers
-                head_default_lc: dict = config.get("headwise_default").get(proj_entry, {}).get(head_entry, None)
+                head_default_lc: dict = (
+                    config.get("headwise_default")
+                    .get(proj_entry, {})
+                    .get(head_entry, None)
+                )
                 # Get layer-wise & type-wise & head-wise config
-                head_lc: dict = config.get(layer_entry, {}).get(proj_entry, {}).get(head_entry, None)
+                head_lc: dict = (
+                    config.get(layer_entry, {})
+                    .get(proj_entry, {})
+                    .get(head_entry, None)
+                )
 
                 p_config[layer_entry][proj_entry][head_entry] = create_a_mat_config(
                     head_lc, create_a_mat_config(head_default_lc, default_lc)

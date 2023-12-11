@@ -326,7 +326,7 @@ def get_arg_parser():
         help="""
             directory of saved datasets. (default: %(default)s)
         """,
-        metavar="DIR_PATH"
+        metavar="DIR_PATH",
     )
     # TODO: args for runtime environment SLURM and GitHub CI
     # runtime_group.add_argument(
