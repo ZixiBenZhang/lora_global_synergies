@@ -429,7 +429,7 @@ class OPTLoraAgsLayerResDecoderLayer(nn.Module):
         """
 
         # Residual shortcut projection 1
-        residual = self.residual1(hidden_states)
+        residual_self_attn = self.residual1(hidden_states)
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE attention
         if self.do_layer_norm_before:
@@ -452,7 +452,7 @@ class OPTLoraAgsLayerResDecoderLayer(nn.Module):
         hidden_states = nn.functional.dropout(
             hidden_states, p=self.dropout, training=self.training
         )
-        hidden_states = residual + hidden_states
+        hidden_states = residual_self_attn + hidden_states
 
         # 350m applies layer norm AFTER attention
         if not self.do_layer_norm_before:
@@ -463,7 +463,7 @@ class OPTLoraAgsLayerResDecoderLayer(nn.Module):
         hidden_states = hidden_states.reshape(-1, hidden_states.size(-1))
 
         # Residual shortcut projection 2
-        residual = self.residual2(hidden_states)
+        residual_ffn = self.residual2(hidden_states)
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE ffn
         if self.do_layer_norm_before:
@@ -477,7 +477,7 @@ class OPTLoraAgsLayerResDecoderLayer(nn.Module):
             hidden_states, p=self.dropout, training=self.training
         )
 
-        hidden_states = (residual + hidden_states).view(hidden_states_shape)
+        hidden_states = (residual_ffn + hidden_states).view(hidden_states_shape)
 
         # 350m applies layer norm AFTER ffn
         if not self.do_layer_norm_before:
