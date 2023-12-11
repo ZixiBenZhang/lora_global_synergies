@@ -10,6 +10,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 from lora.lora_modules import mark_only_lora_as_trainable
 from models.model_info import AgsModelInfo
+from projectors.shortcut_modules import mark_ags_as_trainable
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 from metrics_callback import ValidationMetricsCallback
@@ -95,6 +96,8 @@ def train(
 
         if model_info.is_lora:
             mark_only_lora_as_trainable(model, bias="none")
+            if model_info.is_ags:
+                mark_ags_as_trainable(model)
             print_trainable_parameters(model)
 
         pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
@@ -114,6 +117,8 @@ def train(
 
         if model_info.is_lora:
             mark_only_lora_as_trainable(model, bias="none")
+            if model_info.is_ags:
+                mark_ags_as_trainable(model)
             print_trainable_parameters(model)
 
         pl_model: pl.LightningModule = wrapper_pl_model(

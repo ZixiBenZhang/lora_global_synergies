@@ -127,3 +127,10 @@ class ShortcutFromIdentity(nn.Linear, ProjectorLayer):
             )
         # res = res.to(input_dtype)
         return res
+
+
+def mark_ags_as_trainable(model: nn.Module) -> None:
+    # Paramter: bias -> Which modules should be marked as trainable based on the given options
+    for n, p in model.named_parameters():
+        if "proj_" in n:
+            p.requires_grad = True
