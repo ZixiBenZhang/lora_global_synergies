@@ -113,13 +113,11 @@ class ShortcutFromIdentity(nn.Linear, ProjectorLayer):
             # Projector dropout used
             res = x
             # x = x.to(self.proj_A[self.active_projector].weight.dtype)
-            res += (
-                self.proj_B[self.active_projector](
-                    self.proj_A[self.active_projector](
-                        self.proj_dropout[self.active_projector](x)
-                    )
+            res += self.proj_B[self.active_projector](
+                self.proj_A[self.active_projector](
+                    self.proj_dropout[self.active_projector](x)
                 )
-            ) * self.scaling[self.active_projector]
+            )
         else:
             # Projector dropout unused
             res = F.linear(
@@ -130,7 +128,6 @@ class ShortcutFromIdentity(nn.Linear, ProjectorLayer):
 
 
 def mark_ags_as_trainable(model: nn.Module) -> None:
-    # Paramter: bias -> Which modules should be marked as trainable based on the given options
     for n, p in model.named_parameters():
         if "proj_" in n:
             p.requires_grad = True
