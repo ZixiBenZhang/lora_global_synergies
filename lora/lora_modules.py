@@ -131,13 +131,17 @@ class LoraLinear(nn.Linear, LoRALayer):
                 x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
             # x = x.to(self.lora_A[self.active_adapter].weight.dtype)
-            res += (
-                self.lora_B[self.active_adapter](
-                    self.lora_A[self.active_adapter](
-                        self.lora_dropout[self.active_adapter](x)
+            res = (
+                res
+                + (
+                    self.lora_B[self.active_adapter](
+                        self.lora_A[self.active_adapter](
+                            self.lora_dropout[self.active_adapter](x)
+                        )
                     )
                 )
-            ) * self.scaling[self.active_adapter]
+                * self.scaling[self.active_adapter]
+            )
         else:
             # LoRA dropout unused
             res = F.linear(

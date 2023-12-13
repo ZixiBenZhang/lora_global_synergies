@@ -113,7 +113,7 @@ class ShortcutFromIdentity(nn.Linear, ProjectorLayer):
             # Projector dropout used
             res = x
             # x = x.to(self.proj_A[self.active_projector].weight.dtype)
-            res += self.proj_B[self.active_projector](
+            res = res + self.proj_B[self.active_projector](
                 self.proj_A[self.active_projector](
                     self.proj_dropout[self.active_projector](x)
                 )
