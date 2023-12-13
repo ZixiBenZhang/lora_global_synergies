@@ -133,7 +133,6 @@ def train(
         )
 
         trainer = pl.Trainer(**pl_trainer_args)
-        torch.autograd.set_detect_anomaly(True)
         trainer.fit(pl_model, datamodule=data_module)
 
     # TODO: save the trained model graph if there are architectural changes.
