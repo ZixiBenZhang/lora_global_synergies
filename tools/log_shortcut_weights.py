@@ -36,11 +36,11 @@ def get_opt_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor]:
             singulars = torch.linalg.svdvals(
                 torch.matmul(shortcut_weights[corr_name], shortcut_weights[mat_name])
             )
-        res[f"svdvals_{shortcut_name}"] = singulars
+        res[f"svdvals_{shortcut_name}_epoch"] = singulars
 
         unevenness = compute_unevenness_metrics(singulars)
         for metric_name, value in unevenness:
-            res[f"uneven_{metric_name}_{shortcut_name}"] = value
+            res[f"uneven_{metric_name}_{shortcut_name}_epoch"] = value
 
     return res
 
