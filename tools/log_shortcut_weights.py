@@ -56,7 +56,7 @@ def compute_unevenness_metrics(singulars: Tensor) -> dict[str, float]:
     deviation = (torch.max(singulars) - torch.min(singulars)) / torch.mean(singulars)
     _normalised: Tensor = singulars / torch.sum(singulars)
     shannon_entropy = entropy(_normalised)
-    _uniform: Tensor = torch.full(_normalised.size(), 1)
+    _uniform: Tensor = torch.full(_normalised.size(), 1).to(_normalised.device)
     kl_div = kl_divergence(_uniform / torch.sum(_uniform), _normalised)
     return {
         "coefficient_of_variation": cv,
