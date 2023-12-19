@@ -11,7 +11,7 @@ def get_opt_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor]:
     shortcut_weights = {}
     res = {}
     for name, param in model.named_parameters():
-        if "ags-layer-res-network-opt" not in name:
+        if "proj_A" not in name and "proj_B" not in name:
             continue
 
         mat_name: str = re.findall(
@@ -24,7 +24,6 @@ def get_opt_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor]:
             corr_name: str = mat_name.replace("proj_A", "proj_B")
             if corr_name not in shortcut_weights:
                 continue
-            shortcut_name: str = re.findall(r"layer\.\d+\.residual[1-2]", mat_name)[0]
             singulars = torch.linalg.svdvals(
                 torch.matmul(shortcut_weights[mat_name], shortcut_weights[corr_name])
             )
@@ -32,10 +31,11 @@ def get_opt_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor]:
             corr_name: str = mat_name.replace("proj_B", "proj_A")
             if corr_name not in shortcut_weights:
                 continue
-            shortcut_name: str = re.findall(r"layer\.\d+\.residual[1-2]", mat_name)[0]
             singulars = torch.linalg.svdvals(
                 torch.matmul(shortcut_weights[corr_name], shortcut_weights[mat_name])
             )
+
+        shortcut_name: str = re.findall(r"layer\.\d+\.residual[1-2]", mat_name)[0]
         res[f"svdvals_{shortcut_name}_epoch"] = singulars
 
         unevenness = compute_unevenness_metrics(singulars)
