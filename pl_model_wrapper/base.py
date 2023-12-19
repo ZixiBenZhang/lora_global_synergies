@@ -79,8 +79,8 @@ class PlWrapperBase(pl.LightningModule):
         self.log("val_acc_epoch", self.acc_val, prog_bar=True)
         self.log("val_loss_epoch", self.loss_val, prog_bar=True)
 
-        # if "Ags" not in self.model.__class__.__name__:
-        #     return
+        if "Ags" not in self.model.__class__.__name__:
+            return
         # Log shortcut weights' singular values and unevenness metrics
         if "OPT" in self.model.__class__.__name__:
             print(f"Epoch {self.current_epoch} getting singular values...")

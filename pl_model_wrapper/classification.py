@@ -2,6 +2,7 @@ import torch
 from datasets import DatasetInfo
 from transformers import PreTrainedModel
 
+from tools.log_shortcut_weights import get_opt_layer_res_shortcut_svd, get_roberta_layer_res_shortcut_svd
 from .base import PlWrapperBase
 
 
@@ -100,6 +101,22 @@ class NLPClassificationModelWrapper(PlWrapperBase):
     def on_validation_epoch_end(self) -> None:
         self.log("val_loss_epoch", self.loss_val, prog_bar=True)
         self.log("val_acc_epoch", self.acc_val, prog_bar=True)
+
+        if "Ags" not in self.model.__class__.__name__:
+            return
+        # Log shortcut weights' singular values and unevenness metrics
+        if "OPT" in self.model.__class__.__name__:
+            print(f"Epoch {self.current_epoch} getting singular values...")
+            singular_uneven = get_opt_layer_res_shortcut_svd(self.model)
+            print(singular_uneven)
+        elif "Roberta" in self.model.__class__.__name__:
+            singular_uneven = get_roberta_layer_res_shortcut_svd(self.model)
+        else:
+            # TODO: accommodate more models
+            raise ValueError(
+                f"Model {self.model.__class__.__name__} not supported for logging shortcut singular values"
+            )
+        self.log_dict(singular_uneven)
 
     def test_step(self, batch, batch_idx):
         x = batch["input_ids"]
