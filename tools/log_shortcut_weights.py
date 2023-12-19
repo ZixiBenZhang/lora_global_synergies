@@ -68,13 +68,23 @@ def compute_unevenness_metrics(singulars: Tensor) -> dict[str, float]:
     }
 
 
+EPSILON = 1e-7
+
+
 def entropy(distribution: Tensor) -> float:
     assert len(distribution.size()) == 1, "Input distribution needs to be 1D tensor"
-    assert torch.sum(distribution) == 1, "Input distribution must sum to 1"
-    return torch.sum(- distribution * torch.log2(distribution)).item()
+    assert (
+        1 - EPSILON <= torch.sum(distribution) <= 1 + EPSILON
+    ), "Input distribution must sum to 1"
+    return torch.sum(-distribution * torch.log2(distribution)).item()
 
 
 def kl_divergence(distribution1: Tensor, distribution2: Tensor) -> float:
-    assert len(distribution1.size()) == 1 and len(distribution2.size()) == 1, "Input distributions need to be 1D tensor"
-    assert torch.sum(distribution1) == 1 and len(distribution2.size()) == 1, "Input distributions must sum to 1"
+    assert (
+        len(distribution1.size()) == 1 and len(distribution2.size()) == 1
+    ), "Input distributions need to be 1D tensor"
+    assert (
+        1 - EPSILON <= torch.sum(distribution1) <= 1 + EPSILON
+        and 1 - EPSILON <= torch.sum(distribution2) <= 1 + EPSILON
+    ), "Input distributions must sum to 1"
     return torch.sum(distribution1 * torch.log2(distribution1 / distribution2)).item()
