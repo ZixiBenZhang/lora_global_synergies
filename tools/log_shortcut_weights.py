@@ -35,7 +35,7 @@ def get_opt_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor]:
                 torch.matmul(shortcut_weights[corr_name], shortcut_weights[mat_name])
             )
 
-        shortcut_name: str = re.findall(r"layer\.\d+\.residual[1-2]", mat_name)[0]
+        shortcut_name: str = re.findall(r"layers\.\d+\.residual[1-2]", mat_name)[0]
         res[f"svdvals_{shortcut_name}_epoch"] = singulars
 
         unevenness = compute_unevenness_metrics(singulars)
