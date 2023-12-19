@@ -1,0 +1,503 @@
+SLURM_MEM_PER_CPU=9628
+SLURM_NODEID=0
+SLURM_TASK_PID=2856985
+SLURM_PRIO_PROCESS=0
+MODULES_RUN_QUARANTINE=LD_LIBRARY_PATH LD_PRELOAD
+LANG=en_US.UTF-8
+SLURM_SUBMIT_DIR=/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies
+HISTCONTROL=ignoredups
+HOSTNAME=r2i5n2
+ENVIRONMENT=BATCH
+PATH_modshare=/usr/bin:1:/usr/share/Modules/bin:1:/usr/local/bin:1:/opt/sgi/bin:1:/opt/clmgr/bin:1:/opt/sgi/sbin:1:/bin:1:/opt/clmgr/sbin:1:/sbin:1:/mnt/lustre/indy2lfs/sw/git/2.37.3/bin:1:/usr/sbin:1:/usr/local/sbin:1:/opt/c3/bin:1
+LOADEDMODULES_modshare=git/2.37.3:1:/mnt/lustre/indy2lfs/sw/modulefiles/epcc/setup-env:1:epcc/utils:1
+ROCR_VISIBLE_DEVICES=0,1,2,3
+MODULES_LMNOTUASKED_modshare=git/2.37.3:1:epcc/utils:1
+SLURM_PROCID=0
+SLURM_JOB_GID=4125
+SLURMD_NODENAME=r2i5n2
+VIRTUAL_ENV=/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora
+SLURM_TASKS_PER_NODE=4
+C3_RSH=ssh -oConnectTimeout=10 -oForwardX11=no
+MODULES_CMD=/usr/share/Modules/libexec/modulecmd.tcl
+SLURM_NNODES=1
+USER=zzhang
+MODULES_LMPREREQ=epcc/utils&git/2.37.3:/mnt/lustre/indy2lfs/sw/modulefiles/epcc/setup-env&epcc/utils
+SLURM_GET_USER_ENV=1
+PWD=/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies
+SLURM_JOB_NODELIST=r2i5n2
+HOME=/home/ec249/ec249/zzhang
+MODULES_LMCONFLICT_modshare=git/2.37.3&git:1
+SLURM_CLUSTER_NAME=cirrus
+SLURM_NODELIST=r2i5n2
+SLURM_GPUS_ON_NODE=4
+SLURM_NTASKS=4
+SLURM_JOB_CPUS_PER_NODE=40
+HF_DATASETS_CACHE=/work/ec249/ec249/zzhang/hf_cache/datasets
+HF_MODULES_CACHE=/work/ec249/ec249/zzhang/hf_cache/modules
+SLURM_TOPOLOGY_ADDR=wholesystem......r2i5s0.r2i5n2
+SLURM_THREADS_PER_CORE=1
+_LMFILES__modshare=/mnt/lustre/indy2lfs/sw/modulefiles/git/2.37.3:1:/mnt/lustre/indy2lfs/sw/modulefiles/epcc/utils:1:/mnt/lustre/indy2lfs/sw/modulefiles/epcc/setup-env:1
+SLURM_WORKING_CLUSTER=cirrus:cirrus-services1:6817:9472:109
+HUGGINGFACE_HUB_CACHE=/work/ec249/ec249/zzhang/hf_cache/hub
+MODULES_LMNOTUASKED=git/2.37.3:epcc/utils
+SLURM_JOB_NAME=finetune.slurm
+TMPDIR=/dev/shm/zzhang_5283036
+SLURM_JOB_GPUS=0,1,2,3
+SLURM_JOBID=5283036
+SLURM_CONF=/etc/slurm/slurm.conf
+LOADEDMODULES=git/2.37.3:epcc/utils:/mnt/lustre/indy2lfs/sw/modulefiles/epcc/setup-env
+VIRTUAL_ENV_PROMPT=(torch_lora) 
+SLURM_NODE_ALIASES=(null)
+SLURM_JOB_QOS=gpu
+SLURM_TOPOLOGY_ADDR_PATTERN=switch.switch.switch.switch.switch.switch.switch.node
+MAIL=/var/spool/mail/zzhang
+MODULES_LMCONFLICT=git/2.37.3&git
+SLURM_CPUS_ON_NODE=40
+SLURM_JOB_NUM_NODES=1
+SHELL=/bin/bash
+SLURM_JOB_UID=46239
+MANPATH_modshare=:1:/mnt/lustre/indy2lfs/sw/git/2.37.3/share/man:1:/opt/clmgr/man:1:/opt/sgi/share/man:1:/opt/c3/man:1:/opt/clmgr/share/man:1:/opt/clmgr/lib/cm-cli/man:1
+SLURM_JOB_PARTITION=gpu
+USE_PCM_DB=2
+SLURM_HINT=nomultithread
+SLURM_JOB_USER=zzhang
+CUDA_VISIBLE_DEVICES=0,1,2,3
+SLURM_NPROCS=4
+SHLVL=2
+LANGUAGE=en_US.UTF-8
+SLURM_SUBMIT_HOST=cirrus-login2
+SLURM_JOB_ACCOUNT=ec249
+MANPATH=/mnt/lustre/indy2lfs/sw/git/2.37.3/share/man::/opt/c3/man:/opt/clmgr/man:/opt/sgi/share/man:/opt/clmgr/share/man:/opt/clmgr/lib/cm-cli/man
+SLURM_EXPORT_ENV=all
+OSCAR_HOME=/opt/oscar
+MODULEPATH=/mnt/lustre/indy2lfs/sw/modulefiles:/usr/share/Modules/modulefiles:/etc/modulefiles:/usr/share/modulefiles
+SLURM_GTIDS=0
+LOGNAME=zzhang
+MODULES_LMPREREQ_modshare=/mnt/lustre/indy2lfs/sw/modulefiles/epcc/setup-env&epcc/utils:1:epcc/utils&git/2.37.3:1
+MODULEPATH_modshare=/mnt/lustre/indy2lfs/sw/modulefiles:1:/usr/share/Modules/modulefiles:1:/etc/modulefiles:1:/usr/share/modulefiles:1
+PATH=/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/bin:/mnt/lustre/indy2lfs/sw/git/2.37.3/bin:/opt/clmgr/sbin:/opt/clmgr/bin:/opt/sgi/sbin:/opt/sgi/bin:/usr/share/Modules/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/c3/bin:/sbin:/bin
+SLURM_JOB_ID=5283036
+_LMFILES_=/mnt/lustre/indy2lfs/sw/modulefiles/git/2.37.3:/mnt/lustre/indy2lfs/sw/modulefiles/epcc/utils:/mnt/lustre/indy2lfs/sw/modulefiles/epcc/setup-env
+PS1=(torch_lora) 
+MODULESHOME=/usr/share/Modules
+HISTSIZE=1000
+SBATCH_EXPORT=none
+SLURM_LOCALID=0
+GPU_DEVICE_ORDINAL=0,1,2,3
+LESSOPEN=||/usr/bin/lesspipe.sh %s
+BASH_FUNC_module%%=() {  unset _mlshdbg;
+ if [ "${MODULES_SILENT_SHELL_DEBUG:-0}" = '1' ]; then
+ case "$-" in 
+ *v*x*)
+ set +vx;
+ _mlshdbg='vx'
+ ;;
+ *v*)
+ set +v;
+ _mlshdbg='v'
+ ;;
+ *x*)
+ set +x;
+ _mlshdbg='x'
+ ;;
+ *)
+ _mlshdbg=''
+ ;;
+ esac;
+ fi;
+ unset _mlre _mlIFS;
+ if [ -n "${IFS+x}" ]; then
+ _mlIFS=$IFS;
+ fi;
+ IFS=' ';
+ for _mlv in ${MODULES_RUN_QUARANTINE:-};
+ do
+ if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
+ if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
+ _mlre="${_mlre:-}${_mlv}_modquar='`eval 'echo ${'$_mlv'}'`' ";
+ fi;
+ _mlrv="MODULES_RUNENV_${_mlv}";
+ _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
+ fi;
+ done;
+ if [ -n "${_mlre:-}" ]; then
+ eval `eval ${_mlre} /usr/bin/tclsh /usr/share/Modules/libexec/modulecmd.tcl bash '"$@"'`;
+ else
+ eval `/usr/bin/tclsh /usr/share/Modules/libexec/modulecmd.tcl bash "$@"`;
+ fi;
+ _mlstatus=$?;
+ if [ -n "${_mlIFS+x}" ]; then
+ IFS=$_mlIFS;
+ else
+ unset IFS;
+ fi;
+ unset _mlre _mlv _mlrv _mlIFS;
+ if [ -n "${_mlshdbg:-}" ]; then
+ set -$_mlshdbg;
+ fi;
+ unset _mlshdbg;
+ return $_mlstatus
+}
+BASH_FUNC_switchml%%=() {  typeset swfound=1;
+ if [ "${MODULES_USE_COMPAT_VERSION:-0}" = '1' ]; then
+ typeset swname='main';
+ if [ -e /usr/share/Modules/libexec/modulecmd.tcl ]; then
+ typeset swfound=0;
+ unset MODULES_USE_COMPAT_VERSION;
+ fi;
+ else
+ typeset swname='compatibility';
+ if [ -e /usr/share/Modules/libexec/modulecmd-compat ]; then
+ typeset swfound=0;
+ MODULES_USE_COMPAT_VERSION=1;
+ export MODULES_USE_COMPAT_VERSION;
+ fi;
+ fi;
+ if [ $swfound -eq 0 ]; then
+ echo "Switching to Modules $swname version";
+ source /usr/share/Modules/init/bash;
+ else
+ echo "Cannot switch to Modules $swname version, command not found";
+ return 1;
+ fi
+}
+BASH_FUNC_ml%%=() {  module ml "$@"
+}
+_=/usr/bin/env
+[rank: 0] Seed set to 0
+[rank: 3] Seed set to 0
+[rank: 1] Seed set to 0
+[rank: 2] Seed set to 0
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Using the latest cached version of the module from /work/ec249/ec249/zzhang/hf_cache/modules/datasets_modules/datasets/glue/dacbe3125aa31d7f70367a07a8a9e72a5a0bfeb5fc42e75c9db75b96da6053ad (last modified on Mon Nov 27 00:20:48 2023) since it couldn't be found locally at glue., or remotely on the Hugging Face Hub.
+Some weights of OPTLoraForSequenceClassification were not initialized from the model checkpoint at facebook/opt-350m and are newly initialized: ['decoder.layers.6.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.18.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.4.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.12.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.7.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.19.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.17.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.3.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.21.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.23.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.10.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.13.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.14.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.12.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.10.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.20.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.1.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.8.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.21.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.13.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.2.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.9.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.7.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.5.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.10.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.22.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.16.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.9.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.1.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.14.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.14.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.0.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.1.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.11.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.4.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.17.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.23.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.9.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.11.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.6.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.15.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.10.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.23.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.9.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.7.self_attn.v_proj.lora_B.ags-network-opt.weight', 'score.weight', 'decoder.layers.3.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.14.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.15.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.6.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.22.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.18.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.17.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.2.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.22.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.5.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.11.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.8.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.13.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.20.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.0.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.15.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.21.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.18.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.13.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.2.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.1.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.8.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.12.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.20.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.22.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.19.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.4.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.12.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.16.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.5.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.4.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.19.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.16.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.15.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.21.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.5.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.8.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.6.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.23.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.19.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.18.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.7.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.3.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.17.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.3.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.2.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.16.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.11.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.20.self_attn.q_proj.lora_A.ags-network-opt.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Some weights of OPTLoraForSequenceClassification were not initialized from the model checkpoint at facebook/opt-350m and are newly initialized: ['decoder.layers.23.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.9.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.13.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.7.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.22.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.20.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.3.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.19.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.20.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.7.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.17.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.20.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.2.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.11.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.18.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.16.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.17.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.11.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.19.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.14.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.12.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.7.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.8.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.20.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.14.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.1.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.23.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.23.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.8.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.18.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.10.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.10.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.10.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.9.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.19.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.0.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.8.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.0.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.5.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.14.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.2.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.2.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.15.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.4.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.8.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.21.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.3.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.18.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.4.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.13.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.4.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.1.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.5.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.10.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.12.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.1.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.4.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.12.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.5.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.14.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.22.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.6.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.21.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.16.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.15.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.17.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.16.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.23.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.6.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.11.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.2.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.19.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.22.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.13.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.9.self_attn.v_proj.lora_A.ags-network-opt.weight', 'score.weight', 'decoder.layers.13.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.9.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.7.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.11.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.18.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.5.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.12.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.17.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.6.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.16.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.21.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.22.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.15.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.21.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.3.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.6.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.3.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.1.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.15.self_attn.v_proj.lora_A.ags-network-opt.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Some weights of OPTLoraForSequenceClassification were not initialized from the model checkpoint at facebook/opt-350m and are newly initialized: ['decoder.layers.9.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.22.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.2.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.14.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.16.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.3.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.23.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.13.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.6.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.5.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.7.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.15.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.17.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.7.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.18.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.14.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.22.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.2.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.17.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.13.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.7.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.8.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.19.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.18.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.17.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.2.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.1.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.21.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.16.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.20.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.7.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.9.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.3.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.4.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.15.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.9.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.20.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.8.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.13.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.14.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.21.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.1.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.11.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.3.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.3.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.19.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.11.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.22.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.6.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.8.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.10.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.23.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.4.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.19.self_attn.v_proj.lora_B.ags-network-opt.weight', 'score.weight', 'decoder.layers.5.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.13.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.9.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.21.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.11.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.12.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.14.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.10.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.23.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.12.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.15.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.6.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.11.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.22.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.4.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.6.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.15.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.8.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.19.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.5.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.0.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.16.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.16.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.1.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.10.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.12.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.10.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.21.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.20.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.2.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.4.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.1.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.20.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.18.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.0.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.18.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.12.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.5.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.17.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.23.self_attn.q_proj.lora_A.ags-network-opt.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Some weights of OPTLoraForSequenceClassification were not initialized from the model checkpoint at facebook/opt-350m and are newly initialized: ['decoder.layers.21.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.14.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.18.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.5.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.6.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.23.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.8.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.15.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.20.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.14.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.2.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.1.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.16.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.16.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.22.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.13.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.5.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.16.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.9.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.22.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.5.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.1.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.18.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.1.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.22.self_attn.q_proj.lora_B.ags-network-opt.weight', 'score.weight', 'decoder.layers.9.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.17.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.0.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.19.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.15.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.14.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.19.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.20.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.12.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.2.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.23.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.15.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.1.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.7.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.10.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.5.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.22.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.21.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.4.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.8.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.21.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.12.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.4.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.10.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.6.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.3.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.12.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.20.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.2.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.19.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.11.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.19.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.3.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.6.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.7.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.4.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.17.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.20.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.13.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.0.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.18.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.17.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.7.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.2.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.8.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.21.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.18.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.23.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.16.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.6.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.10.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.12.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.11.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.11.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.13.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.11.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.15.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.23.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.9.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.4.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.8.self_attn.q_proj.lora_B.ags-network-opt.weight', 'decoder.layers.17.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.14.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.3.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.10.self_attn.v_proj.lora_B.ags-network-opt.weight', 'decoder.layers.13.self_attn.v_proj.lora_A.ags-network-opt.weight', 'decoder.layers.3.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.7.self_attn.q_proj.lora_A.ags-network-opt.weight', 'decoder.layers.9.self_attn.v_proj.lora_B.ags-network-opt.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies/main.py", line 196, in <module>
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies/main.py", line 196, in <module>
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies/main.py", line 196, in <module>
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies/main.py", line 196, in <module>
+    main()
+    main()
+    main()
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies/main.py", line 121, in main
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies/main.py", line 121, in main
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies/main.py", line 121, in main
+    main()
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies/main.py", line 121, in main
+    actions.train(**train_params)
+    actions.train(**train_params)
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies/actions/train.py", line 135, in train
+    actions.train(**train_params)
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies/actions/train.py", line 135, in train
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies/actions/train.py", line 135, in train
+    actions.train(**train_params)
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/lora_global_synergies/actions/train.py", line 135, in train
+    trainer = pl.Trainer(**pl_trainer_args)
+    trainer = pl.Trainer(**pl_trainer_args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/utilities/argparse.py", line 70, in insert_env_defaults
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/utilities/argparse.py", line 70, in insert_env_defaults
+    trainer = pl.Trainer(**pl_trainer_args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/utilities/argparse.py", line 70, in insert_env_defaults
+    trainer = pl.Trainer(**pl_trainer_args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/utilities/argparse.py", line 70, in insert_env_defaults
+    return fn(self, **kwargs)
+    return fn(self, **kwargs)
+    return fn(self, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/trainer/trainer.py", line 401, in __init__
+           ^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/trainer/trainer.py", line 401, in __init__
+           ^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/trainer/trainer.py", line 401, in __init__
+    return fn(self, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/trainer/trainer.py", line 401, in __init__
+    self._accelerator_connector = _AcceleratorConnector(
+    self._accelerator_connector = _AcceleratorConnector(
+                                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py", line 158, in __init__
+                                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py", line 158, in __init__
+    self._accelerator_connector = _AcceleratorConnector(
+                                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py", line 158, in __init__
+    self._accelerator_connector = _AcceleratorConnector(
+                                  ^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py", line 158, in __init__
+    self.cluster_environment: ClusterEnvironment = self._choose_and_init_cluster_environment()
+    self.cluster_environment: ClusterEnvironment = self._choose_and_init_cluster_environment()
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py", line 428, in _choose_and_init_cluster_environment
+    self.cluster_environment: ClusterEnvironment = self._choose_and_init_cluster_environment()
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py", line 428, in _choose_and_init_cluster_environment
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py", line 428, in _choose_and_init_cluster_environment
+    self.cluster_environment: ClusterEnvironment = self._choose_and_init_cluster_environment()
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py", line 428, in _choose_and_init_cluster_environment
+    return env_type()
+    return env_type()
+    return env_type()
+           ^^^^^^^^^^
+           ^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/lightning_fabric/plugins/environments/slurm.py", line 52, in __init__
+           ^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/lightning_fabric/plugins/environments/slurm.py", line 52, in __init__
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/lightning_fabric/plugins/environments/slurm.py", line 52, in __init__
+    return env_type()
+           ^^^^^^^^^^
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/lightning_fabric/plugins/environments/slurm.py", line 52, in __init__
+    self._validate_srun_variables()
+    self._validate_srun_variables()
+    self._validate_srun_variables()
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/lightning_fabric/plugins/environments/slurm.py", line 208, in _validate_srun_variables
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/lightning_fabric/plugins/environments/slurm.py", line 208, in _validate_srun_variables
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/lightning_fabric/plugins/environments/slurm.py", line 208, in _validate_srun_variables
+    self._validate_srun_variables()
+  File "/mnt/lustre/indy2lfs/work/ec249/ec249/zzhang/torch_lora/lib/python3.11/site-packages/lightning_fabric/plugins/environments/slurm.py", line 208, in _validate_srun_variables
+    raise RuntimeError(
+RuntimeError: You set `--ntasks=4` in your SLURM bash script, but this variable is not supported. HINT: Use `--ntasks-per-node=4` instead.
+    raise RuntimeError(
+RuntimeError: You set `--ntasks=4` in your SLURM bash script, but this variable is not supported. HINT: Use `--ntasks-per-node=4` instead.
+    raise RuntimeError(
+RuntimeError: You set `--ntasks=4` in your SLURM bash script, but this variable is not supported. HINT: Use `--ntasks-per-node=4` instead.
+    raise RuntimeError(
+RuntimeError: You set `--ntasks=4` in your SLURM bash script, but this variable is not supported. HINT: Use `--ntasks-per-node=4` instead.
++-------------------------+-------------------------+-------------------------+-----------------+-------------------------+
+| Name                    |         Default         |      Config. File       | Manual Override |        Effective        |
++-------------------------+-------------------------+-------------------------+-----------------+-------------------------+
+| model                   |          [38;5;8mNone[0m           |        opt_lora         |                 |        opt_lora         |
+| dataset                 |          [38;5;8mNone[0m           |           qqp           |                 |           qqp           |
+| task                    |     [38;5;8mclassification[0m      |     classification      |                 |     classification      |
+| load_name               |          [38;5;8mNone[0m           |    facebook/opt-350m    |                 |    facebook/opt-350m    |
+| load_type               |           [38;5;8mhf[0m            |           hf            |                 |           hf            |
+| resume_training         |          False          |                         |                 |          False          |
+| batch_size              |           [38;5;8m128[0m           |            4            |                 |            4            |
+| log_level               |          info           |                         |                 |          info           |
+| seed                    |            0            |                         |                 |            0            |
+| lora_config             |          [38;5;8mNone[0m           | ./configs/lora/lora_net |                 | ./configs/lora/lora_net |
+|                         |                         |      workwise.toml      |                 |      workwise.toml      |
+| shortcut_config         |          None           |                         |                 |          None           |
+| learning_rate           |          [38;5;8m1e-05[0m          |         0.0004          |                 |         0.0004          |
+| weight_decay            |            [38;5;8m0[0m            |          0.01           |                 |          0.01           |
+| lr_scheduler            |          none           |                         |                 |          none           |
+| eta_min                 |            0            |                         |                 |            0            |
+| max_epochs              |           [38;5;8m20[0m            |           10            |                 |           10            |
+| max_steps               |           -1            |                         |                 |           -1            |
+| accumulate_grad_batches |            1            |                         |                 |            1            |
+| log_every_n_steps       |           [38;5;8m50[0m            |           20            |                 |           20            |
+| num_workers             |           80            |                         |                 |           80            |
+| num_devices             |            [38;5;8m1[0m            |            2            |                 |            2            |
+| num_nodes               |            1            |                         |                 |            1            |
+| accelerator             |          auto           |                         |                 |          auto           |
+| strategy                |           ddp           |                         |                 |           ddp           |
+| disable_dataset_cache   |          False          |                         |                 |          False          |
+| dataset_saved_path      |          None           |                         |                 |          None           |
+| is_pretrained           |          [38;5;8mFalse[0m          |          True           |                 |          True           |
++-------------------------+-------------------------+-------------------------+-----------------+-------------------------+
+| Name                    |         Default         |      Config. File       | Manual Override |        Effective        |
++-------------------------+-------------------------+-------------------------+-----------------+-------------------------+
+| model                   |          [38;5;8mNone[0m           |        opt_lora         |                 |        opt_lora         |
+| dataset                 |          [38;5;8mNone[0m           |           qqp           |                 |           qqp           |
+| task                    |     [38;5;8mclassification[0m      |     classification      |                 |     classification      |
+| load_name               |          [38;5;8mNone[0m           |    facebook/opt-350m    |                 |    facebook/opt-350m    |
+| load_type               |           [38;5;8mhf[0m            |           hf            |                 |           hf            |
+| resume_training         |          False          |                         |                 |          False          |
+| batch_size              |           [38;5;8m128[0m           |            4            |                 |            4            |
+| log_level               |          info           |                         |                 |          info           |
+| seed                    |            0            |                         |                 |            0            |
+| lora_config             |          [38;5;8mNone[0m           | ./configs/lora/lora_net |                 | ./configs/lora/lora_net |
+|                         |                         |      workwise.toml      |                 |      workwise.toml      |
+| shortcut_config         |          None           |                         |                 |          None           |
+| learning_rate           |          [38;5;8m1e-05[0m          |         0.0004          |                 |         0.0004          |
+| weight_decay            |            [38;5;8m0[0m            |          0.01           |                 |          0.01           |
+| lr_scheduler            |          none           |                         |                 |          none           |
+| eta_min                 |            0            |                         |                 |            0            |
+| max_epochs              |           [38;5;8m20[0m            |           10            |                 |           10            |
+| max_steps               |           -1            |                         |                 |           -1            |
+| accumulate_grad_batches |            1            |                         |                 |            1            |
+| log_every_n_steps       |           [38;5;8m50[0m            |           20            |                 |           20            |
+| num_workers             |           80            |                         |                 |           80            |
+| num_devices             |            [38;5;8m1[0m            |            2            |                 |            2            |
+| num_nodes               |            1            |                         |                 |            1            |
+| accelerator             |          auto           |                         |                 |          auto           |
+| strategy                |           ddp           |                         |                 |           ddp           |
+| disable_dataset_cache   |          False          |                         |                 |          False          |
+| dataset_saved_path      |          None           |                         |                 |          None           |
+| is_pretrained           |          [38;5;8mFalse[0m          |          True           |                 |          True           |
+| max_token_len           |           512           |                         |                 |           512           |
+| project_dir             | [38;5;8m/mnt/lustre/indy2lfs/wo[0m |      ./ags_output       |                 |      ./ags_output       |
+|                         | [38;5;8mrk/ec249/ec249/zzhang/l[0m |                         |                 |                         |
+|                         | [38;5;8mora_global_synergies/ag[0m |                         |                 |                         |
+|                         |        [38;5;8ms_output[0m         |                         |                 |                         |
+| project                 |          None           |                         |                 |          None           |
+| to_debug                |          False          |                         |                 |          False          |
+| training_optimizer      |          [38;5;8madam[0m           |          adamw          |                 |          adamw          |
+| is_to_auto_requeue      |          False          |                         |                 |          False          |
+| github_ci               |          False          |                         |                 |          False          |
+| target                  |  xcu250-figd2104-2L-e   |                         |                 |  xcu250-figd2104-2L-e   |
+| num_targets             |           100           |                         |                 |           100           |
++-------------------------+-------------------------+-------------------------+-----------------+-------------------------+
+>>> Trainable param number: 786432 || All param number: 331983872 || Trainable %: 0.24
+| max_token_len           |           512           |                         |                 |           512           |
+| project_dir             | [38;5;8m/mnt/lustre/indy2lfs/wo[0m |      ./ags_output       |                 |      ./ags_output       |
+|                         | [38;5;8mrk/ec249/ec249/zzhang/l[0m |                         |                 |                         |
+|                         | [38;5;8mora_global_synergies/ag[0m |                         |                 |                         |
+|                         |        [38;5;8ms_output[0m         |                         |                 |                         |
+| project                 |          None           |                         |                 |          None           |
+| to_debug                |          False          |                         |                 |          False          |
+| training_optimizer      |          [38;5;8madam[0m           |          adamw          |                 |          adamw          |
+| is_to_auto_requeue      |          False          |                         |                 |          False          |
+| github_ci               |          False          |                         |                 |          False          |
+| target                  |  xcu250-figd2104-2L-e   |                         |                 |  xcu250-figd2104-2L-e   |
+| num_targets             |           100           |                         |                 |           100           |
++-------------------------+-------------------------+-------------------------+-----------------+-------------------------+
+>>> Trainable param number: 786432 || All param number: 331983872 || Trainable %: 0.24
++-------------------------+-------------------------+-------------------------+-----------------+-------------------------+
+| Name                    |         Default         |      Config. File       | Manual Override |        Effective        |
++-------------------------+-------------------------+-------------------------+-----------------+-------------------------+
+| model                   |          [38;5;8mNone[0m           |        opt_lora         |                 |        opt_lora         |
+| dataset                 |          [38;5;8mNone[0m           |           qqp           |                 |           qqp           |
+| task                    |     [38;5;8mclassification[0m      |     classification      |                 |     classification      |
+| load_name               |          [38;5;8mNone[0m           |    facebook/opt-350m    |                 |    facebook/opt-350m    |
+| load_type               |           [38;5;8mhf[0m            |           hf            |                 |           hf            |
+| resume_training         |          False          |                         |                 |          False          |
+| batch_size              |           [38;5;8m128[0m           |            4            |                 |            4            |
+| log_level               |          info           |                         |                 |          info           |
+| seed                    |            0            |                         |                 |            0            |
+| lora_config             |          [38;5;8mNone[0m           | ./configs/lora/lora_net |                 | ./configs/lora/lora_net |
+|                         |                         |      workwise.toml      |                 |      workwise.toml      |
+| shortcut_config         |          None           |                         |                 |          None           |
+| learning_rate           |          [38;5;8m1e-05[0m          |         0.0004          |                 |         0.0004          |
+| weight_decay            |            [38;5;8m0[0m            |          0.01           |                 |          0.01           |
+| lr_scheduler            |          none           |                         |                 |          none           |
+| eta_min                 |            0            |                         |                 |            0            |
+| max_epochs              |           [38;5;8m20[0m            |           10            |                 |           10            |
+| max_steps               |           -1            |                         |                 |           -1            |
+| accumulate_grad_batches |            1            |                         |                 |            1            |
+| log_every_n_steps       |           [38;5;8m50[0m            |           20            |                 |           20            |
+| num_workers             |           80            |                         |                 |           80            |
+| num_devices             |            [38;5;8m1[0m            |            2            |                 |            2            |
+| num_nodes               |            1            |                         |                 |            1            |
+| accelerator             |          auto           |                         |                 |          auto           |
+| strategy                |           ddp           |                         |                 |           ddp           |
+| disable_dataset_cache   |          False          |                         |                 |          False          |
+| dataset_saved_path      |          None           |                         |                 |          None           |
+| is_pretrained           |          [38;5;8mFalse[0m          |          True           |                 |          True           |
++-------------------------+-------------------------+-------------------------+-----------------+-------------------------+
+| Name                    |         Default         |      Config. File       | Manual Override |        Effective        |
++-------------------------+-------------------------+-------------------------+-----------------+-------------------------+
+| model                   |          [38;5;8mNone[0m           |        opt_lora         |                 |        opt_lora         |
+| dataset                 |          [38;5;8mNone[0m           |           qqp           |                 |           qqp           |
+| task                    |     [38;5;8mclassification[0m      |     classification      |                 |     classification      |
+| load_name               |          [38;5;8mNone[0m           |    facebook/opt-350m    |                 |    facebook/opt-350m    |
+| load_type               |           [38;5;8mhf[0m            |           hf            |                 |           hf            |
+| resume_training         |          False          |                         |                 |          False          |
+| batch_size              |           [38;5;8m128[0m           |            4            |                 |            4            |
+| log_level               |          info           |                         |                 |          info           |
+| seed                    |            0            |                         |                 |            0            |
+| lora_config             |          [38;5;8mNone[0m           | ./configs/lora/lora_net |                 | ./configs/lora/lora_net |
+|                         |                         |      workwise.toml      |                 |      workwise.toml      |
+| shortcut_config         |          None           |                         |                 |          None           |
+| learning_rate           |          [38;5;8m1e-05[0m          |         0.0004          |                 |         0.0004          |
+| weight_decay            |            [38;5;8m0[0m            |          0.01           |                 |          0.01           |
+| lr_scheduler            |          none           |                         |                 |          none           |
+| eta_min                 |            0            |                         |                 |            0            |
+| max_epochs              |           [38;5;8m20[0m            |           10            |                 |           10            |
+| max_steps               |           -1            |                         |                 |           -1            |
+| accumulate_grad_batches |            1            |                         |                 |            1            |
+| log_every_n_steps       |           [38;5;8m50[0m            |           20            |                 |           20            |
+| num_workers             |           80            |                         |                 |           80            |
+| num_devices             |            [38;5;8m1[0m            |            2            |                 |            2            |
+| num_nodes               |            1            |                         |                 |            1            |
+| accelerator             |          auto           |                         |                 |          auto           |
+| strategy                |           ddp           |                         |                 |           ddp           |
+| disable_dataset_cache   |          False          |                         |                 |          False          |
+| dataset_saved_path      |          None           |                         |                 |          None           |
+| is_pretrained           |          [38;5;8mFalse[0m          |          True           |                 |          True           |
+| max_token_len           |           512           |                         |                 |           512           |
+| project_dir             | [38;5;8m/mnt/lustre/indy2lfs/wo[0m |      ./ags_output       |                 |      ./ags_output       |
+|                         | [38;5;8mrk/ec249/ec249/zzhang/l[0m |                         |                 |                         |
+|                         | [38;5;8mora_global_synergies/ag[0m |                         |                 |                         |
+|                         |        [38;5;8ms_output[0m         |                         |                 |                         |
+| project                 |          None           |                         |                 |          None           |
+| to_debug                |          False          |                         |                 |          False          |
+| training_optimizer      |          [38;5;8madam[0m           |          adamw          |                 |          adamw          |
+| is_to_auto_requeue      |          False          |                         |                 |          False          |
+| github_ci               |          False          |                         |                 |          False          |
+| target                  |  xcu250-figd2104-2L-e   |                         |                 |  xcu250-figd2104-2L-e   |
+| num_targets             |           100           |                         |                 |           100           |
++-------------------------+-------------------------+-------------------------+-----------------+-------------------------+
+>>> Trainable param number: 786432 || All param number: 331983872 || Trainable %: 0.24
+| max_token_len           |           512           |                         |                 |           512           |
+| project_dir             | [38;5;8m/mnt/lustre/indy2lfs/wo[0m |      ./ags_output       |                 |      ./ags_output       |
+|                         | [38;5;8mrk/ec249/ec249/zzhang/l[0m |                         |                 |                         |
+|                         | [38;5;8mora_global_synergies/ag[0m |                         |                 |                         |
+|                         |        [38;5;8ms_output[0m         |                         |                 |                         |
+| project                 |          None           |                         |                 |          None           |
+| to_debug                |          False          |                         |                 |          False          |
+| training_optimizer      |          [38;5;8madam[0m           |          adamw          |                 |          adamw          |
+| is_to_auto_requeue      |          False          |                         |                 |          False          |
+| github_ci               |          False          |                         |                 |          False          |
+| target                  |  xcu250-figd2104-2L-e   |                         |                 |  xcu250-figd2104-2L-e   |
+| num_targets             |           100           |                         |                 |           100           |
++-------------------------+-------------------------+-------------------------+-----------------+-------------------------+
+>>> Trainable param number: 786432 || All param number: 331983872 || Trainable %: 0.24
+srun: error: r2i5n2: tasks 1,3: Exited with exit code 1
+srun: launch/slurm: _step_signal: Terminating StepId=5283036.0
+slurmstepd: error: *** STEP 5283036.0 ON r2i5n2 CANCELLED AT 2023-12-19T02:25:58 ***
+srun: error: r2i5n2: task 2: Exited with exit code 1
+srun: error: r2i5n2: task 0: Exited with exit code 1
