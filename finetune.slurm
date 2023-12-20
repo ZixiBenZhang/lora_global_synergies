@@ -13,4 +13,5 @@ export HUGGINGFACE_HUB_CACHE="/work/ec249/ec249/zzhang/hf_cache/hub"
 export HF_DATASETS_CACHE="/work/ec249/ec249/zzhang/hf_cache/datasets"
 export HF_MODULES_CACHE="/work/ec249/ec249/zzhang/hf_cache/modules"
 
+unset SLURM_NTASKS
 srun python -m main train --config configs/opt_lora_qqp_350m.toml
