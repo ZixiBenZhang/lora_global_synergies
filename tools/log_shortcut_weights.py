@@ -38,7 +38,7 @@ def get_opt_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor |
 
         unevenness = compute_unevenness_metrics(singulars)
         for metric_name, value in unevenness.items():
-            res[f"uneven_{metric_name}_{shortcut_name}_epoch"] = value
+            res[f"_uneven_{metric_name}_{shortcut_name}_epoch"] = value
 
     return res
 
