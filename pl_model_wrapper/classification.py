@@ -120,7 +120,7 @@ class NLPClassificationModelWrapper(PlWrapperBase):
                 f"Model {self.model.__class__.__name__} not supported for logging shortcut singular values"
             )
         # Todo: pl logger only logs scalars. Write own csv logger for singular tensors
-        self.log_dict(singular_uneven)
+        self.log_dict(singular_uneven, sync_dist=True)
 
     def test_step(self, batch, batch_idx):
         x = batch["input_ids"]
