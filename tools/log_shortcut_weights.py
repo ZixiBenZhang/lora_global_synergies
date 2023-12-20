@@ -5,7 +5,7 @@ from torch import Tensor
 from transformers import PreTrainedModel
 
 
-def get_opt_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor]:
+def get_opt_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor | float]:
     shortcut_weights = {}
     res = {}
     for name, param in model.named_parameters():

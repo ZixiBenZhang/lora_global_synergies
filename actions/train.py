@@ -6,6 +6,7 @@ import torch
 import torch.nn.functional as F
 import pytorch_lightning as pl
 from datasets import load_dataset, load_metric
+from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from lora.lora_modules import mark_only_lora_as_trainable
@@ -71,8 +72,7 @@ def train(
     val_history = ValidationMetricsCallback()
     pl_trainer_args["callbacks"].append(val_history)
 
-    # TODO: setup environment plugins if necessary
-    plugins = None
+    plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
     pl_trainer_args["plugins"] = plugins
 
     wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(

@@ -328,16 +328,16 @@ def get_arg_parser():
         """,
         metavar="DIR_PATH",
     )
-    # TODO: args for runtime environment SLURM and GitHub CI
-    # runtime_group.add_argument(
-    #     "--auto-requeue",
-    #     dest="is_to_auto_requeue",
-    #     action="store_true",
-    #     help="""
-    #         enable automatic job resubmission on SLURM managed cluster. (default:
-    #         %(default)s)
-    #     """,
-    # )
+    runtime_group.add_argument(
+        "--auto-requeue",
+        dest="is_to_auto_requeue",
+        action="store_true",
+        help="""
+            enable automatic job resubmission on SLURM managed cluster. (default:
+            %(default)s)
+        """,
+    )
+    # TODO: args for GitHub CI
     # runtime_group.add_argument(
     #     "--github-ci",
     #     action="store_true",
