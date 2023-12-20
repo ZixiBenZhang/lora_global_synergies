@@ -59,7 +59,7 @@ CLI_DEFAULTS = {
     "num_nodes": 1,
     "accelerator": ACCELERATORS[0],
     "strategy": STRATEGIES[0],
-    "is_to_auto_requeue": False,
+    "is_to_auto_requeue": None,
     "github_ci": False,
     "disable_dataset_cache": False,
     "dataset_saved_path": None,
@@ -331,7 +331,7 @@ def get_arg_parser():
     runtime_group.add_argument(
         "--auto-requeue",
         dest="is_to_auto_requeue",
-        action="store_true",
+        type=bool,
         help="""
             enable automatic job resubmission on SLURM managed cluster. (default:
             %(default)s)

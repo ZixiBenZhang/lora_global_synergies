@@ -2,7 +2,10 @@ import torch
 from datasets import DatasetInfo
 from transformers import PreTrainedModel
 
-from tools.log_shortcut_weights import get_opt_layer_res_shortcut_svd, get_roberta_layer_res_shortcut_svd
+from tools.log_shortcut_weights import (
+    get_opt_layer_res_shortcut_svd,
+    get_roberta_layer_res_shortcut_svd,
+)
 from .base import PlWrapperBase
 
 
@@ -116,6 +119,7 @@ class NLPClassificationModelWrapper(PlWrapperBase):
             raise ValueError(
                 f"Model {self.model.__class__.__name__} not supported for logging shortcut singular values"
             )
+        # Todo: pl logger only logs scalars. Write own csv logger for singular tensors
         self.log_dict(singular_uneven)
 
     def test_step(self, batch, batch_idx):

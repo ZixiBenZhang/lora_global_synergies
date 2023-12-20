@@ -72,7 +72,10 @@ def train(
     val_history = ValidationMetricsCallback()
     pl_trainer_args["callbacks"].append(val_history)
 
-    plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
+    if auto_requeue is not None:
+        plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
+    else:
+        plugins = None
     pl_trainer_args["plugins"] = plugins
 
     wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
