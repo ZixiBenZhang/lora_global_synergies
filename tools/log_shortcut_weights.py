@@ -1,8 +1,42 @@
+import csv
+import os
 import re
+from typing import Any
 
 import torch
 from torch import Tensor
 from transformers import PreTrainedModel
+
+
+def log_layer_res_shortcut_svd(
+    model: PreTrainedModel, current_epoch: int, log_dir
+) -> None:
+    singular_uneven: dict[str, Any]
+    if "OPT" in model.__class__.__name__:
+        # print(f"Epoch {self.current_epoch} getting singular values...")
+        singular_uneven = get_opt_layer_res_shortcut_svd(model)
+        # print(singular_uneven)
+    elif "Roberta" in model.__class__.__name__:
+        singular_uneven = get_roberta_layer_res_shortcut_svd(model)
+    else:
+        # TODO: accommodate more models
+        raise ValueError(
+            f"Model {model.__class__.__name__} not supported for logging shortcut singular values"
+        )
+    _header = list(singular_uneven.keys())
+    _header.insert(0, "epoch")
+    singular_uneven["epoch"] = current_epoch
+
+    filename = f"{log_dir}/svd.csv"
+    if os.path.isfile(filename):
+        with open(filename, "a+", encoding="UTF8", newline="") as f:
+            dict_writer = csv.DictWriter(f, fieldnames=_header)
+            dict_writer.writerow(singular_uneven)
+    else:
+        with open(filename, "a+", encoding="UTF8", newline="") as f:
+            dict_writer = csv.DictWriter(f, fieldnames=_header)
+            dict_writer.writeheader()
+            dict_writer.writerow(singular_uneven)
 
 
 def get_opt_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor | float]:
@@ -22,23 +56,23 @@ def get_opt_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor |
             corr_name: str = mat_name.replace("proj_A", "proj_B")
             if corr_name not in shortcut_weights:
                 continue
-            singulars = torch.linalg.svdvals(
+            singulars: Tensor = torch.linalg.svdvals(
                 torch.matmul(shortcut_weights[mat_name], shortcut_weights[corr_name])
             )
         else:
             corr_name: str = mat_name.replace("proj_B", "proj_A")
             if corr_name not in shortcut_weights:
                 continue
-            singulars = torch.linalg.svdvals(
+            singulars: Tensor = torch.linalg.svdvals(
                 torch.matmul(shortcut_weights[corr_name], shortcut_weights[mat_name])
             )
 
         shortcut_name: str = re.findall(r"layers\.\d+\.residual[1-2]", mat_name)[0]
-        # res[f"svdvals_{shortcut_name}_epoch"] = singulars
+        res[f"svdvals_{shortcut_name}"] = singulars.tolist()
 
         unevenness = compute_unevenness_metrics(singulars)
         for metric_name, value in unevenness.items():
-            res[f"_uneven_{metric_name}_{shortcut_name}_epoch"] = value
+            res[f"uneven_{metric_name}_{shortcut_name}"] = value
 
     return res
 
