@@ -62,6 +62,7 @@ def train(
         # TensorBoard logger
         tb_logger = pl.loggers.TensorBoardLogger(save_dir=save_path, name="logs")
         # csv_logger = pl.loggers.CSVLogger(save_dir=save_path, name="csv_logs")
+        # wandb_logger = pl.loggers.WandbLogger(save_dir=save_path, name="wandb_logs")
         pl_trainer_args["callbacks"] = [
             best_checkpoint_callback,
             latest_checkpoint_callback,

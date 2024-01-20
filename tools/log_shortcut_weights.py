@@ -7,10 +7,35 @@ import torch
 from torch import Tensor
 from transformers import PreTrainedModel
 
+"""
+Shortcut weight logging: once per epoch, ~ succinct model weights checkpoint
+"""
+
+"""
+Shortcut weights (per-epoch) format:
+res = {
+    epoch: current_epoch
+    layers.{i}.residual1: {
+        svdvals_layers.{i}.residual1: [svd1,svd2,...]
+        uneven_{metric_name}_layers.{i}.residual1: metric_val 
+        ...
+    }
+    layers.{i}.residual2: {...}
+    ...
+}
+"""
+
+"""
+Visualisation plan:
+- Choose certain epochs to visualise e.g. 5, 10, ..., final epoch
+- A figure per metric per shortcut 
+- Each figure: layer depth vs. metric
+"""
+
 
 def log_layer_res_shortcut_svd(
-    model: PreTrainedModel, current_epoch: int, log_dir
-) -> None:
+        model: PreTrainedModel, current_epoch: int, log_dir
+) -> dict[str, Tensor | float]:
     singular_uneven: dict[str, Any]
     if "OPT" in model.__class__.__name__:
         # print(f"Epoch {self.current_epoch} getting singular values...")
@@ -27,6 +52,8 @@ def log_layer_res_shortcut_svd(
     _header.insert(0, "epoch")
     singular_uneven["epoch"] = current_epoch
 
+    # TODO: log by YAML
+
     filename = f"{log_dir}/svd.csv"
     if os.path.isfile(filename):
         with open(filename, "a+", encoding="UTF8", newline="") as f:
@@ -37,6 +64,8 @@ def log_layer_res_shortcut_svd(
             dict_writer = csv.DictWriter(f, fieldnames=_header)
             dict_writer.writeheader()
             dict_writer.writerow(singular_uneven)
+
+    return singular_uneven
 
 
 def get_opt_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor | float]:
@@ -85,7 +114,7 @@ def compute_unevenness_metrics(singulars: Tensor) -> dict[str, float]:
     cv = torch.var(singulars) / torch.mean(singulars)
     max_deviation = (torch.max(singulars) - torch.min(singulars)) / torch.max(singulars)
     mean_deviation = (
-        (torch.max(singulars) - torch.min(singulars)) / 2 / torch.mean(singulars)
+            (torch.max(singulars) - torch.min(singulars)) / 2 / torch.mean(singulars)
     )
     deviation = (torch.max(singulars) - torch.min(singulars)) / torch.mean(singulars)
     _normalised: Tensor = singulars / torch.sum(singulars)
@@ -108,17 +137,17 @@ EPSILON = 1e-7
 def entropy(distribution: Tensor) -> float:
     assert len(distribution.size()) == 1, "Input distribution needs to be 1D tensor"
     assert (
-        1 - EPSILON <= torch.sum(distribution) <= 1 + EPSILON
+            1 - EPSILON <= torch.sum(distribution) <= 1 + EPSILON
     ), "Input distribution must sum to 1"
     return torch.sum(-distribution * torch.log2(distribution)).item()
 
 
 def kl_divergence(distribution1: Tensor, distribution2: Tensor) -> float:
     assert (
-        len(distribution1.size()) == 1 and len(distribution2.size()) == 1
+            len(distribution1.size()) == 1 and len(distribution2.size()) == 1
     ), "Input distributions need to be 1D tensor"
     assert (
-        1 - EPSILON <= torch.sum(distribution1) <= 1 + EPSILON
-        and 1 - EPSILON <= torch.sum(distribution2) <= 1 + EPSILON
+            1 - EPSILON <= torch.sum(distribution1) <= 1 + EPSILON
+            and 1 - EPSILON <= torch.sum(distribution2) <= 1 + EPSILON
     ), "Input distributions must sum to 1"
     return torch.sum(distribution1 * torch.log2(distribution1 / distribution2)).item()

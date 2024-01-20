@@ -1,6 +1,9 @@
+from typing import Optional
+
 import torch
 from datasets import DatasetInfo
 from transformers import PreTrainedModel
+import pytorch_lightning.loggers
 
 from tools.log_shortcut_weights import log_layer_res_shortcut_svd
 from .base import PlWrapperBase
@@ -105,7 +108,16 @@ class NLPClassificationModelWrapper(PlWrapperBase):
         if "Ags" not in self.model.__class__.__name__:
             return
         # Log shortcut weights' singular values and unevenness metrics
-        log_layer_res_shortcut_svd(self.model, self.current_epoch, self.logger.log_dir)
+        singular_uneven = log_layer_res_shortcut_svd(self.model, self.current_epoch, self.logger.log_dir)
+
+        # TODO: log by Wandb
+        # wandb: Optional[pytorch_lightning.loggers.WandbLogger] = None
+        # for logger in self.trainer.loggers:
+        #     if logger is pytorch_lightning.loggers.WandbLogger:
+        #         wandb = logger
+        #         break
+        # assert wandb is not None, "No Wandb logger provided for logging singular metrics"
+        # wandb.log_table()
 
     def test_step(self, batch, batch_idx):
         x = batch["input_ids"]
