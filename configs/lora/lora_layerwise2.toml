@@ -1,0 +1,346 @@
+granularity = "layer"
+
+[default]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+init_lora_weghts = true
+fan_in_fan_out = false
+disable_adapter = false
+
+[model_layer_8.q_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_8.k_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_8.v_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_8.o_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_8.w1]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_8.w2]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_9.q_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_9.k_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_9.v_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_9.o_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_9.w1]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_9.w2]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_10.q_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_10.k_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_10.v_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_10.o_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_10.w1]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_10.w2]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_11.q_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_11.k_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_11.v_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_11.o_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_11.w1]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_11.w2]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_12.q_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_12.k_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_12.v_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_12.o_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_12.w1]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_12.w2]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_13.q_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_13.k_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_13.v_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_13.o_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_13.w1]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_13.w2]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_14.q_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_14.k_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_14.v_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_14.o_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_14.w1]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_14.w2]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_15.q_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_15.k_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_15.v_proj]
+r = 24
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = false
+
+[model_layer_15.o_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_15.w1]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
+
+[model_layer_15.w2]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-top-opt350m"
+disable_adapter = true
