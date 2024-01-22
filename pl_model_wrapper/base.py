@@ -76,10 +76,12 @@ class PlWrapperBase(pl.LightningModule):
         self.log("val_acc_epoch", self.acc_val, prog_bar=True)
         self.log("val_loss_epoch", self.loss_val, prog_bar=True)
 
-        if "Ags" not in self.model.__class__.__name__:
-            return
-        # Log shortcut weights' singular values and unevenness metrics
-        log_layer_res_shortcut_svd(self.model, self.current_epoch, self.logger.log_dir)
+        # TODO: log LoRA singulars by Wandb
+
+        # if "Ags" not in self.model.__class__.__name__:
+        #     return
+        # # Log shortcut weights' singular values and unevenness metrics
+        # log_layer_res_shortcut_svd(self.model, self.current_epoch, self.logger.log_dir)
 
     def test_step(self, batch, batch_idx):
         x, y = batch

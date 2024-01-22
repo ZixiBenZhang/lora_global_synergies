@@ -105,12 +105,13 @@ class NLPClassificationModelWrapper(PlWrapperBase):
         self.log("val_loss_epoch", self.loss_val, prog_bar=True)
         self.log("val_acc_epoch", self.acc_val, prog_bar=True)
 
-        if "Ags" not in self.model.__class__.__name__:
-            return
-        # Log shortcut weights' singular values and unevenness metrics
-        singular_uneven = log_layer_res_shortcut_svd(self.model, self.current_epoch, self.logger.log_dir)
+        # TODO: log LoRA singulars by Wandb
 
-        # TODO: log by Wandb
+        # if "Ags" not in self.model.__class__.__name__:
+        #     return
+        # Log shortcut weights' singular values and unevenness metrics
+        # singular_uneven = log_layer_res_shortcut_svd(self.model, self.current_epoch, self.logger.log_dir)
+        #
         # wandb: Optional[pytorch_lightning.loggers.WandbLogger] = None
         # for logger in self.trainer.loggers:
         #     if logger is pytorch_lightning.loggers.WandbLogger:
