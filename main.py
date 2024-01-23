@@ -14,7 +14,7 @@ from torchmetrics.text.rouge import ROUGEScore
 import optuna
 from transformers import AutoTokenizer
 
-from dataset import get_nlp_dataset_split
+from dataset import get_nlp_dataset_split, get_config_names
 from loading.argparser_ags import get_arg_parser, CLI_DEFAULTS
 from loading.config_load import post_parse_load_config
 from loading.setup_model_and_dataset import setup_model_and_dataset
@@ -174,22 +174,8 @@ def t():
     #     print(data["input_ids"])
     #     print(data["input_ids"].shape)
 
-    info = datasets.DatasetInfo.from_directory("./zzz/xsum")
+    info = get_config_names("glue", None)
     print(info)
-
-    # parser = argparse.ArgumentParser(add_help=False)
-    # parser.add_argument("--flag")
-    #
-    # args1 = parser.parse_args()
-    # a = args1.flag
-    # print(a)
-    #
-    # parser = argparse.ArgumentParser(add_help=False)
-    # parser.add_argument("--flag")
-    #
-    # args2 = parser.parse_args()
-    # b = args2.flag
-    # print(b)
 
 
 if __name__ == "__main__":
