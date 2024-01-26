@@ -39,7 +39,7 @@ def setup_model_and_dataset(
     if args.load_name is not None:# and args.load_type == "hf":
         checkpoint = args.load_name
 
-    tokenizer = get_tokenizer(args.model, checkpoint)
+    tokenizer = args.tokenizer_cls if args.tokenizer_cls is not None else get_tokenizer(args.model, checkpoint)
 
     lora_config = None
     if args.lora_config is not None:

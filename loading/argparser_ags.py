@@ -40,6 +40,7 @@ CLI_DEFAULTS = {
     "to_debug": False,
     "log_level": LOG_LEVELS[1],
     "seed": 0,
+    "tokenizer_cls": None,
     "lora_config": None,
     "shortcut_config": None,
     # Trainer options
@@ -170,6 +171,13 @@ def get_arg_parser():
             seed_everything function. (default: %(default)s)
         """,
         metavar="NUM",
+    )
+    general_group.add_argument(
+        "--tokenizer",
+        dest="tokenizer_cls",
+        default=None,
+        help="model class for loading tokenizer; it's only effective when --load is used",
+        metavar="MODEL_NAME"
     )
     general_group.add_argument(
         "--lora-config",
