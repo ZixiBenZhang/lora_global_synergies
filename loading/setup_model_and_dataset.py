@@ -39,7 +39,7 @@ def setup_model_and_dataset(
     if args.load_name is not None:# and args.load_type == "hf":
         checkpoint = args.load_name
 
-    tokenizer = get_tokenizer(args.model, args.tokenizer_cls if args.tokenizer_cls is not None else checkpoint)
+    tokenizer = get_tokenizer(args.model, args.backbone_model if args.backbone_model is not None else checkpoint)
 
     lora_config = None
     if args.lora_config is not None:
@@ -68,7 +68,7 @@ def setup_model_and_dataset(
         task=args.task,
         dataset_info=dataset_info,
         pretrained=args.is_pretrained,
-        checkpoint=checkpoint,
+        checkpoint=args.backbone_model if args.backbone_model is not None else checkpoint,
         lora_config=lora_config,
         shortcut_config=shortcut_config,
     )
