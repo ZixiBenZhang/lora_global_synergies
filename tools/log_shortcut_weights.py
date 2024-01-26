@@ -7,6 +7,8 @@ import torch
 from torch import Tensor
 from transformers import PreTrainedModel
 
+from tools.get_unevenness import compute_unevenness_metrics
+
 """
 Shortcut weight logging: once per epoch, ~ succinct model weights checkpoint
 """
@@ -32,9 +34,9 @@ Visualisation plan:
 - Each figure: layer depth vs. metric
 """
 
-
+# TODO: update, as log_lora_weights.py
 def log_layer_res_shortcut_svd(
-        model: PreTrainedModel, current_epoch: int, log_dir
+    model: PreTrainedModel, current_epoch: int, log_dir
 ) -> dict[str, Tensor | float]:
     singular_uneven: dict[str, Any]
     if "OPT" in model.__class__.__name__:
@@ -108,46 +110,3 @@ def get_opt_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor |
 
 def get_roberta_layer_res_shortcut_svd(model: PreTrainedModel) -> dict[str, Tensor]:
     raise NotImplementedError
-
-
-def compute_unevenness_metrics(singulars: Tensor) -> dict[str, float]:
-    cv = torch.var(singulars) / torch.mean(singulars)
-    max_deviation = (torch.max(singulars) - torch.min(singulars)) / torch.max(singulars)
-    mean_deviation = (
-            (torch.max(singulars) - torch.min(singulars)) / 2 / torch.mean(singulars)
-    )
-    deviation = (torch.max(singulars) - torch.min(singulars)) / torch.mean(singulars)
-    _normalised: Tensor = singulars / torch.sum(singulars)
-    shannon_entropy = entropy(_normalised)
-    _uniform: Tensor = torch.full(_normalised.size(), 1).to(_normalised.device)
-    kl_div = kl_divergence(_uniform / torch.sum(_uniform), _normalised)
-    return {
-        "coefficient_of_variation": cv,
-        "max_deviation": max_deviation,
-        "mean_deviation": mean_deviation,
-        "deviation": deviation,
-        "entropy": shannon_entropy,
-        "kl_divergence": kl_div,
-    }
-
-
-EPSILON = 1e-7
-
-
-def entropy(distribution: Tensor) -> float:
-    assert len(distribution.size()) == 1, "Input distribution needs to be 1D tensor"
-    assert (
-            1 - EPSILON <= torch.sum(distribution) <= 1 + EPSILON
-    ), "Input distribution must sum to 1"
-    return torch.sum(-distribution * torch.log2(distribution)).item()
-
-
-def kl_divergence(distribution1: Tensor, distribution2: Tensor) -> float:
-    assert (
-            len(distribution1.size()) == 1 and len(distribution2.size()) == 1
-    ), "Input distributions need to be 1D tensor"
-    assert (
-            1 - EPSILON <= torch.sum(distribution1) <= 1 + EPSILON
-            and 1 - EPSILON <= torch.sum(distribution2) <= 1 + EPSILON
-    ), "Input distributions must sum to 1"
-    return torch.sum(distribution1 * torch.log2(distribution1 / distribution2)).item()

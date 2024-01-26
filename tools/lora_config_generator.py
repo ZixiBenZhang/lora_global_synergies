@@ -17,10 +17,12 @@ def one_third_layers_lora(mode, num_layers=24, model_name="opt350m"):
             "init_lora_weghts": True,
             "fan_in_fan_out": False,
             "disable_adapter": False,
-        }
+        },
     }
     for i in range(num_layers):
-        if i not in range(round((mode - 1) / 3 * num_layers), round(mode / 3 * num_layers)):
+        if i not in range(
+            round((mode - 1) / 3 * num_layers), round(mode / 3 * num_layers)
+        ):
             continue
         data = {
             **data,
@@ -67,7 +69,7 @@ def one_third_layers_lora(mode, num_layers=24, model_name="opt350m"):
                     "adapter_name": adapter_name,
                     "disable_adapter": True,
                 },
-            }
+            },
         }
 
     with open(f"../configs/lora/lora_layerwise{mode}.toml", "w+") as f:
