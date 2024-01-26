@@ -4,6 +4,7 @@ import pickle
 
 import torch
 import pytorch_lightning as pl
+from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
@@ -34,34 +35,55 @@ def test(
         pl_trainer_args["callbacks"] = []
         pl_trainer_args["logger"] = tb_logger
 
-    # TODO: environment plugins
+    if auto_requeue is not None:
+        plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
+    else:
+        plugins = None
+    pl_trainer_args["plugins"] = plugins
 
-    wrapper_pl_model = pl_model_wrapper.get_model_wrapper(model_info, task)
-
-    if load_name is not None:
-        model = load_model_chkpt(load_name, load_type=load_type, model=model)
-
-    plt_model = wrapper_pl_model(
-        model,
-        dataset_info=dataset_info,
-        learning_rate=learning_rate,
-        weight_decay=weight_decay,
-        optimizer=optimizer,
+    wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
+        model_info, task
     )
+
+    # load model from pl checkpoint
+    if load_name is None:
+        raise ValueError(
+            "Path to checkpoint required for resuming training. Please use --load PATH."
+        )
+    model = load_model_chkpt(load_name, load_type=load_type, model=model)
+
+    # if load_type != "pl":
+    #     raise ValueError("Load-type pl is required for resuming training. Please use --load-type pl.")
+    logger.warning(
+        f"Resume full training state from pl checkpoint {load_name}. Entered hyperparameter configuration ignored."
+    )
+
+    # if model_info.is_lora:
+    #     mark_only_lora_as_trainable(model, bias="none")
+    #     if model_info.is_ags:
+    #         mark_ags_as_trainable(model)
+    #     print_trainable_parameters(model)
+
+    pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
+
+    logger.warning(f"Resuming hyperparameters: {pl_model.hparams}")
 
     trainer = pl.Trainer(**pl_trainer_args)
 
-    if dataset_info.test_split_available:
-        # Testing
-        trainer.test(plt_model, datamodule=data_module)
-    elif dataset_info.pred_split_available:
-        # Predicting, save to predicted_result.pkl
-        predicted_results = trainer.predict(plt_model, datamodule=data_module)
-        pred_save_name = os.path.join(save_path, "predicted_result.pkl")
-        with open(pred_save_name, "wb") as f:
-            pickle.dump(predicted_results, f)
-        logger.info(f"Predicted results is saved to {pred_save_name}")
-    else:
-        raise ValueError(
-            f"Test or pred split not available for dataset {data_module.name}"
-        )
+    # Run validation split
+    trainer.validate(pl_model, datamodule=data_module)
+
+    # if dataset_info.test_split_available:
+    #     # Testing
+    #     trainer.test(pl_model, datamodule=data_module)
+    # elif dataset_info.pred_split_available:
+    #     # Predicting, save to predicted_result.pkl
+    #     predicted_results = trainer.predict(pl_model, datamodule=data_module)
+    #     pred_save_name = os.path.join(save_path, "predicted_result.pkl")
+    #     with open(pred_save_name, "wb") as f:
+    #         pickle.dump(predicted_results, f)
+    #     logger.info(f"Predicted results is saved to {pred_save_name}")
+    # else:
+    #     raise ValueError(
+    #         f"Test or pred split not available for dataset {data_module.name}"
+    #     )
