@@ -488,7 +488,7 @@ OPT_START_DOCSTRING = r"""
     and behavior.
 
     Parameters:
-        config ([`OPTConfig`]):
+        config ([`OPTLoraConfig`]):
             Model configuration class with all the parameters of the model. Initializing with a config file does not
             load the weights associated with the model, only the configuration. Check out the
             [`~PreTrainedModel.from_pretrained`] method to load the model weights.
