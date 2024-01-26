@@ -36,7 +36,7 @@ def setup_model_and_dataset(
     dataset_info = get_dataset_info(args.dataset, args.dataset_saved_path)
 
     checkpoint = None
-    if args.load_name is not None and args.load_type == "hf":
+    if args.load_name is not None:# and args.load_type == "hf":
         checkpoint = args.load_name
 
     tokenizer = get_tokenizer(args.model, checkpoint)
