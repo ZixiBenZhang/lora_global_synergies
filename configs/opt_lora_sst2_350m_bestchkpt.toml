@@ -20,3 +20,4 @@ num_devices = 1
 is_pretrained = true
 project_dir = "./ags_output"
 lora_config = "./configs/lora/lora_networkwise.toml"
+# Todo: check why val acc doesn't match recorded performance

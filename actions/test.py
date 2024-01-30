@@ -1,11 +1,15 @@
 import logging
 import os
 import pickle
+import time
 
+import toml
 import torch
 import pytorch_lightning as pl
 from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger
+
+from models.modeling_opt_lora import OPTLoraForCausalLM, OPTLoraForQuestionAnswering, OPTLoraForSequenceClassification
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 
@@ -55,7 +59,7 @@ def test(
     # if load_type != "pl":
     #     raise ValueError("Load-type pl is required for resuming training. Please use --load-type pl.")
     logger.warning(
-        f"Resume full training state from pl checkpoint {load_name}. Entered hyperparameter configuration ignored."
+        f"Restore model state from pl checkpoint {load_name}. Entered hyperparameter configuration ignored."
     )
 
     # if model_info.is_lora:
@@ -70,8 +74,80 @@ def test(
 
     trainer = pl.Trainer(**pl_trainer_args)
 
+    res_val: dict[str, dict[str, float]] = {}
     # Run validation split
-    trainer.validate(pl_model, datamodule=data_module)
+    original_val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
+    res_val["original"] = {
+        **original_val_metrics,
+        "acc_reduction": 0.0,
+        "acc_reduction_rate": 0.0,
+    }
+
+    # Run validation with lora matrix modified
+    with torch.no_grad():
+        assert (
+                type(model) is OPTLoraForCausalLM
+                or type(model) is OPTLoraForSequenceClassification
+                or type(model) is OPTLoraForQuestionAnswering
+        )
+        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+        num_heads: int = model.model.decoder.layers[0].self_attn.num_heads
+        head_dim: int = model.model.decoder.layers[0].self_attn.head_dim
+        for cnt, name, param in enumerate(model.named_parameters()):
+            if cnt > 3: break
+
+            if "lora_A" not in name and "lora_B" not in name:
+                continue
+            if "lora_A" in name:
+                continue
+            corr_name: str = name.replace("lora_B", "lora_A")
+            delta_w = torch.matmul(
+                param.data,
+                model.state_dict()[corr_name].data,  # B (d_out, r) * A (r, d_in)
+            )  # shape: (out_features, in_features)
+
+            alpha = 0.9
+
+            if "q_proj" in name or "k_proj" in name or "v_proj" in name:
+                # Split by heads
+                delta_w_shape = delta_w.size()
+                delta_w = delta_w.view(
+                    num_heads, head_dim, -1
+                )  # shape: (num_heads, d_head, d_model)
+
+                for i in range(num_heads):
+                    new_delta_w = torch.cat(
+                        (delta_w[:i], (alpha * delta_w[i]).unsqueeze(0), delta_w[i+1:])
+                    ).view(delta_w_shape)
+                    param.data = new_delta_w
+
+                    logger.warning(f"Apply alpha={alpha} to head {i} of {name}")
+                    new_val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
+                    acc_reduction = original_val_metrics["val_acc_epoch"] - new_val_metrics["val_acc_epoch"]
+                    res_val[f"{name}_head.{i}"] = {
+                        **new_val_metrics,
+                        "acc_reduction": acc_reduction,
+                        "acc_reduction_rate": acc_reduction / original_val_metrics["val_acc_epoch"],
+                    }
+            else:
+                new_delta_w = alpha * delta_w
+                param.data = new_delta_w
+
+                logger.warning(f"Apply alpha={alpha} to {name}")
+                new_val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
+                acc_reduction = original_val_metrics["val_acc_epoch"] - new_val_metrics["val_acc_epoch"]
+                res_val[name] = {
+                    **new_val_metrics,
+                    "acc_reduction": acc_reduction,
+                    "acc_reduction_rate": acc_reduction / original_val_metrics["val_acc_epoch"],
+                }
+
+            param.data = delta_w
+
+    t = time.strftime("%H-%M")
+    log_path = f"{save_path}/imp-{t}.toml"
+    with open(log_path, "w+") as f:
+        toml.dump(res_val, f)
 
     # if dataset_info.test_split_available:
     #     # Testing
