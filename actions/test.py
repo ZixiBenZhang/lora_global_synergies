@@ -36,6 +36,8 @@ def test(
     load_name,  # path to the saved checkpoint
     load_type,  # model checkpoint's type: ['pt', 'pl']
 ):
+    t = time.strftime("%H-%M")
+
     if save_path is not None:
         if not os.path.isdir(save_path):
             os.makedirs(save_path)
@@ -97,7 +99,9 @@ def test(
         model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
         num_heads: int = model.model.decoder.layers[0].self_attn.num_heads
         head_dim: int = model.model.decoder.layers[0].self_attn.head_dim
+        alpha = 0.9
         cnt = 0
+
         # FOR RESUMING ALPHA TESTING
         resume_cnt = -1
         resume_toml = ""
@@ -107,8 +111,7 @@ def test(
             logger.warning(f"Resuming alpha testing from test count {resume_cnt}")
 
         def save_toml(res: dict):
-            t = time.strftime("%H-%M")
-            log_path = f"{save_path}/imp-{t}.toml"
+            log_path = f"{save_path}/logs_test/importance_{t}.toml"
             with open(log_path, "w+") as fout:
                 toml.dump(res, fout)
             logger.warning("Result saved as toml")
@@ -131,7 +134,6 @@ def test(
                 else name.split(".")[4]
             )
             B = param.data  # shape: (out_features, r)
-            alpha = 0.9
 
             if "q_proj" in name or "k_proj" in name or "v_proj" in name:
                 # Split by heads
