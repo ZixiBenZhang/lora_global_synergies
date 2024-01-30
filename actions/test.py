@@ -95,7 +95,7 @@ def test(
         head_dim: int = model.model.decoder.layers[0].self_attn.head_dim
         cnt = 0
         for name, param in model.named_parameters():
-            if i>=3: break
+            if cnt >= 2: break
             if "lora_A" not in name and "lora_B" not in name:
                 continue
             if "lora_A" in name:
