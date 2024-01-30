@@ -1,0 +1,197 @@
+[original]
+val_loss_epoch = 0.20324712991714478
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.0"]
+val_loss_epoch = 0.20334233343601227
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.1"]
+val_loss_epoch = 0.20323921740055084
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.2"]
+val_loss_epoch = 0.20333348214626312
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.3"]
+val_loss_epoch = 0.20330902934074402
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.4"]
+val_loss_epoch = 0.20319759845733643
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.5"]
+val_loss_epoch = 0.20326153934001923
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.6"]
+val_loss_epoch = 0.20327578485012054
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.7"]
+val_loss_epoch = 0.20328855514526367
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.8"]
+val_loss_epoch = 0.2032383531332016
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.9"]
+val_loss_epoch = 0.20325644314289093
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.10"]
+val_loss_epoch = 0.20325641334056854
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.11"]
+val_loss_epoch = 0.20324929058551788
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.12"]
+val_loss_epoch = 0.20318487286567688
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.13"]
+val_loss_epoch = 0.20321716368198395
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.14"]
+val_loss_epoch = 0.20326624810695648
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.v_proj.lora_B.ags-network-opt.weight_head.15"]
+val_loss_epoch = 0.20324638485908508
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.0"]
+val_loss_epoch = 0.20325152575969696
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.1"]
+val_loss_epoch = 0.20324598252773285
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.2"]
+val_loss_epoch = 0.20324654877185822
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.3"]
+val_loss_epoch = 0.20325055718421936
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.4"]
+val_loss_epoch = 0.20324605703353882
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.5"]
+val_loss_epoch = 0.20324833691120148
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.6"]
+val_loss_epoch = 0.2032497525215149
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.7"]
+val_loss_epoch = 0.20324474573135376
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.8"]
+val_loss_epoch = 0.20325246453285217
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.9"]
+val_loss_epoch = 0.20325712859630585
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.10"]
+val_loss_epoch = 0.20324799418449402
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.11"]
+val_loss_epoch = 0.20324675738811493
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.12"]
+val_loss_epoch = 0.20324505865573883
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.13"]
+val_loss_epoch = 0.20324666798114777
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.14"]
+val_loss_epoch = 0.2032453864812851
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
+
+["model.decoder.layers.0.self_attn.q_proj.lora_B.ags-network-opt.weight_head.15"]
+val_loss_epoch = 0.20324747264385223
+val_acc_epoch = 0.9277523159980774
+acc_reduction = 0.0
+acc_reduction_rate = 0.0
