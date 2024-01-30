@@ -217,13 +217,13 @@ class AgsDataModule(pl.LightningDataModule):
             if "pred" in n
         ]
 
-        print(
-            f">>> Loaded splits:\n"
-            f"  Train splits: {train_split_names}\n"
-            f"  Validation splits: {val_split_names}\n"
-            f"  Test splits: {test_split_names}\n"
-            f"  Prediction splits: {pred_split_names}"
-        )
+        # print(
+        #     f">>> Loaded splits:\n"
+        #     f"  Train splits: {train_split_names}\n"
+        #     f"  Validation splits: {val_split_names}\n"
+        #     f"  Test splits: {test_split_names}\n"
+        #     f"  Prediction splits: {pred_split_names}"
+        # )
 
         if stage in ["fit", None]:
             self.training_dataset = (

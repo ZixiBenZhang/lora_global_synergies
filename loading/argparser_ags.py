@@ -177,7 +177,7 @@ def get_arg_parser():
         dest="backbone_model",
         default=None,
         help="backbone model name; it's only effective when --load is used",
-        metavar="MODEL_NAME"
+        metavar="MODEL_NAME",
     )
     general_group.add_argument(
         "--lora-config",

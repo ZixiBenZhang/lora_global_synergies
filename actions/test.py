@@ -9,7 +9,11 @@ import pytorch_lightning as pl
 from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from models.modeling_opt_lora import OPTLoraForCausalLM, OPTLoraForQuestionAnswering, OPTLoraForSequenceClassification
+from models.modeling_opt_lora import (
+    OPTLoraForCausalLM,
+    OPTLoraForQuestionAnswering,
+    OPTLoraForSequenceClassification,
+)
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 
@@ -86,25 +90,47 @@ def test(
     # Run validation with lora matrix modified
     with torch.no_grad():
         assert (
-                type(model) is OPTLoraForCausalLM
-                or type(model) is OPTLoraForSequenceClassification
-                or type(model) is OPTLoraForQuestionAnswering
+            type(model) is OPTLoraForCausalLM
+            or type(model) is OPTLoraForSequenceClassification
+            or type(model) is OPTLoraForQuestionAnswering
         )
         model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
         num_heads: int = model.model.decoder.layers[0].self_attn.num_heads
         head_dim: int = model.model.decoder.layers[0].self_attn.head_dim
         cnt = 0
+        # FOR RESUMING ALPHA TESTING
+        resume_cnt = -1
+        resume_toml = ""
+        if resume_cnt > 0:
+            with open(resume_toml, "r") as f:
+                res_val = toml.load(f)
+            logger.warning(f"Resuming alpha testing from test count {resume_cnt}")
+
+        def save_toml(res: dict):
+            t = time.strftime("%H-%M")
+            log_path = f"{save_path}/imp-{t}.toml"
+            with open(log_path, "w+") as fout:
+                toml.dump(res, fout)
+            logger.warning("Result saved as toml")
+
         for name, param in model.named_parameters():
-            if cnt >= 2: break
+            # if cnt >= 20:
+            #     break
             if "lora_A" not in name and "lora_B" not in name:
                 continue
             if "lora_A" in name:
                 continue
-            cnt += 1
-            print(f"Test count {cnt}")
-            # corr_name: str = name.replace("lora_B", "lora_A")
-            B = param.data  # shape: (out_features, r)
 
+            layer_id = name.split(".")[3]
+            proj = (
+                name.split(".")[5]
+                if "q_proj" in name
+                or "k_proj" in name
+                or "v_proj" in name
+                or "o_proj" in name
+                else name.split(".")[4]
+            )
+            B = param.data  # shape: (out_features, r)
             alpha = 0.9
 
             if "q_proj" in name or "k_proj" in name or "v_proj" in name:
@@ -116,37 +142,66 @@ def test(
 
                 for i in range(num_heads):
                     new_B = torch.cat(
-                        (split_B[:i], (alpha * split_B[i]).unsqueeze(0), split_B[i+1:])
+                        (
+                            split_B[:i],
+                            (alpha * split_B[i]).unsqueeze(0),
+                            split_B[i + 1 :],
+                        )
                     ).view(B_shape)
-                    param.data = new_B
 
-                    logger.warning(f"Apply alpha={alpha} to head {i} of {name}")
-                    new_val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
-                    acc_reduction = original_val_metrics["val_acc_epoch"] - new_val_metrics["val_acc_epoch"]
+                    cnt += 1
+                    if cnt < resume_cnt:
+                        continue
+                    print(f">>> Test count {cnt} <<<")
+
+                    logger.warning(
+                        f"Apply alpha={alpha} to layer {layer_id} {proj} head {i} from {name}"
+                    )
+                    param.data = new_B
+                    new_val_metrics = trainer.validate(
+                        pl_model, datamodule=data_module
+                    )[0]
+                    acc_reduction = (
+                        original_val_metrics["val_acc_epoch"]
+                        - new_val_metrics["val_acc_epoch"]
+                    )
                     res_val[f"{name}_head.{i}"] = {
                         **new_val_metrics,
                         "acc_reduction": acc_reduction,
-                        "acc_reduction_rate": acc_reduction / original_val_metrics["val_acc_epoch"],
+                        "acc_reduction_rate": acc_reduction
+                        / original_val_metrics["val_acc_epoch"],
                     }
+                    if cnt % 5 == 0:
+                        save_toml(res_val)
             else:
                 new_B = alpha * B
-                param.data = new_B
 
-                logger.warning(f"Apply alpha={alpha} to {name}")
+                cnt += 1
+                if cnt < resume_cnt:
+                    continue
+                print(f">>> Test count {cnt} <<<")
+
+                logger.warning(
+                    f"Apply alpha={alpha} to layer {layer_id} {proj} from {name}"
+                )
+                param.data = new_B
                 new_val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
-                acc_reduction = original_val_metrics["val_acc_epoch"] - new_val_metrics["val_acc_epoch"]
+                acc_reduction = (
+                    original_val_metrics["val_acc_epoch"]
+                    - new_val_metrics["val_acc_epoch"]
+                )
                 res_val[name] = {
                     **new_val_metrics,
                     "acc_reduction": acc_reduction,
-                    "acc_reduction_rate": acc_reduction / original_val_metrics["val_acc_epoch"],
+                    "acc_reduction_rate": acc_reduction
+                    / original_val_metrics["val_acc_epoch"],
                 }
+                if cnt % 5 == 0:
+                    save_toml(res_val)
 
             param.data = B
 
-    t = time.strftime("%H-%M")
-    log_path = f"{save_path}/imp-{t}.toml"
-    with open(log_path, "w+") as f:
-        toml.dump(res_val, f)
+    save_toml(res_val)
 
     # if dataset_info.test_split_available:
     #     # Testing
