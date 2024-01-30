@@ -102,26 +102,23 @@ def test(
                 continue
             cnt += 1
             print(f"Test count {cnt}")
-            corr_name: str = name.replace("lora_B", "lora_A")
-            delta_w = torch.matmul(
-                param.data,
-                model.state_dict()[corr_name].data,  # B (d_out, r) * A (r, d_in)
-            )  # shape: (out_features, in_features)
+            # corr_name: str = name.replace("lora_B", "lora_A")
+            B = param.data  # shape: (out_features, r)
 
             alpha = 0.9
 
             if "q_proj" in name or "k_proj" in name or "v_proj" in name:
                 # Split by heads
-                delta_w_shape = delta_w.size()
-                delta_w = delta_w.view(
+                B_shape = B.size()
+                split_B = B.view(
                     num_heads, head_dim, -1
-                )  # shape: (num_heads, d_head, d_model)
+                )  # shape: (num_heads, d_head, r)
 
                 for i in range(num_heads):
-                    new_delta_w = torch.cat(
-                        (delta_w[:i], (alpha * delta_w[i]).unsqueeze(0), delta_w[i+1:])
-                    ).view(delta_w_shape)
-                    param.data = new_delta_w
+                    new_B = torch.cat(
+                        (split_B[:i], (alpha * split_B[i]).unsqueeze(0), split_B[i+1:])
+                    ).view(B_shape)
+                    param.data = new_B
 
                     logger.warning(f"Apply alpha={alpha} to head {i} of {name}")
                     new_val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
@@ -132,8 +129,8 @@ def test(
                         "acc_reduction_rate": acc_reduction / original_val_metrics["val_acc_epoch"],
                     }
             else:
-                new_delta_w = alpha * delta_w
-                param.data = new_delta_w
+                new_B = alpha * B
+                param.data = new_B
 
                 logger.warning(f"Apply alpha={alpha} to {name}")
                 new_val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
@@ -144,7 +141,7 @@ def test(
                     "acc_reduction_rate": acc_reduction / original_val_metrics["val_acc_epoch"],
                 }
 
-            param.data = delta_w
+            param.data = B
 
     t = time.strftime("%H-%M")
     log_path = f"{save_path}/imp-{t}.toml"
