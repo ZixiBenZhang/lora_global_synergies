@@ -93,13 +93,15 @@ def test(
         model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
         num_heads: int = model.model.decoder.layers[0].self_attn.num_heads
         head_dim: int = model.model.decoder.layers[0].self_attn.head_dim
-        for cnt, name, param in enumerate(model.named_parameters()):
-            if cnt > 3: break
-
+        cnt = 0
+        for name, param in model.named_parameters():
+            if i>=3: break
             if "lora_A" not in name and "lora_B" not in name:
                 continue
             if "lora_A" in name:
                 continue
+            cnt += 1
+            print(f"Test count {cnt}")
             corr_name: str = name.replace("lora_B", "lora_A")
             delta_w = torch.matmul(
                 param.data,
