@@ -103,8 +103,8 @@ def test(
         cnt = 0
 
         # FOR RESUMING ALPHA TESTING
-        resume_cnt = -1
-        resume_toml = ""
+        resume_cnt = 266
+        resume_toml = "ags_output/opt_lora_classification_sst2_2024-01-30/checkpoints/logs_test/importance_22-45.toml"
         if resume_cnt > 0:
             with open(resume_toml, "r") as f:
                 res_val = toml.load(f)
@@ -157,7 +157,7 @@ def test(
                     print(f">>> Test count {cnt} <<<")
 
                     logger.warning(
-                        f"Apply alpha={alpha} to layer {layer_id} {proj} head {i} from {name}"
+                        f"Applying alpha={alpha} to layer {layer_id} {proj} head {i} from {name}"
                     )
                     param.data = new_B
                     new_val_metrics = trainer.validate(
@@ -184,7 +184,7 @@ def test(
                 print(f">>> Test count {cnt} <<<")
 
                 logger.warning(
-                    f"Apply alpha={alpha} to layer {layer_id} {proj} from {name}"
+                    f"Applying alpha={alpha} to layer {layer_id} {proj} from {name}"
                 )
                 param.data = new_B
                 new_val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
