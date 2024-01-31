@@ -103,8 +103,8 @@ def test(
         cnt = 0
 
         # FOR RESUMING ALPHA TESTING
-        resume_cnt = 266
-        resume_toml = "ags_output/opt_lora_classification_sst2_2024-01-30/checkpoints/logs_test/importance_22-45.toml"
+        resume_cnt = 276
+        resume_toml = "ags_output/opt_lora_classification_sst2_2024-01-31/checkpoints/logs_test/importance_11-56.toml"
         if resume_cnt > 0:
             with open(resume_toml, "r") as f:
                 res_val = toml.load(f)
