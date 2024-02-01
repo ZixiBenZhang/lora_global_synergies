@@ -48,8 +48,8 @@ def train(
             dirpath=save_path,
             filename="best_chkpt",
             save_top_k=1,
-            monitor="val_loss_epoch",
-            mode="min",
+            monitor="val_acc_epoch",
+            mode="max",
             # save_last=True,
         )
         latest_checkpoint_callback = pl.callbacks.ModelCheckpoint(
