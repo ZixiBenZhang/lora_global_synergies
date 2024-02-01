@@ -41,6 +41,7 @@ CLI_DEFAULTS = {
     "log_level": LOG_LEVELS[1],
     "seed": 0,
     "backbone_model": None,
+    "alpha": None,
     "lora_config": None,
     "shortcut_config": None,
     # Trainer options
@@ -178,6 +179,14 @@ def get_arg_parser():
         default=None,
         help="backbone model name; it's only effective when --load is used",
         metavar="MODEL_NAME",
+    )
+    general_group.add_argument(
+        "--alpha",
+        dest="alpha",
+        default=None,
+        help="coefficient alpha for lora modules in alpha testing; it's only effective when --load is used",
+        type=float,
+        metavar="NUM",
     )
     general_group.add_argument(
         "--lora-config",

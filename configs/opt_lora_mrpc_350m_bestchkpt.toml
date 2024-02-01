@@ -4,6 +4,7 @@ dataset = "mrpc"
 load_name = "ags_output/opt_lora_classification_mrpc_2023-11-23/training_ckpts/best_chkpt.ckpt"
 load_type = "pl"
 backbone_model = "facebook/opt-350m"
+alpha = 0.5
 # training
 training_optimizer = "adamw"
 learning_rate = 2e-4

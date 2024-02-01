@@ -35,6 +35,7 @@ def test(
     save_path,  # path for saving checkpoints
     load_name,  # path to the saved checkpoint
     load_type,  # model checkpoint's type: ['pt', 'pl']
+    alpha,  # coefficient alpha for alpha testing
 ):
     t = time.strftime("%H-%M")
 
@@ -89,7 +90,14 @@ def test(
         "acc_reduction_rate": 0.0,
     }
 
-    # Run validation with lora matrix modified
+    # Run validation with lora matrix modified based on alpha
+    # alpha = 0.5
+    if alpha is None:
+        return
+    # FOR RESUMING ALPHA TESTING
+    resume_cnt = -1
+    resume_toml = ""
+
     with torch.no_grad():
         assert (
             type(model) is OPTLoraForCausalLM
@@ -99,12 +107,9 @@ def test(
         model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
         num_heads: int = model.model.decoder.layers[0].self_attn.num_heads
         head_dim: int = model.model.decoder.layers[0].self_attn.head_dim
-        alpha = 0.5
         cnt = 0
 
-        # FOR RESUMING ALPHA TESTING
-        resume_cnt = -1
-        resume_toml = ""
+        # Resume alpha testing
         if resume_cnt > 0:
             with open(resume_toml, "r") as f:
                 res_val = toml.load(f)

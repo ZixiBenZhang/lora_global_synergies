@@ -1,9 +1,10 @@
 # basics
 model = "opt_lora"
 dataset = "rte"
-load_name = "ags_output/opt_lora_classification_mrpc_2023-11-18/training_ckpts/last_chkpt-v3.ckpt"
+load_name = "ags_output/opt_lora_classification_rte_2023-11-18/training_ckpts/last_chkpt-v3.ckpt"
 load_type = "pl"
 backbone_model = "facebook/opt-350m"
+alpha = 0.5
 # training
 training_optimizer = "adamw"
 learning_rate = 4e-4

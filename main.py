@@ -151,6 +151,7 @@ def main():
                 "save_path": os.path.join(output_dir, "checkpoints"),
                 "load_name": args.load_name,
                 "load_type": args.load_type,
+                "alpha": args.alpha,
             }
 
             actions.test(**test_params)
@@ -175,7 +176,7 @@ def t():
     #     print(data["input_ids"])
     #     print(data["input_ids"].shape)
 
-    with open("ags_output/opt_lora_classification_sst2_2024-01-31/checkpoints/logs_test/importance_22-11.toml", "r") as f:
+    with open("ags_output/opt_lora_classification_mrpc_2024-02-01/checkpoints/logs_test/importance_08-22.toml", "r") as f:
         data = toml.load(f)
     for mat, res in data.items():
         if res["acc_reduction"] != 0:
