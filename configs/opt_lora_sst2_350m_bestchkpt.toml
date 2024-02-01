@@ -1,7 +1,7 @@
 # basics
 model = "opt_lora"
 dataset = "sst2"
-load_name = "ags_output/opt_lora_classification_sst2_2023-11-23/training_ckpts/best_chkpt.ckpt"
+load_name = "ags_output/opt_lora_classification_sst2_2024-02-01/training_ckpts/best_chkpt.ckpt"
 load_type = "pl"
 backbone_model = "facebook/opt-350m"
 # training
