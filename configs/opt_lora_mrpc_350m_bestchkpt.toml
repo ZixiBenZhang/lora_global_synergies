@@ -1,0 +1,22 @@
+# basics
+model = "opt_lora"
+dataset = "mrpc"
+load_name = "ags_output/opt_lora_classification_mrpc_2023-11-23/training_ckpts/best_chkpt.ckpt"
+load_type = "pl"
+backbone_model = "facebook/opt-350m"
+# training
+training_optimizer = "adamw"
+learning_rate = 2e-4
+weight_decay = 0.01
+max_epochs = 20
+batch_size = 8
+log_every_n_steps = 10
+# torch lightning
+task = "classification"
+#num_workers = 0
+num_devices = 1
+#accelerator = "cpu"
+# language model options
+is_pretrained = true
+project_dir = "./ags_output"
+lora_config = "./configs/lora/lora_networkwise.toml"

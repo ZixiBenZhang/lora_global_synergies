@@ -3,6 +3,7 @@ import os
 import sys
 from pprint import pprint
 
+import toml
 import torch
 import transformers
 import datasets
@@ -174,8 +175,11 @@ def t():
     #     print(data["input_ids"])
     #     print(data["input_ids"].shape)
 
-    info = get_config_names("glue", None)
-    print(info)
+    with open("ags_output/opt_lora_classification_sst2_2024-01-31/checkpoints/logs_test/importance_22-11.toml", "r") as f:
+        data = toml.load(f)
+    for mat, res in data.items():
+        if res["acc_reduction"] != 0:
+            print(mat, res)
 
 
 if __name__ == "__main__":

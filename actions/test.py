@@ -99,12 +99,12 @@ def test(
         model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
         num_heads: int = model.model.decoder.layers[0].self_attn.num_heads
         head_dim: int = model.model.decoder.layers[0].self_attn.head_dim
-        alpha = 0.9
+        alpha = 0.5
         cnt = 0
 
         # FOR RESUMING ALPHA TESTING
-        resume_cnt = 276
-        resume_toml = "ags_output/opt_lora_classification_sst2_2024-01-31/checkpoints/logs_test/importance_11-56.toml"
+        resume_cnt = -1
+        resume_toml = ""
         if resume_cnt > 0:
             with open(resume_toml, "r") as f:
                 res_val = toml.load(f)
@@ -173,7 +173,7 @@ def test(
                         "acc_reduction_rate": acc_reduction
                         / original_val_metrics["val_acc_epoch"],
                     }
-                    if cnt % 5 == 0:
+                    if cnt % 3 == 0:
                         save_toml(res_val)
             else:
                 new_B = alpha * B
@@ -198,7 +198,7 @@ def test(
                     "acc_reduction_rate": acc_reduction
                     / original_val_metrics["val_acc_epoch"],
                 }
-                if cnt % 5 == 0:
+                if cnt % 3 == 0:
                     save_toml(res_val)
 
             param.data = B
