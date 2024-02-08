@@ -55,7 +55,7 @@ def train(
         latest_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
             filename="last_chkpt",
-            save_last=True,
+            # save_last=True,
         )
         # Monitoring lr for the lr_scheduler
         lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval="step")
