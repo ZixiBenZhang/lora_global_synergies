@@ -1,18 +1,17 @@
 # basics
 model = "roberta-large"
-dataset = "sst2"
+dataset = "mrpc"
 # training
 training_optimizer = "adamw"
 learning_rate = 1e-5
 weight_decay = 0.01
-max_epochs = 5
+max_epochs = 10
 batch_size = 16
-accumulate_grad_batches = 1
-log_every_n_steps = 20
+log_every_n_steps = 10
 # torch lightning
 task = "classification"
 #num_workers = 0
-num_devices = 2
+num_devices = 1
 #accelerator = "cpu"
 # language model options
 is_pretrained = true
