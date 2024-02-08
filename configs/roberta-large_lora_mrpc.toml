@@ -1,15 +1,15 @@
 # basics
 model = "roberta_lora"
-dataset = "sst2"
+dataset = "mrpc"
 load_name = "roberta-large"
 load_type = "hf"
 # training
 training_optimizer = "adamw"
 learning_rate = 1e-4
 weight_decay = 0.01
-max_epochs = 10
+max_epochs = 20
 batch_size = 8
-log_every_n_steps = 20
+log_every_n_steps = 10
 # torch lightning
 task = "classification"
 #num_workers = 0
