@@ -23,6 +23,9 @@ task_to_keys = {
     "cb": ("premise", "hypothesis"),
     "copa": (),
     "wic": (),
+    "alpaca": (),
+    "alpaca-cleaned": (),
+    "lambada": (),
 }
 
 
@@ -42,7 +45,7 @@ class AgsDataModule(pl.LightningDataModule):
 
         self.dataset_name = dataset_name.lower()
         # Accept only datasets in the project plan
-        assert self.dataset_name in task_to_keys.keys()
+        # assert self.dataset_name in task_to_keys.keys()
 
         self.batch_size = batch_size
         self.tokenizer = tokenizer
@@ -69,7 +72,7 @@ class AgsDataModule(pl.LightningDataModule):
     # Called on rank 0
     def prepare_data(self) -> None:
         # Accept only datasets in the project plan
-        assert self.dataset_name in task_to_keys.keys()
+        # assert self.dataset_name in task_to_keys.keys()
         if self.dataset_name in get_config_names("glue", self.load_from_saved_path):
             path = "glue"
             name = self.dataset_name
@@ -78,13 +81,13 @@ class AgsDataModule(pl.LightningDataModule):
         ):
             path = "super_glue"
             name = self.dataset_name
-        elif self.dataset_name == "xsum":
+        else:
             path = self.dataset_name
             name = None
-        else:
-            raise ValueError(
-                f"Dataset {self.dataset_name} not supported. Please use one of [{'|'.join(task_to_keys.keys())}]"
-            )
+        # else:
+        #     raise ValueError(
+        #         f"Dataset {self.dataset_name} not supported. Please use one of [{'|'.join(task_to_keys.keys())}]"
+        #     )
 
         train_split_names = [
             n
@@ -112,7 +115,7 @@ class AgsDataModule(pl.LightningDataModule):
             if len(train_split_names) == 0
             else [
                 get_nlp_dataset_split(
-                    name=name,
+                    name=name if name is not None else path,
                     split=split_name,
                     tokenizer=self.tokenizer,
                     max_token_len=self.max_token_len,
@@ -129,7 +132,7 @@ class AgsDataModule(pl.LightningDataModule):
             if len(val_split_names) == 0
             else [
                 get_nlp_dataset_split(
-                    name=name,
+                    name=name if name is not None else path,
                     split=split_name,
                     tokenizer=self.tokenizer,
                     max_token_len=self.max_token_len,
@@ -146,7 +149,7 @@ class AgsDataModule(pl.LightningDataModule):
             if len(test_split_names) == 0
             else [
                 get_nlp_dataset_split(
-                    name=name,
+                    name=name if name is not None else path,
                     split=split_name,
                     tokenizer=self.tokenizer,
                     max_token_len=self.max_token_len,
@@ -163,7 +166,7 @@ class AgsDataModule(pl.LightningDataModule):
             if len(pred_split_names) == 0
             else [
                 get_nlp_dataset_split(
-                    name=name,
+                    name=name if name is not None else path,
                     split=split_name,
                     tokenizer=self.tokenizer,
                     max_token_len=self.max_token_len,
@@ -179,7 +182,7 @@ class AgsDataModule(pl.LightningDataModule):
     # Called on all ranks
     def setup(self, stage: str = None) -> None:
         # Accept only datasets in the project plan
-        assert self.dataset_name in task_to_keys.keys()
+        # assert self.dataset_name in task_to_keys.keys()
         if self.dataset_name in get_config_names("glue", self.load_from_saved_path):
             path = "glue"
             name = self.dataset_name
@@ -188,13 +191,13 @@ class AgsDataModule(pl.LightningDataModule):
         ):
             path = "super_glue"
             name = self.dataset_name
-        elif self.dataset_name == "xsum":
+        else:
             path = self.dataset_name
             name = None
-        else:
-            raise ValueError(
-                f"Dataset {self.dataset_name} not supported. Please use one of [{'|'.join(task_to_keys.keys())}]"
-            )
+        # else:
+        #     raise ValueError(
+        #         f"Dataset {self.dataset_name} not supported. Please use one of [{'|'.join(task_to_keys.keys())}]"
+        #     )
 
         train_split_names = [
             n
@@ -232,7 +235,7 @@ class AgsDataModule(pl.LightningDataModule):
                 else torch.utils.data.ConcatDataset(
                     [
                         get_nlp_dataset_split(
-                            name=name,
+                            name=name if name is not None else path,
                             split=split_name,
                             tokenizer=self.tokenizer,
                             max_token_len=self.max_token_len,
@@ -252,7 +255,7 @@ class AgsDataModule(pl.LightningDataModule):
                 else torch.utils.data.ConcatDataset(
                     [
                         get_nlp_dataset_split(
-                            name=name,
+                            name=name if name is not None else path,
                             split=split_name,
                             tokenizer=self.tokenizer,
                             max_token_len=self.max_token_len,
@@ -272,7 +275,7 @@ class AgsDataModule(pl.LightningDataModule):
                 else torch.utils.data.ConcatDataset(
                     [
                         get_nlp_dataset_split(
-                            name=name,
+                            name=name if name is not None else path,
                             split=split_name,
                             tokenizer=self.tokenizer,
                             max_token_len=self.max_token_len,
@@ -292,7 +295,7 @@ class AgsDataModule(pl.LightningDataModule):
                 else torch.utils.data.ConcatDataset(
                     [
                         get_nlp_dataset_split(
-                            name=name,
+                            name=name if name is not None else path,
                             split=split_name,
                             tokenizer=self.tokenizer,
                             max_token_len=self.max_token_len,
@@ -351,7 +354,7 @@ def get_dataset_info(dataset_name, load_from_saved_path=None) -> DatasetInfo:
     # TODO: make functions involving datasets accommodate Cirrus
 
     # Accept only datasets in the project plan
-    assert dataset_name in task_to_keys.keys()
+    # assert dataset_name in task_to_keys.keys()
     if dataset_name in get_config_names("glue", load_from_saved_path):
         if load_from_saved_path is None:
             info = datasets.get_dataset_config_info("glue", dataset_name)

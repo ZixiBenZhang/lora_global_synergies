@@ -159,28 +159,13 @@ def main():
 
 
 def t():
-    # tokenizer = AutoTokenizer.from_pretrained("facebook/opt-125m")
-    # datasets_ = get_nlp_dataset_split(
-    #     name="rte",
-    #     split="train",
-    #     tokenizer=tokenizer,
-    #     max_token_len=512,
-    #     num_workers=1,
-    # )
-    # print(type(datasets_))
-    # dataloader = DataLoader(datasets_, batch_size=32, shuffle=False)
-    # for i, data in enumerate(dataloader):
-    #     if i >= 1:
-    #         break
-    #     print(data)
-    #     print(data["input_ids"])
-    #     print(data["input_ids"].shape)
+    print(datasets.get_dataset_split_names("tatsu-lab/alpaca", None))
 
-    with open("ags_output/opt_lora_classification_mrpc_2024-02-01/checkpoints/logs_test/importance_08-22.toml", "r") as f:
-        data = toml.load(f)
-    for mat, res in data.items():
-        if res["acc_reduction"] != 0:
-            print(mat, res)
+    # with open("ags_output/opt_lora_classification_mrpc_2024-02-01/checkpoints/logs_test/importance_08-22.toml", "r") as f:
+    #     data = toml.load(f)
+    # for mat, res in data.items():
+    #     if res["acc_reduction"] != 0:
+    #         print(mat, res)
 
 
 if __name__ == "__main__":

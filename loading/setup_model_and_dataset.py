@@ -1,27 +1,12 @@
-from pprint import pprint
-
 import datasets
 import pytorch_lightning as pl
-from transformers import AutoTokenizer, PreTrainedModel, PreTrainedTokenizer
+from transformers import PreTrainedModel, PreTrainedTokenizer
 
 from dataset.pl_dataset_module import AgsDataModule, get_dataset_info
 from loading.config_load import load_config
 from loading.tokenizer_loader import get_tokenizer
 from models.model_info import get_model_info, AgsModelInfo
 from loading.model_loader import get_model
-
-
-TASK_TO_KEYS = {
-    "cola": ("sentence", None),
-    "mnli": ("premise", "hypothesis"),
-    "mrpc": ("sentence1", "sentence2"),
-    "qnli": ("question", "sentence"),
-    "qqp": ("question1", "question2"),
-    "rte": ("sentence1", "sentence2"),
-    "sst2": ("sentence", None),
-    "stsb": ("sentence1", "sentence2"),
-    "wnli": ("sentence1", "sentence2"),
-}
 
 
 def setup_model_and_dataset(

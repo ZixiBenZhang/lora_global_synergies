@@ -1,3 +1,4 @@
+from .language_modeling_datasets import LanguageModelingDatasetAlpacaCleaned, LanguageModelingDatasetAlpaca
 from .text_entailment_datasets import *
 from .sentiment_analysis_datasets import *
 
@@ -34,6 +35,11 @@ def get_nlp_dataset_split(
         case "boolq":
             dataset_cls = TextEntailmentDatasetBoolQ
         # TODO: CB, COPA, WiC
+        case "alpaca":
+            dataset_cls = LanguageModelingDatasetAlpaca
+        case "alpaca-cleaned":
+            dataset_cls = LanguageModelingDatasetAlpacaCleaned
+        # TODO: Lambada
         case _:
             raise ValueError(f"Unknown dataset {name}, or not supported yet.")
 
@@ -156,10 +162,16 @@ def get_split_names(
                 return ["train", "validation", "test"]
             case _:
                 raise ValueError(
-                    f"Invalid combination of dataset path and name: {path}, {name}."
+                    f"Invalid combination of d ataset path and name: {path}, {name}."
                 )
+    elif path == "tatsu-lab/alpaca":
+        return ["train"]
+    elif path == "yahma/alpaca-cleaned":
+        return ["train"]
+    elif path == "lambada":
+        return ["train", "validation", "test"]
     else:
         if load_from_saved_path is None:
-            splits = datasets.get_dataset_split_names(path, name)
+            return datasets.get_dataset_split_names(path, name)
         else:
             raise ValueError(f"Unsupported dataset path: {path}")
