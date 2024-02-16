@@ -5,7 +5,7 @@ load_name = "roberta-large"
 load_type = "hf"
 # training
 training_optimizer = "adamw"
-learning_rate = 4e-4
+learning_rate = 2e-4
 weight_decay = 0.01
 max_epochs = 10
 batch_size = 4
