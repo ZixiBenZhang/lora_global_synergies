@@ -33,8 +33,10 @@ class PlWrapperBase(pl.LightningModule):
 
         self.loss_fn = nn.CrossEntropyLoss()
 
-        assert "label" in dataset_info.features.keys()
-        self.num_classes = dataset_info.features["label"].num_classes
+        if "label" in dataset_info.features.keys():
+            self.num_classes = dataset_info.features["label"].num_classes
+        else:
+            self.num_classes = None
 
         # train step metrics are logged in every step
         self.acc_train = Accuracy("multiclass", num_classes=self.num_classes)
