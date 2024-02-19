@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
+from datasets import DatasetInfo
 from torchmetrics import MeanMetric
+from transformers import PreTrainedModel
 
 from .base import PlWrapperBase
 
@@ -8,20 +10,24 @@ from .base import PlWrapperBase
 class NLPLanguageModelingModelWrapper(PlWrapperBase):
     def __init__(
         self,
-        model,
-        dataset_info,
-        learning_rate=1e-4,
-        weight_decay=0,
-        epochs=100,
-        optimizer=None,
+        model: PreTrainedModel,
+        optimizer: str = None,
+        learning_rate=1e-4,  # for building optimizer
+        weight_decay=0.0,  # for building optimizer
+        lr_scheduler: str = "none",  # for building lr scheduler
+        eta_min=0.0,  # for building lr scheduler
+        epochs=200,  # for building lr_scheduler
+        dataset_info: DatasetInfo = None,  # for getting num_classes for calculating Accuracy
     ):
         super().__init__(
-            model=model,
-            dataset_info=dataset_info,
-            learning_rate=learning_rate,
-            weight_decay=weight_decay,
-            epochs=epochs,
-            optimizer=optimizer,
+            model,
+            optimizer,
+            learning_rate,
+            weight_decay,
+            lr_scheduler,
+            eta_min,
+            epochs,
+            dataset_info,
         )
 
     def forward(self, input_ids, attention_mask=None, labels=None):

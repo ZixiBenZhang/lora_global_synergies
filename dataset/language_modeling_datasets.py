@@ -87,13 +87,13 @@ class LanguageModelingDatasetBase(Dataset):
     text_column_name = "text"
 
     def __init__(
-            self,
-            split: str,
-            tokenizer,
-            max_token_len: int,
-            num_workers: int,
-            load_from_cache_file: bool = True,
-            auto_setup: bool = True,
+        self,
+        split: str,
+        tokenizer,
+        max_token_len: int,
+        num_workers: int,
+        load_from_cache_file: bool = True,
+        auto_setup: bool = True,
     ):
         super().__init__()
         self.split = split

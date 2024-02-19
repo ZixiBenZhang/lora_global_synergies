@@ -69,7 +69,9 @@ def parse_lora_config(
             raise ValueError(f"Unsupported config granularity: {granularity}")
 
 
-def parse_clarify(config: dict, num_hidden_layers: int, num_heads: dict[str, int]) -> dict:
+def parse_clarify(
+    config: dict, num_hidden_layers: int, num_heads: dict[str, int]
+) -> dict:
     assert "default" in config, "Must provide default config"
     default_lc: dict = get_mat_config(
         config["default"]
@@ -237,5 +239,5 @@ def get_mat_config(config: dict):
         "lora_dropout": config["lora_dropout"],
         "adapter_name": config["adapter_name"],
         "disable_adapter": config["disable_adapter"],
-        "importance_alpha": config.get("importance_alpha", 1.0)
+        "importance_alpha": config.get("importance_alpha", 1.0),
     }

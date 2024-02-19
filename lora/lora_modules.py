@@ -29,7 +29,13 @@ class LoRALayer:
         self.merged = False
 
     def set_adapter(
-        self, adapter_name, r, lora_alpha, lora_dropout_p, init_lora_weights, importance_alpha=1.0
+        self,
+        adapter_name,
+        r,
+        lora_alpha,
+        lora_dropout_p,
+        init_lora_weights,
+        importance_alpha=1.0,
     ):
         self.r[adapter_name] = r
         self.lora_alpha[adapter_name] = lora_alpha
@@ -52,7 +58,9 @@ class LoRALayer:
                 )
             )
             self.scaling[adapter_name] = lora_alpha / r
-            self.importance_alpha[adapter_name] = torch.tensor(importance_alpha, requires_grad=False)
+            self.importance_alpha[adapter_name] = torch.tensor(
+                importance_alpha, requires_grad=False
+            )
         if init_lora_weights:
             self.reset_lora_parameters(adapter_name)
 
@@ -73,7 +81,14 @@ class LoraLinear(nn.Linear, LoRALayer):
         self.weight.requires_grad = False
 
         self.config = config
-        r, lora_alpha, lora_dropout_p, adapter_name, disable_adapter, importance_alpha = (
+        (
+            r,
+            lora_alpha,
+            lora_dropout_p,
+            adapter_name,
+            disable_adapter,
+            importance_alpha,
+        ) = (
             config["r"],
             config["lora_alpha"],
             float(config["lora_dropout"]),
@@ -88,7 +103,14 @@ class LoraLinear(nn.Linear, LoRALayer):
             self.weight.data = self.weight.data.T
 
         nn.Linear.reset_parameters(self)
-        self.set_adapter(adapter_name, r, lora_alpha, lora_dropout_p, init_lora_weights, importance_alpha)
+        self.set_adapter(
+            adapter_name,
+            r,
+            lora_alpha,
+            lora_dropout_p,
+            init_lora_weights,
+            importance_alpha,
+        )
         self.active_adapter = adapter_name
 
     def get_delta_w(self, adapter_name):
