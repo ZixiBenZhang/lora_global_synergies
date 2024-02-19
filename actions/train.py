@@ -9,7 +9,7 @@ from datasets import load_dataset, load_metric
 from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from lora.lora_modules import mark_only_lora_as_trainable
+from lora.lora_modules import mark_only_lora_as_trainable, update_lora_importance_alpha_require_grad
 from models.model_info import AgsModelInfo
 from projectors.shortcut_modules import mark_ags_as_trainable
 from tools.checkpoint_load import load_model_chkpt
@@ -100,6 +100,8 @@ def train(
 
         if model_info.is_lora:
             mark_only_lora_as_trainable(model, bias="none")
+            update_lora_importance_alpha_require_grad(model, require_grad=False)
+
             if model_info.is_ags:
                 mark_ags_as_trainable(model)
             print_trainable_parameters(model)
@@ -121,6 +123,8 @@ def train(
 
         if model_info.is_lora:
             mark_only_lora_as_trainable(model, bias="none")
+            update_lora_importance_alpha_require_grad(model, require_grad=False)
+
             if model_info.is_ags:
                 mark_ags_as_trainable(model)
             print_trainable_parameters(model)
