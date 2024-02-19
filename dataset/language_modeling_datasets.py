@@ -5,6 +5,7 @@ import logging
 from itertools import chain
 from typing import Dict, Sequence
 
+import datasets
 import torch
 import datasets as hf_datasets
 from huggingface_hub import snapshot_download, hf_hub_download
@@ -93,6 +94,7 @@ class LanguageModelingDatasetBase(Dataset):
         max_token_len: int,
         num_workers: int,
         load_from_cache_file: bool = True,
+        load_from_saved_path: str = None,
         auto_setup: bool = True,
     ):
         super().__init__()
@@ -101,6 +103,7 @@ class LanguageModelingDatasetBase(Dataset):
         self.max_token_len = max_token_len
         self.num_workers = num_workers
         self.load_from_cache_file = load_from_cache_file
+        self.load_from_saved_path = load_from_saved_path
         self.data = None
 
         if self.special_token_mapping is not None:
@@ -160,7 +163,12 @@ class LanguageModelingDatasetAlpaca(LanguageModelingDatasetBase):
     IGNORE_INDEX = -100
 
     def _download_dataset(self) -> hf_datasets.DatasetDict:
-        dataset_dict = hf_datasets.load_dataset("tatsu-lab/alpaca")
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset(
+                "tatsu-lab/alpaca", cache_dir=self.load_from_saved_path
+            )
+        else:
+            dataset_dict = hf_datasets.load_dataset("tatsu-lab/alpaca")
         return dataset_dict
 
     @staticmethod
@@ -252,7 +260,12 @@ class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
     IGNORE_INDEX = -100
 
     def _download_dataset(self) -> hf_datasets.DatasetDict:
-        dataset_dict = hf_datasets.load_dataset("yahma/alpaca-cleaned")
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset(
+                "yahma/alpaca-cleaned", cache_dir=self.load_from_saved_path
+            )
+        else:
+            dataset_dict = hf_datasets.load_dataset("yahma/alpaca-cleaned")
         return dataset_dict
 
     @staticmethod
