@@ -279,6 +279,20 @@ class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
                 truncation=True,
             )
 
+        example[
+            "text"
+        ] = f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+### Instruction:
+{example["instruction"]}
+
+### Input:
+{example["input"]}
+
+### Response:
+{example["output"]}
+"""
+
         prompt = example["text"].removesuffix(example["output"])
         target = example["text"]
 
