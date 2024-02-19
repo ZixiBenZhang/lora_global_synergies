@@ -38,9 +38,9 @@ def get_nlp_dataset_split(
         case "boolq":
             dataset_cls = TextEntailmentDatasetBoolQ
         # TODO: CB, COPA, WiC
-        case "alpaca":
+        case "tatsu-lab/alpaca":
             dataset_cls = LanguageModelingDatasetAlpaca
-        case "alpaca-cleaned":
+        case "yahma/alpaca-cleaned":
             dataset_cls = LanguageModelingDatasetAlpacaCleaned
         # TODO: Lambada
         case _:
