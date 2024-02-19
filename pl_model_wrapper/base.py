@@ -33,7 +33,7 @@ class PlWrapperBase(pl.LightningModule):
 
         self.loss_fn = nn.CrossEntropyLoss()
 
-        if "label" in dataset_info.features.keys():
+        if isinstance(dataset_info.features, dict) and "label" in dataset_info.features.keys():
             self.num_classes = dataset_info.features["label"].num_classes
         else:
             self.num_classes = None
