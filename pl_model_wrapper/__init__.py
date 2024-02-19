@@ -1,5 +1,6 @@
 from models.model_info import AgsModelInfo
 from .classification import NLPClassificationModelWrapper
+from .languagemodelling import NLPLanguageModelingModelWrapper
 from .summarization import NLPSummarizationModelWrapper
 
 
@@ -11,6 +12,6 @@ def get_model_wrapper(model_info: AgsModelInfo, task: str):
         case "summarization":
             return NLPSummarizationModelWrapper
         case "causal_language_modeling":
-            raise NotImplementedError
+            return NLPLanguageModelingModelWrapper
         case _:
             raise ValueError(f"Task {task} is not supported for {model_info.name}.")
