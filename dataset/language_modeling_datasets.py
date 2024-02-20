@@ -13,7 +13,7 @@ from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 import transformers
 
-from dataset import add_dataset_info
+from dataset.dataset_info_util import add_dataset_info
 
 logger = logging.getLogger(__name__)
 
