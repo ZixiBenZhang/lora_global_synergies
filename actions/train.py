@@ -47,11 +47,16 @@ def train(
         if not os.path.isdir(save_path):
             os.makedirs(save_path)
         # Saving checkpoints
+        task_metric = {
+            "classification": "val_acc_epoch",
+            "summarization": "val_rouge_epoch",
+            "causal_language_modeling": "val_perplexity_epoch",
+        }
         best_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
             filename="best_chkpt",
             save_top_k=1,
-            monitor="val_acc_epoch",
+            monitor=task_metric[task],
             mode="max",
             # save_last=True,
         )
