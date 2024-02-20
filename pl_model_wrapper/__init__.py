@@ -1,7 +1,7 @@
 from models.model_info import AgsModelInfo
-from .classification import NLPClassificationModelWrapper
-from .languagemodelling import NLPLanguageModelingModelWrapper
-from .summarization import NLPSummarizationModelWrapper
+from .classification_wrapper import NLPClassificationModelWrapper
+from .lm_wrapper import NLPLanguageModelingModelWrapper
+from .summarization_wrapper import NLPSummarizationModelWrapper
 
 
 def get_model_wrapper(model_info: AgsModelInfo, task: str):
