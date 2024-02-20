@@ -198,10 +198,10 @@ def get_split_names(
                 raise ValueError(
                     f"Invalid combination of d ataset path and name: {path}, {name}."
                 )
-    elif path == "tatsu-lab/alpaca":
+    elif path == "alpaca":
         # validation set split from training set by LanguageModelingDatasetAlpaca
         return ["train", "validation"]
-    elif path == "yahma/alpaca-cleaned":
+    elif path == "alpaca-cleaned":
         return ["train", "validation"]
     elif path == "lambada":
         return ["train", "validation", "test"]
