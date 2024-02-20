@@ -1,12 +1,9 @@
 import torch
 import pytorch_lightning as pl
-import datasets
-from datasets import DatasetInfo
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizer
 
-from dataset import get_nlp_dataset_split, get_config_names, get_split_names
-
+from dataset import get_nlp_dataset_split, get_config_names, get_split_names, get_dataset_info
 
 # Only using the task names
 task_to_keys = {
@@ -53,7 +50,7 @@ class AgsDataModule(pl.LightningDataModule):
         self.num_workers = num_workers
         self.load_from_cache_file = load_from_cache_file
         self.load_from_saved_path = load_from_saved_path
-        self.dataset_info = get_dataset_info(dataset_name, load_from_saved_path)
+        self.dataset_info = get_dataset_info(dataset_name)
 
         self.training_dataset = None
         self.validation_dataset = None
