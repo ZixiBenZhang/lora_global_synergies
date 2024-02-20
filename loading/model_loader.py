@@ -10,13 +10,14 @@ from transformers import (
     AutoModelForSeq2SeqLM,
 )
 
+from dataset import AgsDatasetInfo
 from models.model_info import get_model_info, ModelSource, MANUAL_MODELS
 
 
 def get_model(
     name: str,
     task: str,
-    dataset_info: DatasetInfo,
+    dataset_info: AgsDatasetInfo,
     pretrained: bool,
     checkpoint: str | PathLike = None,
     lora_config: dict = None,
@@ -50,7 +51,7 @@ def get_model(
 def get_hf_model(
     name: str,
     task: str,
-    dataset_info: datasets.DatasetInfo,
+    dataset_info: AgsDatasetInfo,
     pretrained: bool,
     checkpoint: str | PathLike = None,
 ) -> PreTrainedModel:
@@ -86,10 +87,9 @@ def get_hf_model(
         case "classification":
             if not model_info.sequence_classification:
                 raise ValueError(f"Task {task} is not supported for {name}")
-            assert "label" in dataset_info.features.keys()
             config = AutoConfig.from_pretrained(
                 name if checkpoint is None else checkpoint,
-                num_labels=dataset_info.features["label"].num_classes,
+                num_labels=dataset_info.num_classes,
             )
             if pretrained:
                 model = AutoModelForSequenceClassification.from_pretrained(
@@ -118,7 +118,7 @@ def get_hf_model(
 def get_manual_model(
     name: str,
     task: str,
-    dataset_info: datasets.DatasetInfo,
+    dataset_info: AgsDatasetInfo,
     pretrained: bool,
     checkpoint: str | PathLike,
     lora_config: dict = None,
@@ -147,8 +147,7 @@ def get_manual_model(
             assert (
                 model_info.sequence_classification
             ), f"Task {task} is not supported for {name}"
-            assert "label" in dataset_info.features.keys()
-            num_classes = dataset_info.features["label"].num_classes
+            num_classes = dataset_info.num_classes
             if lora_config is not None and shortcut_config is not None:
                 config = MANUAL_MODELS[name]["config_cls"].from_pretrained(
                     checkpoint,

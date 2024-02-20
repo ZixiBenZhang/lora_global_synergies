@@ -6,6 +6,7 @@ import pytorch_lightning as pl
 from datasets import DatasetInfo
 from transformers import PreTrainedModel
 
+from dataset import AgsDatasetInfo
 from tools.log_shortcut_weights import log_layer_res_shortcut_svd
 
 
@@ -19,7 +20,7 @@ class PlWrapperBase(pl.LightningModule):
         lr_scheduler: str = "none",  # for building lr scheduler
         eta_min=0.0,  # for building lr scheduler
         epochs=1,  # for building lr_scheduler
-        dataset_info: DatasetInfo = None,  # for getting num_classes for calculating Accuracy
+        dataset_info: AgsDatasetInfo = None,  # for getting num_classes for calculating Accuracy
     ):
         super().__init__()
 
@@ -33,11 +34,8 @@ class PlWrapperBase(pl.LightningModule):
 
         self.loss_fn = nn.CrossEntropyLoss()
 
-        if (
-            isinstance(dataset_info.features, dict)
-            and "label" in dataset_info.features.keys()
-        ):
-            self.num_classes = dataset_info.features["label"].num_classes
+        if dataset_info.num_classes is not None:
+            self.num_classes = dataset_info.num_classes
         else:
             self.num_classes = None
 

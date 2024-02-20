@@ -1,9 +1,35 @@
+from .dataset_info_util import AgsDatasetInfo
 from .language_modeling_datasets import (
     LanguageModelingDatasetAlpacaCleaned,
     LanguageModelingDatasetAlpaca,
 )
 from .text_entailment_datasets import *
 from .sentiment_analysis_datasets import *
+
+
+NLP_DATASET_MAPPING = {
+    # CLS dataset
+    "sst2": SentimentalAnalysisDatasetSST2,
+    "cola": SentimentalAnalysisDatasetCoLa,
+    "mnli": TextEntailmentDatasetMNLI,
+    "wnli": TextEntailmentDatasetWNLI,
+    "qnli": TextEntailmentDatasetQNLI,
+    "rte": TextEntailmentDatasetRTE,
+    "qqp": TextEntailmentDatasetQQP,
+    "mrpc": TextEntailmentDatasetMRPC,
+    "stsb": TextEntailmentDatasetSTSB,
+    "boolq": TextEntailmentDatasetBoolQ,
+    # TODO: CB, COPA, WiC
+    # TODO: Lambada
+
+    # LM dataset
+    "alpaca": LanguageModelingDatasetAlpaca,
+    "alpaca-cleaned": LanguageModelingDatasetAlpacaCleaned,
+}
+
+
+def get_dataset_info(dataset_name) -> AgsDatasetInfo:
+    return NLP_DATASET_MAPPING[dataset_name].info
 
 
 def get_nlp_dataset_split(
@@ -16,35 +42,40 @@ def get_nlp_dataset_split(
     load_from_saved_path: str = None,
     auto_setup: bool = True,
 ) -> Dataset:
-    match name:
-        case "sst2":
-            dataset_cls = SentimentalAnalysisDatasetSST2
-        case "cola":
-            dataset_cls = SentimentalAnalysisDatasetCoLa
-        case "mnli":
-            dataset_cls = TextEntailmentDatasetMNLI
-        case "qnli":
-            dataset_cls = TextEntailmentDatasetQNLI
-        case "wnli":
-            dataset_cls = TextEntailmentDatasetWNLI
-        case "rte":
-            dataset_cls = TextEntailmentDatasetRTE
-        case "stsb":
-            dataset_cls = TextEntailmentDatasetSTSB
-        case "qqp":
-            dataset_cls = TextEntailmentDatasetQQP
-        case "mrpc":
-            dataset_cls = TextEntailmentDatasetMRPC
-        case "boolq":
-            dataset_cls = TextEntailmentDatasetBoolQ
-        # TODO: CB, COPA, WiC
-        case "tatsu-lab/alpaca":
-            dataset_cls = LanguageModelingDatasetAlpaca
-        case "yahma/alpaca-cleaned":
-            dataset_cls = LanguageModelingDatasetAlpacaCleaned
-        # TODO: Lambada
-        case _:
-            raise ValueError(f"Unknown dataset {name}, or not supported yet.")
+    if name in NLP_DATASET_MAPPING.keys():
+        dataset_cls = NLP_DATASET_MAPPING[name]
+    else:
+        raise ValueError(f"Unknown dataset {name}, or not supported yet.")
+
+    # match name:
+    #     case "sst2":
+    #         dataset_cls = SentimentalAnalysisDatasetSST2
+    #     case "cola":
+    #         dataset_cls = SentimentalAnalysisDatasetCoLa
+    #     case "mnli":
+    #         dataset_cls = TextEntailmentDatasetMNLI
+    #     case "qnli":
+    #         dataset_cls = TextEntailmentDatasetQNLI
+    #     case "wnli":
+    #         dataset_cls = TextEntailmentDatasetWNLI
+    #     case "rte":
+    #         dataset_cls = TextEntailmentDatasetRTE
+    #     case "stsb":
+    #         dataset_cls = TextEntailmentDatasetSTSB
+    #     case "qqp":
+    #         dataset_cls = TextEntailmentDatasetQQP
+    #     case "mrpc":
+    #         dataset_cls = TextEntailmentDatasetMRPC
+    #     case "boolq":
+    #         dataset_cls = TextEntailmentDatasetBoolQ
+    #     # TODO: CB, COPA, WiC
+    #     case "alpaca":
+    #         dataset_cls = LanguageModelingDatasetAlpaca
+    #     case "alpaca-cleaned":
+    #         dataset_cls = LanguageModelingDatasetAlpacaCleaned
+    #     # TODO: Lambada
+    #     case _:
+    #         raise ValueError(f"Unknown dataset {name}, or not supported yet.")
 
     dataset = dataset_cls(
         split,

@@ -4,6 +4,7 @@ from datasets import DatasetInfo
 from torchmetrics import MeanMetric
 from transformers import PreTrainedModel
 
+from dataset import AgsDatasetInfo
 from .base import PlWrapperBase
 
 
@@ -17,7 +18,7 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
         lr_scheduler: str = "none",  # for building lr scheduler
         eta_min=0.0,  # for building lr scheduler
         epochs=200,  # for building lr_scheduler
-        dataset_info: DatasetInfo = None,  # for getting num_classes for calculating Accuracy
+        dataset_info: AgsDatasetInfo = None,  # for getting num_classes for calculating Accuracy
     ):
         super().__init__(
             model,
@@ -64,7 +65,7 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
         outputs = self.forward(input_ids, attention_mask, labels)
         loss = outputs["loss"]
 
-        self.loss_val.update(loss)
+        self.loss_val(loss)
 
         return loss
 
@@ -74,8 +75,6 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
         self.log("val_loss_epoch", loss_epoch, prog_bar=True)
         self.log("val_perplexity_epoch", perplexity_epoch, prog_bar=True)
 
-        self.loss_val.reset()
-
         return loss_epoch
 
     def test_step(self, batch, batch_idx):
@@ -84,7 +83,7 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
         labels = batch["labels"]
         outputs = self.forward(input_ids, attention_mask, labels)
         loss = outputs["loss"]
-        self.loss_test.update(loss)
+        self.loss_test(loss)
 
         return loss
 
@@ -94,7 +93,6 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
 
         self.log("test_loss_epoch", loss_epoch, prog_bar=True)
         self.log("test_perplexity_epoch", perplexity_epoch, prog_bar=True)
-        self.loss_test.reset()
 
     def predict_step(self, batch, batch_idx: int, dataloader_idx: int = 0):
         input_ids = batch["input_ids"]

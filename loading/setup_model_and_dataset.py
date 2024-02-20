@@ -2,7 +2,8 @@ import datasets
 import pytorch_lightning as pl
 from transformers import PreTrainedModel, PreTrainedTokenizer
 
-from dataset.pl_dataset_module import AgsDataModule, get_dataset_info
+from dataset import get_dataset_info, AgsDatasetInfo
+from dataset.pl_dataset_module import AgsDataModule
 from loading.config_load import load_config
 from loading.tokenizer_loader import get_tokenizer
 from models.model_info import get_model_info, AgsModelInfo
@@ -16,9 +17,9 @@ def setup_model_and_dataset(
     AgsModelInfo,
     PreTrainedTokenizer,
     pl.LightningDataModule,
-    datasets.DatasetInfo,
+    AgsDatasetInfo,
 ]:
-    dataset_info = get_dataset_info(args.dataset, args.dataset_saved_path)
+    dataset_info = get_dataset_info(args.dataset)
 
     checkpoint = None
     if args.load_name is not None:  # and args.load_type == "hf":

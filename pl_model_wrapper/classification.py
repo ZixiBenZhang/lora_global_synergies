@@ -5,6 +5,7 @@ from datasets import DatasetInfo
 from transformers import PreTrainedModel
 import pytorch_lightning.loggers
 
+from dataset import AgsDatasetInfo
 from tools.log_shortcut_weights import log_layer_res_shortcut_svd
 from .base import PlWrapperBase
 
@@ -20,7 +21,7 @@ class NLPClassificationModelWrapper(PlWrapperBase):
         lr_scheduler: str = "none",  # for building lr scheduler
         eta_min=0.0,  # for building lr scheduler
         epochs=200,  # for building lr_scheduler
-        dataset_info: DatasetInfo = None,  # for getting num_classes for calculating Accuracy
+        dataset_info: AgsDatasetInfo = None,  # for getting num_classes for calculating Accuracy
     ):
         super().__init__(
             model,
@@ -32,7 +33,6 @@ class NLPClassificationModelWrapper(PlWrapperBase):
             epochs,
             dataset_info,
         )
-        # TODO: use metrics from evaluate.load('glue', ds) instead of specified torchmetrics??
 
     def forward(
         self,

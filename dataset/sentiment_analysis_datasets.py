@@ -2,6 +2,8 @@ import torch
 from torch.utils.data import Dataset
 import datasets
 
+from dataset import add_dataset_info
+
 
 class SentimentAnalysisDatasetBase(Dataset):
     info = None  # MaseDatasetInfo
@@ -83,7 +85,13 @@ class SentimentAnalysisDatasetBase(Dataset):
             labels=torch.tensor([labels]),
         )
 
-
+@add_dataset_info(
+    name="sst2",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation", "pred"),
+    sequence_classification=True,
+    num_classes=2,
+)
 class SentimentalAnalysisDatasetSST2(SentimentAnalysisDatasetBase):
     sent_col_name = "sentence"
     label_col_name = "label"
@@ -98,6 +106,13 @@ class SentimentalAnalysisDatasetSST2(SentimentAnalysisDatasetBase):
         return dataset_dict
 
 
+@add_dataset_info(
+    name="cola",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation", "pred"),
+    sequence_classification=True,
+    num_classes=2,
+)
 class SentimentalAnalysisDatasetCoLa(SentimentAnalysisDatasetBase):
     """
     Accepatablity task

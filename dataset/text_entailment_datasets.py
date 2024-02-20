@@ -2,6 +2,8 @@ import torch
 from torch.utils.data import Dataset
 import datasets
 
+from dataset.dataset_info_util import add_dataset_info
+
 
 class TextEntailmentDatasetBase(Dataset):
     info = None
@@ -88,6 +90,13 @@ class TextEntailmentDatasetBase(Dataset):
         return input_dict
 
 
+@add_dataset_info(
+    name="qnli",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation", "pred"),
+    sequence_classification=True,
+    num_classes=2,
+)
 class TextEntailmentDatasetQNLI(TextEntailmentDatasetBase):
     sent1_col_name = "question"
     sent2_col_name = "sentence"
@@ -103,6 +112,13 @@ class TextEntailmentDatasetQNLI(TextEntailmentDatasetBase):
         return dataset_dict
 
 
+@add_dataset_info(
+    name="wnli",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation", "pred"),
+    sequence_classification=True,
+    num_classes=2,
+)
 class TextEntailmentDatasetWNLI(TextEntailmentDatasetBase):
     sent1_col_name = "sentence1"
     sent2_col_name = "sentence2"
@@ -118,6 +134,13 @@ class TextEntailmentDatasetWNLI(TextEntailmentDatasetBase):
         return dataset_dict
 
 
+@add_dataset_info(
+    name="mnli",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation", "pred"),
+    sequence_classification=True,
+    num_classes=3,
+)
 class TextEntailmentDatasetMNLI(TextEntailmentDatasetBase):
     sent1_col_name = "premise"
     sent2_col_name = "hypothesis"
@@ -133,6 +156,13 @@ class TextEntailmentDatasetMNLI(TextEntailmentDatasetBase):
         return dataset_dict
 
 
+@add_dataset_info(
+    name="rte",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation", "pred"),
+    sequence_classification=True,
+    num_classes=2,
+)
 class TextEntailmentDatasetRTE(TextEntailmentDatasetBase):
     sent1_col_name = "sentence1"
     sent2_col_name = "sentence2"
@@ -147,7 +177,13 @@ class TextEntailmentDatasetRTE(TextEntailmentDatasetBase):
             dataset_dict = datasets.load_dataset("glue", "rte")
         return dataset_dict
 
-
+@add_dataset_info(
+    name="qqp",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation", "pred"),
+    sequence_classification=True,
+    num_classes=2,
+)
 class TextEntailmentDatasetQQP(TextEntailmentDatasetBase):
     sent1_col_name = "question1"
     sent2_col_name = "question2"
@@ -162,7 +198,13 @@ class TextEntailmentDatasetQQP(TextEntailmentDatasetBase):
             dataset_dict = datasets.load_dataset("glue", "qqp")
         return dataset_dict
 
-
+@add_dataset_info(
+    name="mrpc",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation", "pred"),
+    sequence_classification=True,
+    num_classes=2,
+)
 class TextEntailmentDatasetMRPC(TextEntailmentDatasetBase):
     sent1_col_name = "sentence1"
     sent2_col_name = "sentence2"
@@ -177,7 +219,13 @@ class TextEntailmentDatasetMRPC(TextEntailmentDatasetBase):
             dataset_dict = datasets.load_dataset("glue", "mrpc")
         return dataset_dict
 
-
+@add_dataset_info(
+    name="stsb",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation", "pred"),
+    sequence_classification=True,
+    num_classes=2,
+)
 class TextEntailmentDatasetSTSB(TextEntailmentDatasetBase):
     sent1_col_name = "sentence1"
     sent2_col_name = "sentence2"
@@ -192,7 +240,13 @@ class TextEntailmentDatasetSTSB(TextEntailmentDatasetBase):
             dataset_dict = datasets.load_dataset("glue", "stsb")
         return dataset_dict
 
-
+@add_dataset_info(
+    name="boolq",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation", "pred"),
+    sequence_classification=True,
+    num_classes=2,
+)
 class TextEntailmentDatasetBoolQ(TextEntailmentDatasetBase):
     """
     Subset of SuperGLUE
@@ -210,3 +264,6 @@ class TextEntailmentDatasetBoolQ(TextEntailmentDatasetBase):
         else:
             dataset_dict = datasets.load_dataset("super_glue", "boolq")
         return dataset_dict
+
+
+# TODO: CB, WiC

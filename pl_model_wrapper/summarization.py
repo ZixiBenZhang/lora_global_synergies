@@ -1,5 +1,6 @@
 import torch
 
+from dataset import AgsDatasetInfo
 from metrics import MyRouge
 from datasets import DatasetInfo
 from transformers import PreTrainedModel, PreTrainedTokenizer
@@ -19,7 +20,7 @@ class NLPSummarizationModelWrapper(PlWrapperBase):
         lr_scheduler: str = "none",  # for building lr scheduler
         eta_min=0.0,  # for building lr scheduler
         epochs=200,  # for building lr_scheduler
-        dataset_info: DatasetInfo = None,  # for getting num_classes for calculating Accuracy
+        dataset_info: AgsDatasetInfo = None,  # for getting num_classes for calculating Accuracy
     ):
         super().__init__(
             model,
