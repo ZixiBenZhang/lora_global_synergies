@@ -279,9 +279,7 @@ class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
                 truncation=True,
             )
 
-        example[
-            "text"
-        ] = f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+        text = f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
 
 ### Instruction:
 {example["instruction"]}
@@ -293,8 +291,8 @@ class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
 {example["output"]}
 """
 
-        prompt = example["text"].removesuffix(example["output"])
-        target = example["text"]
+        prompt = text.removesuffix(example["output"])
+        target = text
 
         prompt_tokenized = _tokenize(prompt, tokenizer, max_length)["input_ids"][0]
         target_tokenized = _tokenize(target, tokenizer, max_length)["input_ids"][0]
