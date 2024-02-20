@@ -177,7 +177,7 @@ class LanguageModelingDatasetAlpaca(LanguageModelingDatasetBase):
             return tokenizer(
                 text,
                 return_tensors="pt",
-                padding="longest",
+                padding="max_length",
                 max_length=max_length,
                 truncation=True,
             )
@@ -274,7 +274,7 @@ class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
             return tokenizer(
                 text,
                 return_tensors="pt",
-                padding="longest",
+                padding="max_length",
                 max_length=max_length,
                 truncation=True,
             )
