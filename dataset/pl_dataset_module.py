@@ -312,135 +312,63 @@ class AgsDataModule(pl.LightningDataModule):
     def train_dataloader(self) -> DataLoader:
         if self.training_dataset is None:
             raise RuntimeError("The training dataset is not available.")
+        data_collator = None
+        if self.dataset_info.data_collator_cls is not None:
+            data_collator = self.dataset_info.data_collator_cls(
+                tokenizer=self.tokenizer
+            )
         return DataLoader(
             self.training_dataset,
             batch_size=self.batch_size,
             shuffle=True,
             num_workers=self.num_workers,
+            collate_fn=data_collator,
         )
 
     def val_dataloader(self) -> DataLoader:
         if self.validation_dataset is None:
             raise RuntimeError("The validation dataset is not available.")
+        data_collator = None
+        if self.dataset_info.data_collator_cls is not None:
+            data_collator = self.dataset_info.data_collator_cls(
+                tokenizer=self.tokenizer
+            )
         return DataLoader(
             self.validation_dataset,
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
+            collate_fn=data_collator,
         )
 
     def test_dataloader(self) -> DataLoader:
         if self.testing_dataset is None:
             raise RuntimeError("The test dataset is not available.")
+        data_collator = None
+        if self.dataset_info.data_collator_cls is not None:
+            data_collator = self.dataset_info.data_collator_cls(
+                tokenizer=self.tokenizer
+            )
         return DataLoader(
             self.testing_dataset,
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
+            collate_fn=data_collator,
         )
 
     def predict_dataloader(self) -> DataLoader:
         if self.prediction_dataset is None:
             raise RuntimeError("The prediction dataset is not available.")
+        data_collator = None
+        if self.dataset_info.data_collator_cls is not None:
+            data_collator = self.dataset_info.data_collator_cls(
+                tokenizer=self.tokenizer
+            )
         return DataLoader(
             self.prediction_dataset,
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
+            collate_fn=data_collator,
         )
-
-
-def get_dataset_info(dataset_name, load_from_saved_path=None) -> DatasetInfo:
-    # TODO: make functions involving datasets accommodate Cirrus
-
-    # Accept only datasets in the project plan
-    # assert dataset_name in task_to_keys.keys()
-    if dataset_name in get_config_names("glue", load_from_saved_path):
-        if load_from_saved_path is None:
-            info = datasets.get_dataset_config_info("glue", dataset_name)
-        else:
-            info = DatasetInfo.from_directory(
-                f"{load_from_saved_path}/dataset_info/{dataset_name}"
-            )
-        if any(
-            [
-                "test" in split_name
-                for split_name in get_split_names(
-                    "glue", dataset_name, load_from_saved_path
-                )
-            ]
-        ):
-            info.__setattr__("test_split_available", True)
-        else:
-            info.__setattr__("test_split_available", False)
-        if any(
-            [
-                "pred" in split_name
-                for split_name in get_split_names(
-                    "glue", dataset_name, load_from_saved_path
-                )
-            ]
-        ):
-            info.__setattr__("pred_split_available", True)
-        else:
-            info.__setattr__("pred_split_available", False)
-    elif dataset_name in get_config_names("super_glue", load_from_saved_path):
-        if load_from_saved_path is None:
-            info = datasets.get_dataset_config_info("super_glue", dataset_name)
-        else:
-            info = DatasetInfo.from_directory(
-                f"{load_from_saved_path}/dataset_info/{dataset_name}"
-            )
-        if any(
-            [
-                "test" in split_name
-                for split_name in get_split_names(
-                    "super_glue", dataset_name, load_from_saved_path
-                )
-            ]
-        ):
-            info.__setattr__("test_split_available", True)
-        else:
-            info.__setattr__("test_split_available", False)
-        if any(
-            [
-                "pred" in split_name
-                for split_name in get_split_names(
-                    "super_glue", dataset_name, load_from_saved_path
-                )
-            ]
-        ):
-            info.__setattr__("pred_split_available", True)
-        else:
-            info.__setattr__("pred_split_available", False)
-    else:
-        if load_from_saved_path is None:
-            info = datasets.get_dataset_infos(dataset_name)["default"]
-        else:
-            info = DatasetInfo.from_directory(
-                f"{load_from_saved_path}/dataset_info/{dataset_name}"
-            )
-        if any(
-            [
-                "test" in split_name
-                for split_name in get_split_names(
-                    dataset_name, None, load_from_saved_path
-                )
-            ]
-        ):
-            info.__setattr__("test_split_available", True)
-        else:
-            info.__setattr__("test_split_available", False)
-        if any(
-            [
-                "pred" in split_name
-                for split_name in get_split_names(
-                    dataset_name, None, load_from_saved_path
-                )
-            ]
-        ):
-            info.__setattr__("pred_split_available", True)
-        else:
-            info.__setattr__("pred_split_available", False)
-
-    return info

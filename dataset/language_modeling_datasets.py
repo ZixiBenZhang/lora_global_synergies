@@ -13,6 +13,7 @@ from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 import transformers
 
+from dataset import add_dataset_info
 
 logger = logging.getLogger(__name__)
 
@@ -159,6 +160,36 @@ class LanguageModelingDatasetBase(Dataset):
         )
 
 
+class DataCollatorForCausalLMAlpaca:
+    """Collate examples for supervised fine-tuning."""
+
+    tokenizer: transformers.PreTrainedTokenizer
+    IGNORE_INDEX = -100
+
+    def __call__(self, instances: list[Dict]) -> Dict[str, torch.Tensor]:
+        input_ids, labels = tuple(
+            [instance[key] for instance in instances] for key in ("input_ids", "labels")
+        )
+        input_ids = torch.nn.utils.rnn.pad_sequence(
+            input_ids, batch_first=True, padding_value=self.tokenizer.pad_token_id
+        )
+        labels = torch.nn.utils.rnn.pad_sequence(
+            labels, batch_first=True, padding_value=self.IGNORE_INDEX
+        )
+        return dict(
+            input_ids=input_ids,
+            labels=labels,
+            attention_mask=input_ids.ne(self.tokenizer.pad_token_id),
+        )
+
+
+@add_dataset_info(
+    name="alpaca",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation"),
+    causal_LM=True,
+    data_collator_cls=DataCollatorForCausalLMAlpaca,
+)
 class LanguageModelingDatasetAlpaca(LanguageModelingDatasetBase):
     IGNORE_INDEX = -100
 
@@ -177,7 +208,7 @@ class LanguageModelingDatasetAlpaca(LanguageModelingDatasetBase):
             return tokenizer(
                 text,
                 return_tensors="pt",
-                padding="max_length",
+                padding="longest",
                 max_length=max_length,
                 truncation=True,
             )
@@ -256,6 +287,13 @@ class LanguageModelingDatasetAlpaca(LanguageModelingDatasetBase):
         )
 
 
+@add_dataset_info(
+    name="alpaca-cleaned",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation"),
+    causal_LM=True,
+    data_collator_cls=DataCollatorForCausalLMAlpaca,
+)
 class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
     IGNORE_INDEX = -100
 
@@ -274,7 +312,7 @@ class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
             return tokenizer(
                 text,
                 return_tensors="pt",
-                padding="max_length",
+                padding="longest",
                 max_length=max_length,
                 truncation=True,
             )

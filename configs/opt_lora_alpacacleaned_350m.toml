@@ -1,6 +1,6 @@
 # basics
 model = "opt_lora"
-dataset = "yahma/alpaca-cleaned"
+dataset = "alpaca-cleaned"
 load_name = "facebook/opt-350m"
 load_type = "hf"
 # training
