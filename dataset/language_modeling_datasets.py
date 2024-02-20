@@ -166,6 +166,9 @@ class DataCollatorForCausalLMAlpaca:
     tokenizer: transformers.PreTrainedTokenizer
     IGNORE_INDEX = -100
 
+    def __init__(self, tokenizer):
+        self.tokenizer = tokenizer
+
     def __call__(self, instances: list[Dict]) -> Dict[str, torch.Tensor]:
         input_ids, labels = tuple(
             [instance[key] for instance in instances] for key in ("input_ids", "labels")
