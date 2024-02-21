@@ -78,7 +78,7 @@ def train(
         ]
         pl_trainer_args["logger"] = [tb_logger]
 
-    # Validation metrics history
+    # Validation metrics history, for hyperparameter search
     val_history = ValidationMetricsCallback()
     pl_trainer_args["callbacks"].append(val_history)
 

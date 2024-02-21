@@ -5,6 +5,10 @@ import re
 
 
 class MyRouge(Metric):
+    """
+    Allows aggregating results of multiple Rouge types
+    """
+
     def __init__(self, **kwargs):
         super().__init__()
         self.rouge = ROUGEScore(**kwargs)

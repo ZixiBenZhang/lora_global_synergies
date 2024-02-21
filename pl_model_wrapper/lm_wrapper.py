@@ -75,8 +75,6 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
         self.log("val_loss_epoch", loss_epoch, prog_bar=True)
         self.log("val_perplexity_epoch", perplexity_epoch, prog_bar=True)
 
-        return loss_epoch
-
     def test_step(self, batch, batch_idx):
         input_ids = batch["input_ids"]
         attention_mask = batch["attention_mask"]
@@ -90,7 +88,6 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
     def on_test_epoch_end(self):
         loss_epoch = self.loss_test.compute()
         perplexity_epoch = torch.exp(loss_epoch)
-
         self.log("test_loss_epoch", loss_epoch, prog_bar=True)
         self.log("test_perplexity_epoch", perplexity_epoch, prog_bar=True)
 
