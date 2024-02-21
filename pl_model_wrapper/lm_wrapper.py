@@ -48,7 +48,7 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
         loss = outputs["loss"]
 
         perplexity = torch.exp(loss)
-        print(f"wrapper loss: {loss}\nperplexity: {perplexity}\n")
+        # print(f"wrapper loss: {loss}\nperplexity: {perplexity}\n")
 
         self.log("train_loss_step", loss, prog_bar=True)
         self.log(

@@ -320,6 +320,7 @@ class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
                 truncation=True,
             )
 
+        # TODO: debug the following, which causes NaN loss and perplexity
         text = f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
 
 ### Instruction:

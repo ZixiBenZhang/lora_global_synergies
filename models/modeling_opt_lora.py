@@ -1131,7 +1131,6 @@ class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
             loss = loss_fct(
                 shift_logits.view(-1, self.config.vocab_size), shift_labels.view(-1)
             )
-        print(f"model loss: {loss}")
 
         if not return_dict:
             output = (logits,) + outputs[1:]
