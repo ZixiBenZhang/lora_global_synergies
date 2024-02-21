@@ -968,7 +968,7 @@ class OPTLoraModel(OPTLoraPreTrainedModel):
 
 
 class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
-    _tied_weights_keys = ["lm_head.weight"]
+    _keys_to_ignore_on_load_missing = [r"lm_head.weight"]
 
     def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
@@ -1131,6 +1131,7 @@ class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
             loss = loss_fct(
                 shift_logits.view(-1, self.config.vocab_size), shift_labels.view(-1)
             )
+        print(f"model loss: {loss}")
 
         if not return_dict:
             output = (logits,) + outputs[1:]
