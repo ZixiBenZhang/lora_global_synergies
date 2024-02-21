@@ -329,8 +329,7 @@ class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
 {example["input"]}
 
 ### Response:
-{example["output"]}
-"""
+{example["output"]}"""
 
         prompt = text.removesuffix(example["output"])
         target = text
