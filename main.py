@@ -157,6 +157,40 @@ def main():
             actions.test(**test_params)
             logger.info("Testing is completed")
 
+        case "alpha-test":
+            logger.info(f"Conducting alpha importance Test on model {args.model!r}...")
+
+            pl_trainer_args = {
+                "devices": args.num_devices,
+                "num_nodes": args.num_nodes,
+                "accelerator": args.accelerator,
+                "strategy": args.strategy,
+            }
+
+            # The checkpoint must be present, except when the model is pretrained.
+            if args.load_name is None and not args.is_pretrained:
+                raise ValueError("expected checkpoint via --load, got None")
+
+            test_params = {
+                "model": model,
+                "tokenizer": tokenizer,
+                "model_info": model_info,
+                "data_module": data_module,
+                "dataset_info": dataset_info,
+                "task": args.task,
+                "optimizer": args.training_optimizer,
+                "learning_rate": args.learning_rate,
+                "weight_decay": args.weight_decay,
+                "pl_trainer_args": pl_trainer_args,
+                "auto_requeue": args.is_to_auto_requeue,
+                "save_path": os.path.join(output_dir, "checkpoints"),
+                "load_name": args.load_name,
+                "load_type": args.load_type,
+            }
+
+            actions.alpha_importance_test(**test_params)
+            logger.info("Alpha importance test is completed")
+
 
 def t():
     print(datasets.get_dataset_split_names("tatsu-lab/alpaca", None))
