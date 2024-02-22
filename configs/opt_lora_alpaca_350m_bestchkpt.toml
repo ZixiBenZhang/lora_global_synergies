@@ -1,7 +1,7 @@
 # basics
 model = "opt_lora"
 dataset = "alpaca"
-load_name = "ags_output/opt_lora_causal_language_modeling_alpaca_2024-02-22/training_ckpts/best_chkpt-v4.ckpt"
+load_name = "ags_output/opt_lora_causal_language_modeling_alpaca_2024-02-22/training_ckpts/best_chkpt-v3.ckpt"
 load_type = "pl"
 backbone_model = "facebook/opt-350m"
 # training
