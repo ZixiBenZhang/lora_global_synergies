@@ -42,6 +42,7 @@ CLI_DEFAULTS = {
     "seed": 0,
     "backbone_model": None,
     "alpha": None,
+    "metric_red_tolerance": 0.01,
     "lora_config": None,
     "shortcut_config": None,
     # Trainer options
@@ -184,7 +185,15 @@ def get_arg_parser():
         "--alpha",
         dest="alpha",
         default=None,
-        help="coefficient alpha for lora modules in alpha testing; it's only effective when --load is used",
+        help="coefficient alpha for lora modules in manual alpha testing; it's only effective when --load is used",
+        type=float,
+        metavar="NUM",
+    )
+    general_group.add_argument(
+        "--metric-red-tolerance",
+        dest="metric_red_tolerance",
+        default=0.01,
+        help="metric reduction tolerance rate for calculating metric threshold in the alpha importance test",
         type=float,
         metavar="NUM",
     )

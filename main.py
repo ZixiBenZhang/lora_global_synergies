@@ -158,7 +158,7 @@ def main():
             logger.info("Testing is completed")
 
         case "alpha-test":
-            logger.info(f"Conducting alpha importance Test on model {args.model!r}...")
+            logger.info(f"Conducting alpha importance test on model {args.model!r}...")
 
             pl_trainer_args = {
                 "devices": args.num_devices,
@@ -186,6 +186,8 @@ def main():
                 "save_path": os.path.join(output_dir, "checkpoints"),
                 "load_name": args.load_name,
                 "load_type": args.load_type,
+                "resume_training": args.resume_training,
+                "metric_reduction_tolerance": args.metric_red_tolerance,
             }
 
             actions.alpha_importance_test(**test_params)

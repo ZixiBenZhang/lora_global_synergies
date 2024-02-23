@@ -43,6 +43,7 @@ def alpha_importance_test(
     load_name,  # path to the saved checkpoint
     load_type,  # model checkpoint's type: ['pt', 'pl']
     resume_training,  # whether resume zero-proxy trained model from the checkpoint
+    metric_reduction_tolerance,  # for calculating alpha threshold
 ):
     t = time.strftime("%H-%M")
 
@@ -72,6 +73,8 @@ def alpha_importance_test(
             optimizer=optimizer,
         )
     else:
+        logger.warning("Running zero-proxy training for alpha importance testing")
+
         pl_model = zero_proxy_train_lora(
             model,
             tokenizer,
@@ -90,6 +93,8 @@ def alpha_importance_test(
             load_name,
             load_type,
         )
+
+    logger.warning("Running alpha importance search")
 
     # Run each test only on one minibatch
     trainer = pl.Trainer(**pl_validator_args, limit_val_batches=1)
@@ -111,13 +116,13 @@ def alpha_importance_test(
         match task:
             case "classification":
                 # Accuracy
-                return original_metric - original_metric * 0.01
+                return original_metric - original_metric * metric_reduction_tolerance
             case "summarization":
                 # Rouge score
-                return original_metric - original_metric * 0.01
+                return original_metric - original_metric * metric_reduction_tolerance
             case "causal_language_modeling":
                 # Perplexity
-                return original_metric + original_metric * 0.01
+                return original_metric + original_metric * metric_reduction_tolerance
             case _:
                 raise ValueError(f"Unsupported task: {task}")
 
