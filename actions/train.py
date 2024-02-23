@@ -100,10 +100,10 @@ def train(
             )
         model = load_model_chkpt(load_name, load_type=load_type, model=model)
 
-        # if load_type != "pl":
-        #     raise ValueError("Load-type pl is required for resuming training. Please use --load-type pl.")
+        if load_type != "pl":
+            raise ValueError("Load-type pl is required for resuming full training state. Please use --load-type pl.")
         logger.warning(
-            f"Resume full training state from pl checkpoint {load_name}. Entered model hyperparameter configuration ignored."
+            f"Resume full training state from pl checkpoint {load_name}. Entered hyperparameters and configuration ignored."
         )
 
         if model_info.is_lora:
@@ -125,7 +125,7 @@ def train(
             ckpt_path=load_name,
         )
     else:
-        # load model checkpoint
+        # load model state checkpoint
         if load_name is not None:
             model = load_model_chkpt(load_name, load_type=load_type, model=model)
 

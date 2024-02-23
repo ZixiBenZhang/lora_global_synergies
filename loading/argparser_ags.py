@@ -140,7 +140,7 @@ def get_arg_parser():
         dest="resume_training",
         action="store_true",
         help="""
-            resume full training from checkpoint. 
+            resume full training from checkpoint, or resume zero-proxy training result from checkpoint in alpha importance test. 
             It is designed to and must be used in tandem with --load and --load-type pl.
         """,
     )
