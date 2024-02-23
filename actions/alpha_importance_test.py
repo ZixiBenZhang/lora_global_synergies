@@ -243,7 +243,7 @@ def zero_proxy_train_lora(
         # Monitoring lr for the lr_scheduler
         lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval="step")
         # TensorBoard logger
-        tb_logger = TensorBoardLogger(save_dir=save_path, name="alpha-testing_logs")
+        tb_logger = TensorBoardLogger(save_dir=save_path, name="alpha-zero-proxy_logs")
         pl_trainer_args["callbacks"] = [
             latest_checkpoint_callback,
             lr_monitor_callback,
