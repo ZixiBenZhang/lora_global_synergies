@@ -25,6 +25,10 @@ from tools.trainable_param_printer import print_trainable_parameters
 logger = logging.getLogger(__name__)
 
 
+ZERO_PROXY_TRAIN_BATCH = 0.01
+VAL_BATCH = 32
+
+
 def alpha_importance_test(
     model: torch.nn.Module | torch.fx.GraphModule,
     tokenizer,
@@ -97,7 +101,7 @@ def alpha_importance_test(
     logger.warning("Running alpha importance search")
 
     # Run each test only on one minibatch
-    trainer = pl.Trainer(**pl_validator_args, limit_val_batches=1)
+    trainer = pl.Trainer(**pl_validator_args, limit_val_batches=VAL_BATCH)
     original_val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
 
     def get_metric_name():
@@ -292,7 +296,7 @@ def zero_proxy_train_lora(
         print_trainable_parameters(model)
 
     # Zero-proxy training for LoRA modules
-    trainer = pl.Trainer(**pl_trainer_args, limit_train_batches=0.01)
+    trainer = pl.Trainer(**pl_trainer_args, limit_train_batches=ZERO_PROXY_TRAIN_BATCH)
 
     trainer.fit(pl_model, datamodule=data_module)
 
