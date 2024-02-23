@@ -103,7 +103,7 @@ def train(
         # if load_type != "pl":
         #     raise ValueError("Load-type pl is required for resuming training. Please use --load-type pl.")
         logger.warning(
-            f"Resume full training state from pl checkpoint {load_name}. Entered hyperparameter configuration ignored."
+            f"Resume full training state from pl checkpoint {load_name}. Entered model hyperparameter configuration ignored."
         )
 
         if model_info.is_lora:
