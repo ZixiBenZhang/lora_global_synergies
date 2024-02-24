@@ -161,15 +161,22 @@ def main():
             logger.info(f"Conducting alpha importance test on model {args.model!r}...")
 
             pl_trainer_args = {
+                "max_epochs": args.max_epochs,
+                "max_steps": args.max_steps,
                 "devices": args.num_devices,
                 "num_nodes": args.num_nodes,
                 "accelerator": args.accelerator,
                 "strategy": args.strategy,
+                "fast_dev_run": args.to_debug,
+                "accumulate_grad_batches": args.accumulate_grad_batches,
+                "log_every_n_steps": args.log_every_n_steps,
             }
 
-            # The checkpoint must be present, except when the model is pretrained.
-            if args.load_name is None and not args.is_pretrained:
-                raise ValueError("expected checkpoint via --load, got None")
+            # Load from a checkpoint!
+            load_name = None
+            load_types = ["pt", "pl"]
+            if args.load_name is not None and args.load_type in load_types:
+                load_name = args.load_name
 
             test_params = {
                 "model": model,
@@ -181,10 +188,12 @@ def main():
                 "optimizer": args.training_optimizer,
                 "learning_rate": args.learning_rate,
                 "weight_decay": args.weight_decay,
+                "lr_scheduler": args.lr_scheduler,
+                "eta_min": args.eta_min,
                 "pl_trainer_args": pl_trainer_args,
                 "auto_requeue": args.is_to_auto_requeue,
-                "save_path": os.path.join(output_dir, "checkpoints"),
-                "load_name": args.load_name,
+                "save_path": os.path.join(output_dir, "alpha_chkpts"),
+                "load_name": load_name,
                 "load_type": args.load_type,
                 "resume_training": args.resume_training,
                 "metric_reduction_tolerance": args.metric_red_tolerance,
