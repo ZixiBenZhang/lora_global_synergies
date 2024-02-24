@@ -149,11 +149,11 @@ def alpha_importance_test(
         threshold = get_metric_threshold()
         match task:
             case "classification":
-                return val_metric <= threshold
+                return val_metric < threshold
             case "summarization":
-                return val_metric <= threshold
+                return val_metric < threshold
             case "causal_language_modeling":
-                return val_metric >= threshold
+                return val_metric > threshold
             case _:
                 raise ValueError(f"Unsupported task: {task}")
 
@@ -213,7 +213,6 @@ def alpha_importance_test(
                 ):
                     continue
 
-                alpha_res = 1.0
                 logger.warning(f">>> Testing layer {layer_id} projection {proj_name} <<<")
 
                 alpha = 0.5
@@ -221,20 +220,22 @@ def alpha_importance_test(
                 val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=False)[0]
 
                 if check_exceed_threshold(val_metrics):
-                    while alpha < 1.0:
+                    alpha_res = 1.0
+                    while alpha < 0.9:
                         alpha += 0.1
                         lora.importance_alpha = alpha
                         val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=False)[0]
                         if not check_exceed_threshold(val_metrics):
-                            alpha_res = alpha - 0.1
+                            alpha_res = alpha
                             break
                 else:
+                    alpha_res = 0.0
                     while alpha > 0.0:
                         alpha -= 0.1
                         lora.importance_alpha = alpha
                         val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=False)[0]
                         if check_exceed_threshold(val_metrics):
-                            alpha_res = alpha
+                            alpha_res = alpha + 0.1
                             break
 
                 print(f"alpha: {alpha_res}\nfinal metric: {val_metrics[get_metric_name()]}\n")
