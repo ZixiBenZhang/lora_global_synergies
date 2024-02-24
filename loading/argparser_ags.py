@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parent.parent.absolute()
-ACTIONS = ["train", "test"]
+ACTIONS = ["train", "test", "alpha-test"]
 TASKS = ["classification", "causal_language_modeling", "summarization"]
 LOAD_TYPE = [
     "pt",  # PyTorch module state dictionary
