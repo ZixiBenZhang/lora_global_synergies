@@ -217,6 +217,7 @@ def alpha_importance_test(
 
                 alpha = 0.5
                 lora.importance_alpha = alpha
+                print(alpha)
                 val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=False)[0]
 
                 if check_exceed_threshold(val_metrics):
@@ -224,6 +225,7 @@ def alpha_importance_test(
                     while alpha < 0.9:
                         alpha += 0.1
                         lora.importance_alpha = alpha
+                        print(alpha)
                         val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=False)[0]
                         if not check_exceed_threshold(val_metrics):
                             alpha_res = alpha
@@ -233,12 +235,15 @@ def alpha_importance_test(
                     while alpha > 0.0:
                         alpha -= 0.1
                         lora.importance_alpha = alpha
+                        print(alpha)
                         val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=False)[0]
                         if check_exceed_threshold(val_metrics):
                             alpha_res = alpha + 0.1
                             break
 
                 print(f"alpha: {alpha_res}\nfinal metric: {val_metrics[get_metric_name()]}\n")
+                lora.importance_alpha = 1.0
+
                 if f"layer_{layer_id}" not in res_val:
                     res_val[f"layer_{layer_id}"] = {}
                 res_val[f"layer_{layer_id}"][proj_name] = alpha_res
