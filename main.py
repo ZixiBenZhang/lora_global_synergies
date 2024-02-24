@@ -192,7 +192,7 @@ def main():
                 "eta_min": args.eta_min,
                 "pl_trainer_args": pl_trainer_args,
                 "auto_requeue": args.is_to_auto_requeue,
-                "save_path": os.path.join(output_dir, "alpha_chkpts"),
+                "save_path": os.path.join(output_dir, "alpha_ckpts"),
                 "load_name": load_name,
                 "load_type": args.load_type,
                 "resume_training": args.resume_training,

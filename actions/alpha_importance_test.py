@@ -100,9 +100,23 @@ def alpha_importance_test(
 
     logger.warning("Running alpha importance search")
 
+    if save_path is not None:
+        if not os.path.isdir(save_path):
+            os.makedirs(save_path)
+        # TensorBoard logger
+        tb_logger = TensorBoardLogger(save_dir=save_path, name="alpha-test_logs")
+        pl_validator_args["callbacks"] = []
+        pl_validator_args["logger"] = [tb_logger]
+
+    if auto_requeue is not None:
+        plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
+    else:
+        plugins = None
+    pl_validator_args["plugins"] = plugins
+
     # Run each test only on one minibatch
     trainer = pl.Trainer(**pl_validator_args, limit_val_batches=VAL_BATCH)
-    original_val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
+    original_val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=True)[0]
 
     def get_metric_name():
         match task:
@@ -200,17 +214,17 @@ def alpha_importance_test(
                     continue
 
                 alpha_res = 1.0
-                logger.info(f">>> Testing layer {layer_id} projection {proj_name} <<<")
+                logger.warning(f">>> Testing layer {layer_id} projection {proj_name} <<<")
 
                 alpha = 0.5
                 lora.importance_alpha = alpha
-                val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
+                val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=False)[0]
 
                 if check_exceed_threshold(val_metrics):
                     while alpha < 1.0:
                         alpha += 0.1
                         lora.importance_alpha = alpha
-                        val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
+                        val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=False)[0]
                         if not check_exceed_threshold(val_metrics):
                             alpha_res = alpha - 0.1
                             break
@@ -218,13 +232,14 @@ def alpha_importance_test(
                     while alpha > 0.0:
                         alpha -= 0.1
                         lora.importance_alpha = alpha
-                        val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
+                        val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=False)[0]
                         if check_exceed_threshold(val_metrics):
                             alpha_res = alpha
                             break
 
                 res_val[f"layer_{layer_id}"][proj_name] = alpha_res
                 save_toml(res_val)
+                print(f"alpha: {alpha_res}\nfinal metric: {val_metrics[get_metric_name()]}\n")
 
         save_toml(res_val)
 
