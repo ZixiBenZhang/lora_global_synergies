@@ -23,7 +23,6 @@ class LoRALayer:
         self.lora_dropout = nn.ModuleDict({})
         self.lora_A = nn.ModuleDict({})
         self.lora_B = nn.ModuleDict({})
-        self.importance_alpha = {}
 
         self.disable_adapters = False
         self.merged = False
@@ -35,7 +34,6 @@ class LoRALayer:
         lora_alpha,
         lora_dropout_p,
         init_lora_weights,
-        importance_alpha=1.0,
     ):
         self.r[adapter_name] = r
         self.lora_alpha[adapter_name] = lora_alpha
@@ -58,9 +56,6 @@ class LoRALayer:
                 )
             )
             self.scaling[adapter_name] = lora_alpha / r
-            self.importance_alpha[adapter_name] = torch.tensor(
-                importance_alpha, requires_grad=False
-            )
         if init_lora_weights:
             self.reset_lora_parameters(adapter_name)
 
@@ -109,16 +104,18 @@ class LoraLinear(nn.Linear, LoRALayer):
             lora_alpha,
             lora_dropout_p,
             init_lora_weights,
-            importance_alpha,
         )
         self.active_adapter = adapter_name
+        self.importance_alpha = torch.tensor(
+            importance_alpha, requires_grad=False
+        )
 
     def get_delta_w(self, adapter_name):
         # Linear's tensor is out_features rows * in_features columns as default
         prod = self.lora_B[adapter_name].weight @ self.lora_A[adapter_name].weight
         if self.fan_in_fan_out:
             prod = prod.T
-        return prod * self.scaling[adapter_name] * self.importance_alpha[adapter_name]
+        return prod * self.scaling[adapter_name]
 
     def merge(self):
         if self.active_adapter not in self.lora_A.keys():
@@ -166,13 +163,13 @@ class LoraLinear(nn.Linear, LoRALayer):
                     )
                 )
                 * self.scaling[self.active_adapter]
-                * self.importance_alpha[self.active_adapter]
+                * self.importance_alpha
             )
         else:
             # LoRA dropout unused
             res = F.linear(
                 x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
-            )
+            ) * self.importance_alpha
         # res = res.to(input_dtype)
         return res
 

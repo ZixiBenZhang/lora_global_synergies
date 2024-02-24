@@ -192,18 +192,24 @@ def alpha_importance_test(
             }
 
             for proj_name, lora in lora_modules.items():
-                adapter_name = lora.active_adapter
+                if (
+                    lora.active_adapter not in lora.lora_A.keys()
+                    or lora.disable_adapters
+                    or lora.r[lora.active_adapter] == 0
+                ):
+                    continue
+
                 alpha_res = 1.0
                 logger.info(f">>> Testing layer {layer_id} projection {proj_name} <<<")
 
                 alpha = 0.5
-                lora.importance_alpha[adapter_name] = alpha
+                lora.importance_alpha = alpha
                 val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
 
                 if check_exceed_threshold(val_metrics):
                     while alpha < 1.0:
                         alpha += 0.1
-                        lora.importance_alpha[adapter_name] = alpha
+                        lora.importance_alpha = alpha
                         val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
                         if not check_exceed_threshold(val_metrics):
                             alpha_res = alpha - 0.1
@@ -211,7 +217,7 @@ def alpha_importance_test(
                 else:
                     while alpha > 0.0:
                         alpha -= 0.1
-                        lora.importance_alpha[adapter_name] = alpha
+                        lora.importance_alpha = alpha
                         val_metrics = trainer.validate(pl_model, datamodule=data_module)[0]
                         if check_exceed_threshold(val_metrics):
                             alpha_res = alpha
