@@ -237,9 +237,11 @@ def alpha_importance_test(
                             alpha_res = alpha
                             break
 
+                print(f"alpha: {alpha_res}\nfinal metric: {val_metrics[get_metric_name()]}\n")
+                if f"layer_{layer_id}" not in res_val:
+                    res_val[f"layer_{layer_id}"] = {}
                 res_val[f"layer_{layer_id}"][proj_name] = alpha_res
                 save_toml(res_val)
-                print(f"alpha: {alpha_res}\nfinal metric: {val_metrics[get_metric_name()]}\n")
 
         save_toml(res_val)
 
