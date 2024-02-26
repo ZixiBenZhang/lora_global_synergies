@@ -3,7 +3,6 @@ model = "opt_lora"
 dataset = "sst2"
 load_name = "facebook/opt-350m"
 load_type = "hf"
-resume_training = true
 metric_red_tolerance = 0.01
 # training
 training_optimizer = "adamw"
