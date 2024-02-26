@@ -12,14 +12,13 @@ from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger, CSVLogger
 
 from dataset import AgsDatasetInfo
-from lora.lora_modules import LoraLinear, mark_only_lora_as_trainable, update_lora_importance_alpha_require_grad
+from lora.lora_modules import LoraLinear
 from models.model_info import AgsModelInfo
 from models.modeling_opt_lora import (
     OPTLoraForCausalLM,
     OPTLoraForQuestionAnswering,
     OPTLoraForSequenceClassification, OPTLoraDecoderLayer,
 )
-from projectors.shortcut_modules import mark_ags_as_trainable
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 from tools.trainable_param_printer import print_trainable_parameters

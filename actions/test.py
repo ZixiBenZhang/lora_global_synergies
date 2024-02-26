@@ -69,12 +69,6 @@ def test(
         f"Restore model state from pl checkpoint {load_name}. Entered hyperparameter configuration ignored."
     )
 
-    # if model_info.is_lora:
-    #     mark_only_lora_as_trainable(model, bias="none")
-    #     if model_info.is_ags:
-    #         mark_ags_as_trainable(model)
-    #     print_trainable_parameters(model)
-
     pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
 
     logger.warning(f"Resuming hyperparameters: {pl_model.hparams}")

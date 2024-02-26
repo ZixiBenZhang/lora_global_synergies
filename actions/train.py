@@ -106,13 +106,25 @@ def train(
             f"Resume full training state from pl checkpoint {load_name}. Entered hyperparameters and configuration ignored."
         )
 
+        trainable_params = []
         if model_info.is_lora:
-            mark_only_lora_as_trainable(model, bias="none")
-            update_lora_importance_alpha_require_grad(model, require_grad=False)
+            trainable_params.append("lora_")
+        if model_info.is_ags:
+            trainable_params.append("proj_")
 
-            if model_info.is_ags:
-                mark_ags_as_trainable(model)
-            print_trainable_parameters(model)
+        if len(trainable_params) > 0:
+            for name, param in model.named_parameters():
+                if name.startswith("model") or name.startswith("roberta"):
+                    param.requires_grad = False
+                    for trainable_param in trainable_params:
+                        if trainable_param in name:
+                            param.requires_grad = True
+                            break
+                else:
+                    param.requires_grad = True
+
+        update_lora_importance_alpha_require_grad(model, require_grad=False)
+        print_trainable_parameters(model)
 
         pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
 
@@ -129,13 +141,25 @@ def train(
         if load_name is not None:
             model = load_model_chkpt(load_name, load_type=load_type, model=model)
 
+        trainable_params = []
         if model_info.is_lora:
-            mark_only_lora_as_trainable(model, bias="none")
-            update_lora_importance_alpha_require_grad(model, require_grad=False)
+            trainable_params.append("lora_")
+        if model_info.is_ags:
+            trainable_params.append("proj_")
 
-            if model_info.is_ags:
-                mark_ags_as_trainable(model)
-            print_trainable_parameters(model)
+        if len(trainable_params) > 0:
+            for name, param in model.named_parameters():
+                if name.startswith("model"):
+                    param.requires_grad = False
+                    for trainable_param in trainable_params:
+                        if trainable_param in name:
+                            param.requires_grad = True
+                            break
+                else:
+                    param.requires_grad = True
+
+        update_lora_importance_alpha_require_grad(model, require_grad=False)
+        print_trainable_parameters(model)
 
         pl_model: pl.LightningModule = wrapper_pl_model(
             model,

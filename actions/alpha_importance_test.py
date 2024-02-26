@@ -10,14 +10,13 @@ import pytorch_lightning as pl
 from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger, CSVLogger
 
-from lora.lora_modules import LoraLinear, mark_only_lora_as_trainable, update_lora_importance_alpha_require_grad
+from lora.lora_modules import LoraLinear, update_lora_importance_alpha_require_grad
 from models.model_info import AgsModelInfo
 from models.modeling_opt_lora import (
     OPTLoraForCausalLM,
     OPTLoraForQuestionAnswering,
     OPTLoraForSequenceClassification, OPTLoraDecoderLayer,
 )
-from projectors.shortcut_modules import mark_ags_as_trainable
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 from tools.trainable_param_printer import print_trainable_parameters
@@ -313,13 +312,25 @@ def zero_proxy_train_lora(
         optimizer=optimizer,
     )
 
+    trainable_params = []
     if model_info.is_lora:
-        mark_only_lora_as_trainable(model, bias="none")
-        update_lora_importance_alpha_require_grad(model, require_grad=False)
+        trainable_params.append("lora_")
+    if model_info.is_ags:
+        trainable_params.append("proj_")
 
-        if model_info.is_ags:
-            mark_ags_as_trainable(model)
-        print_trainable_parameters(model)
+    if len(trainable_params) > 0:
+        for name, param in model.named_parameters():
+            if name.startswith("model") or name.startswith("roberta"):
+                param.requires_grad = False
+                for trainable_param in trainable_params:
+                    if trainable_param in name:
+                        param.requires_grad = True
+                        break
+            else:
+                param.requires_grad = True
+
+    update_lora_importance_alpha_require_grad(model, require_grad=False)
+    print_trainable_parameters(model)
 
     # Zero-proxy training for LoRA modules
     trainer = pl.Trainer(**pl_trainer_args, limit_train_batches=ZERO_PROXY_TRAIN_BATCH)
