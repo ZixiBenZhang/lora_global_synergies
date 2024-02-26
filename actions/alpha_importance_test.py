@@ -215,30 +215,27 @@ def alpha_importance_test(
 
                 logger.warning(f">>> Testing layer {layer_id} projection {proj_name} <<<")
 
-                alpha = 0.5
-                lora.importance_alpha = alpha
-                print(alpha)
+                alpha = 5
+                lora.importance_alpha = alpha / 10
                 val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=False)[0]
 
                 if check_exceed_threshold(val_metrics):
-                    alpha_res = 1.0
-                    while alpha < 0.9:
-                        alpha += 0.1
-                        lora.importance_alpha = alpha
-                        print(alpha)
+                    alpha_res = 10
+                    while alpha < 9:
+                        alpha += 1
+                        lora.importance_alpha = alpha / 10
                         val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=False)[0]
                         if not check_exceed_threshold(val_metrics):
                             alpha_res = alpha
                             break
                 else:
-                    alpha_res = 0.0
-                    while alpha > 0.0:
-                        alpha -= 0.1
-                        lora.importance_alpha = alpha
-                        print(alpha)
+                    alpha_res = 0
+                    while alpha > 0:
+                        alpha -= 0
+                        lora.importance_alpha = alpha / 10
                         val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=False)[0]
                         if check_exceed_threshold(val_metrics):
-                            alpha_res = alpha + 0.1
+                            alpha_res = alpha + 0
                             break
 
                 print(f"alpha: {alpha_res}\nfinal metric: {val_metrics[get_metric_name()]}\n")
