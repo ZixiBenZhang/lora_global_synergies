@@ -187,7 +187,7 @@ def alpha_importance_test(
                 toml.dump(res, fout)
             logger.info("Result saved as toml")
 
-        for decoder_layer in model.model.decoder.layers:
+        for decoder_layer in reversed(model.model.decoder.layers):
             decoder_layer: OPTLoraDecoderLayer
             layer_id = decoder_layer.layer_id
 
@@ -230,14 +230,18 @@ def alpha_importance_test(
                 else:
                     alpha_res = 0
                     while alpha > 0:
-                        alpha -= 0
+                        alpha -= 1
                         lora.importance_alpha = alpha / 10
                         val_metrics = trainer.validate(pl_model, datamodule=data_module, verbose=False)[0]
                         if check_exceed_threshold(val_metrics):
-                            alpha_res = alpha + 0
+                            alpha_res = alpha + 1
                             break
 
-                print(f"alpha: {alpha_res}\nfinal metric: {val_metrics[get_metric_name()]}\n")
+                print(
+                    f"Layer {layer_id}, Projection {proj_name}\n"
+                    f"alpha: {alpha_res}\n"
+                    f"final metric: {val_metrics[get_metric_name()]}\n"
+                )
                 lora.importance_alpha = 1.0
 
                 if f"layer_{layer_id}" not in res_val:

@@ -1041,7 +1041,8 @@ class RobertaLoraModel(RobertaLoraPreTrainedModel):
     ROBERTA_START_DOCSTRING,
 )
 class RobertaLoraForCausalLM(RobertaLoraPreTrainedModel):
-    _tied_weights_keys = ["lm_head.decoder.weight", "lm_head.decoder.bias"]
+    _keys_to_ignore_on_load_missing = [r"position_ids", r"lm_head.decoder.bias"]
+    _keys_to_ignore_on_load_unexpected = [r"pooler"]
 
     def __init__(self, config):
         super().__init__(config)
@@ -1214,7 +1215,8 @@ class RobertaLoraForCausalLM(RobertaLoraPreTrainedModel):
     """RoBERTa Model with a `language modeling` head on top.""", ROBERTA_START_DOCSTRING
 )
 class RobertaLoraForMaskedLM(RobertaLoraPreTrainedModel):
-    _tied_weights_keys = ["lm_head.decoder.weight", "lm_head.decoder.bias"]
+    _keys_to_ignore_on_load_missing = [r"position_ids", r"lm_head.decoder.bias"]
+    _keys_to_ignore_on_load_unexpected = [r"pooler"]
 
     def __init__(self, config):
         super().__init__(config)
@@ -1353,6 +1355,8 @@ class RobertaLoraLMHead(nn.Module):
     ROBERTA_START_DOCSTRING,
 )
 class RobertaLoraForSequenceClassification(RobertaLoraPreTrainedModel):
+    _keys_to_ignore_on_load_missing = [r"position_ids"]
+
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
@@ -1458,6 +1462,8 @@ class RobertaLoraForSequenceClassification(RobertaLoraPreTrainedModel):
     ROBERTA_START_DOCSTRING,
 )
 class RobertaLoraForMultipleChoice(RobertaLoraPreTrainedModel):
+    _keys_to_ignore_on_load_missing = [r"position_ids"]
+
     def __init__(self, config):
         super().__init__(config)
 
@@ -1570,6 +1576,9 @@ class RobertaLoraForMultipleChoice(RobertaLoraPreTrainedModel):
     ROBERTA_START_DOCSTRING,
 )
 class RobertaLoraForTokenClassification(RobertaLoraPreTrainedModel):
+    _keys_to_ignore_on_load_unexpected = [r"pooler"]
+    _keys_to_ignore_on_load_missing = [r"position_ids"]
+
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels
@@ -1685,6 +1694,9 @@ class RobertaLoraClassificationHead(nn.Module):
     ROBERTA_START_DOCSTRING,
 )
 class RobertaLoraForQuestionAnswering(RobertaLoraPreTrainedModel):
+    _keys_to_ignore_on_load_unexpected = [r"pooler"]
+    _keys_to_ignore_on_load_missing = [r"position_ids"]
+
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_labels

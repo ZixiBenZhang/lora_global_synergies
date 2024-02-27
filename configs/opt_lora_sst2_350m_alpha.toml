@@ -6,7 +6,7 @@ load_type = "hf"
 metric_red_tolerance = 0.01
 # training
 training_optimizer = "adamw"
-learning_rate = 1e-4
+learning_rate = 4e-4
 weight_decay = 0.01
 max_epochs = 1
 batch_size = 4
