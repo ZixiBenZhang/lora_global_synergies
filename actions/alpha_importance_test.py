@@ -187,7 +187,7 @@ def alpha_importance_test(
                 toml.dump(res, fout)
             logger.info("Result saved as toml")
 
-        for decoder_layer in model.model.decoder.layers:
+        for decoder_layer in reversed(model.model.decoder.layers):
             decoder_layer: OPTLoraDecoderLayer
             layer_id = decoder_layer.layer_id
 
@@ -238,7 +238,7 @@ def alpha_importance_test(
                             break
 
                 print(
-                    f"Layer {layer_id} Projection {proj_name}\n"
+                    f"Layer {layer_id}, Projection {proj_name}\n"
                     f"alpha: {alpha_res}\n"
                     f"final metric: {val_metrics[get_metric_name()]}\n"
                 )
