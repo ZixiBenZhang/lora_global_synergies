@@ -149,7 +149,7 @@ def train(
 
         if len(trainable_params) > 0:
             for name, param in model.named_parameters():
-                print(name)
+                # print(name)
                 if name.startswith("model") or name.startswith("roberta"):
                     param.requires_grad = False
                     for trainable_param in trainable_params:

@@ -1058,11 +1058,11 @@ class RobertaLoraForCausalLM(RobertaLoraPreTrainedModel):
         # Initialize weights and apply final processing
         self.post_init()
 
-    def get_output_embeddings(self):
-        return self.lm_head.decoder
-
-    def set_output_embeddings(self, new_embeddings):
-        self.lm_head.decoder = new_embeddings
+    # def get_output_embeddings(self):
+    #     return self.lm_head.decoder
+    #
+    # def set_output_embeddings(self, new_embeddings):
+    #     self.lm_head.decoder = new_embeddings
 
     @add_start_docstrings_to_model_forward(
         ROBERTA_INPUTS_DOCSTRING.format("batch_size, sequence_length")
