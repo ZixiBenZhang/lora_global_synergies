@@ -3,7 +3,7 @@ import toml
 
 def analyse():
     with open(
-        "../ags_output/opt_lora_classification_rte_2024-02-01/checkpoints/logs_test/importance_22-40.toml",
+        "../ags_output/opt_lora_classification_sst2_2024-02-01/checkpoints/logs_test/importance_22-22.toml",
         "r",
     ) as f:
         data = toml.load(f)
