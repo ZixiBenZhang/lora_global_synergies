@@ -989,11 +989,11 @@ class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
     def set_input_embeddings(self, value):
         self.model.decoder.embed_tokens = value
 
-    def get_output_embeddings(self):
-        return self.model.lm_head
-
-    def set_output_embeddings(self, new_embeddings):
-        self.model.lm_head = new_embeddings
+    # def get_output_embeddings(self):
+    #     return self.model.lm_head
+    #
+    # def set_output_embeddings(self, new_embeddings):
+    #     self.model.lm_head = new_embeddings
 
     def set_decoder(self, decoder):
         self.model.decoder = decoder
