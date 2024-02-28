@@ -989,7 +989,6 @@ class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
         self.model.decoder.embed_tokens = value
 
     def get_output_embeddings(self):
-        raise RuntimeError("Debugging lm_head")
         return self.lm_head
 
     def set_output_embeddings(self, new_embeddings):
