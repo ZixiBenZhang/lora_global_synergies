@@ -968,14 +968,14 @@ class OPTLoraModel(OPTLoraPreTrainedModel):
 
 
 class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
-    _keys_to_ignore_on_load_missing = [r"lm_head.bias"]
+    _keys_to_ignore_on_load_missing = [r"score.bias"]
 
     def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
         self.model = OPTLoraModel(config)
 
         # the lm_head weight is automatically tied to the embed tokens weight
-        self.lm_head = nn.Linear(
+        self.score = nn.Linear(
             config.word_embed_proj_dim, config.vocab_size, bias=False
         )
 
@@ -989,10 +989,10 @@ class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
         self.model.decoder.embed_tokens = value
 
     def get_output_embeddings(self):
-        return self.lm_head
+        return self.score
 
-    # def set_output_embeddings(self, new_embeddings):
-    #     self.lm_head = new_embeddings
+    def set_output_embeddings(self, new_embeddings):
+        self.score = new_embeddings
 
     def set_decoder(self, decoder):
         self.model.decoder = decoder
@@ -1117,7 +1117,7 @@ class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
             return_dict=return_dict,
         )
 
-        logits = self.lm_head(outputs[0]).contiguous()
+        logits = self.score(outputs[0]).contiguous()
 
         loss = None
         if labels is not None:
