@@ -992,6 +992,7 @@ class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
         return self.lm_head
 
     def set_output_embeddings(self, new_embeddings):
+        raise RuntimeError("Debugging lm_head")
         self.lm_head = new_embeddings
 
     def set_decoder(self, decoder):
