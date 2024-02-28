@@ -115,7 +115,7 @@ def alpha_importance_test(
 
     # Run each test only on one minibatch
     trainer = pl.Trainer(**pl_validator_args, limit_test_batches=TEST_BATCH)
-    original_val_metrics = trainer.test(pl_model, dataloaders=data_module.val_dataloader(), verbose=False)[0]
+    original_val_metrics = trainer.test(pl_model, dataloaders=data_module.val_dataloader(), verbose=True)[0]
 
     def get_metric_name():
         match task:
