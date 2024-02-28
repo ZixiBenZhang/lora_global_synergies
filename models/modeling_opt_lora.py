@@ -897,12 +897,6 @@ class OPTLoraModel(OPTLoraPreTrainedModel):
     def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
         self.decoder = OPTLoraDecoder(config)
-
-        # the lm_head weight is automatically tied to the embed tokens weight
-        self.lm_head = nn.Linear(
-            config.word_embed_proj_dim, config.vocab_size, bias=False
-        )
-
         # Initialize weights and apply final processing
         self.post_init()
 
@@ -980,6 +974,11 @@ class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
         super().__init__(config)
         self.model = OPTLoraModel(config)
 
+        # the lm_head weight is automatically tied to the embed tokens weight
+        self.lm_head = nn.Linear(
+            config.word_embed_proj_dim, config.vocab_size, bias=False
+        )
+
         # Initialize weights and apply final processing
         self.post_init()
 
@@ -990,10 +989,10 @@ class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
         self.model.decoder.embed_tokens = value
 
     # def get_output_embeddings(self):
-    #     return self.model.lm_head
+    #     return self.lm_head
     #
     # def set_output_embeddings(self, new_embeddings):
-    #     self.model.lm_head = new_embeddings
+    #     self.lm_head = new_embeddings
 
     def set_decoder(self, decoder):
         self.model.decoder = decoder
@@ -1118,7 +1117,7 @@ class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
             return_dict=return_dict,
         )
 
-        logits = self.model.lm_head(outputs[0]).contiguous()
+        logits = self.lm_head(outputs[0]).contiguous()
 
         loss = None
         if labels is not None:
