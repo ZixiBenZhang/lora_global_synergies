@@ -968,7 +968,7 @@ class OPTLoraModel(OPTLoraPreTrainedModel):
 
 
 class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
-    _keys_to_ignore_on_load_missing = [r"lm_head.weight"]
+    _keys_to_ignore_on_load_missing = [r"lm_head.bias"]
 
     def __init__(self, config: OPTLoraConfig):
         super().__init__(config)
@@ -991,8 +991,8 @@ class OPTLoraForCausalLM(OPTLoraPreTrainedModel):
     def get_output_embeddings(self):
         return self.lm_head
 
-    def set_output_embeddings(self, new_embeddings):
-        self.lm_head = new_embeddings
+    # def set_output_embeddings(self, new_embeddings):
+    #     self.lm_head = new_embeddings
 
     def set_decoder(self, decoder):
         self.model.decoder = decoder
