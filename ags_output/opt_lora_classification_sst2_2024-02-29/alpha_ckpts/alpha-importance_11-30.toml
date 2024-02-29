@@ -1,4 +1,5 @@
 task = "classification"
+dataset = "sst2"
 metric_name = "test_acc_epoch"
 zero-proxy_metric = 0.84765625
 

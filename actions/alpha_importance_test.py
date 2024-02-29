@@ -10,6 +10,7 @@ import pytorch_lightning as pl
 from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger, CSVLogger
 
+from dataset import AgsDatasetInfo
 from lora.lora_modules import LoraLinear, update_lora_importance_alpha_require_grad
 from models.model_info import AgsModelInfo
 from models.modeling_opt_lora import (
@@ -33,7 +34,7 @@ def alpha_importance_test(
     tokenizer,
     model_info: AgsModelInfo,  # dataclass of model's task type and name
     data_module: pl.LightningDataModule,  # for preparing and loading datasets for pl trainer
-    dataset_info,  # dataclass including e.g. number of classes for the pl model wrapper
+    dataset_info: AgsDatasetInfo,  # dataclass including e.g. number of classes for the pl model wrapper
     task,  # to decide the pl model wrapper of which type should be used
     optimizer,  # optimizer for pl trainer
     learning_rate,  # lr for optimizer. lr_scheduler is default as CosineAnnealingLR
@@ -159,6 +160,7 @@ def alpha_importance_test(
     # Result format: {layer_idx: {proj: alpha}}
     res_val: dict[str, str | float | dict[str, float]] = {
         "task": task,
+        "dataset": dataset_info.name,
         "metric_name": get_metric_name(),
         "zero-proxy_metric": original_val_metrics[get_metric_name()],
     }

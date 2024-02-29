@@ -1,4 +1,5 @@
 task = "causal_language_modeling"
+dataset = "alpaca"
 metric_name = "test_perplexity_epoch"
 zero-proxy_metric = 7.76345157623291
 
