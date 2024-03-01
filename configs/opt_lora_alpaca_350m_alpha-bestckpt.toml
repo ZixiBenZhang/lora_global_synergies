@@ -5,7 +5,7 @@ load_name = "./ags_output/opt_lora_causal_language_modeling_alpaca_2024-02-23/tr
 load_type = "pl"
 resume_training = true
 backbone_model = "facebook/opt-350m"
-metric_red_tolerance = 0.0005
+metric_red_tolerance = 0.001
 # training
 training_optimizer = "adamw"
 learning_rate = 2e-4
