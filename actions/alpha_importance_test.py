@@ -79,7 +79,7 @@ def alpha_importance_test(
 
         # Set up pl data module for testing
         data_module.prepare_data()
-        data_module.setup("test")
+        data_module.setup("validate")
     else:
         logger.warning("Running zero-proxy training for alpha importance testing")
 
