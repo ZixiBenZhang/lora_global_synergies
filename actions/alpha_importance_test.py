@@ -76,6 +76,10 @@ def alpha_importance_test(
             epochs=pl_trainer_args["max_epochs"],
             optimizer=optimizer,
         )
+
+        # Set up pl data module for testing
+        data_module.prepare_data()
+        data_module.setup("test")
     else:
         logger.warning("Running zero-proxy training for alpha importance testing")
 
