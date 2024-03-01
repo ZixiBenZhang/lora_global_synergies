@@ -11,6 +11,7 @@ from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger, CSVLogger
 
 from dataset import AgsDatasetInfo
+from dataset.pl_dataset_module import AgsDataModule
 from lora.lora_modules import LoraLinear, update_lora_importance_alpha_require_grad
 from models.model_info import AgsModelInfo
 from models.modeling_opt_lora import (
@@ -33,7 +34,7 @@ def alpha_importance_test(
     model: torch.nn.Module | torch.fx.GraphModule,
     tokenizer,
     model_info: AgsModelInfo,  # dataclass of model's task type and name
-    data_module: pl.LightningDataModule,  # for preparing and loading datasets for pl trainer
+    data_module: AgsDataModule,  # for preparing and loading datasets for pl trainer
     dataset_info: AgsDatasetInfo,  # dataclass including e.g. number of classes for the pl model wrapper
     task,  # to decide the pl model wrapper of which type should be used
     optimizer,  # optimizer for pl trainer
@@ -79,7 +80,7 @@ def alpha_importance_test(
 
         # Set up pl data module for testing
         data_module.prepare_data()
-        data_module.setup("validate")
+        data_module.setup(None)
     else:
         logger.warning("Running zero-proxy training for alpha importance testing")
 
