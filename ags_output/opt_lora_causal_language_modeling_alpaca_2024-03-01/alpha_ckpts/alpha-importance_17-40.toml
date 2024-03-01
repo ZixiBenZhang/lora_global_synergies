@@ -1,0 +1,100 @@
+task = "causal_language_modeling"
+dataset = "alpaca"
+metric_name = "test_perplexity_epoch"
+zero-proxy_metric = 6.167843818664551
+
+[layer_23]
+q_proj = 8
+v_proj = 9
+
+[layer_22]
+q_proj = 3
+v_proj = 2
+
+[layer_21]
+q_proj = 9
+v_proj = 0
+
+[layer_20]
+q_proj = 0
+v_proj = 0
+
+[layer_19]
+q_proj = 0
+v_proj = 1
+
+[layer_18]
+q_proj = 7
+v_proj = 4
+
+[layer_17]
+q_proj = 7
+v_proj = 0
+
+[layer_16]
+q_proj = 10
+v_proj = 10
+
+[layer_15]
+q_proj = 6
+v_proj = 3
+
+[layer_14]
+q_proj = 0
+v_proj = 0
+
+[layer_13]
+q_proj = 0
+v_proj = 0
+
+[layer_12]
+q_proj = 0
+v_proj = 0
+
+[layer_11]
+q_proj = 0
+v_proj = 0
+
+[layer_10]
+q_proj = 0
+v_proj = 0
+
+[layer_9]
+q_proj = 0
+v_proj = 0
+
+[layer_8]
+q_proj = 0
+v_proj = 0
+
+[layer_7]
+q_proj = 0
+v_proj = 0
+
+[layer_6]
+q_proj = 0
+v_proj = 0
+
+[layer_5]
+q_proj = 0
+v_proj = 0
+
+[layer_4]
+q_proj = 0
+v_proj = 0
+
+[layer_3]
+q_proj = 0
+v_proj = 0
+
+[layer_2]
+q_proj = 0
+v_proj = 0
+
+[layer_1]
+q_proj = 0
+v_proj = 0
+
+[layer_0]
+q_proj = 0
+v_proj = 0
