@@ -202,8 +202,8 @@ def main():
             actions.alpha_importance_test(**test_params)
             logger.info("Alpha importance test is completed")
 
-        case "train-realloc":
-            logger.info(f"Training model {args.model!r}...")
+        case "train-dyrealloc":
+            logger.info(f"Dynamic-LoRA-reallocation training model {args.model!r}...")
 
             pl_trainer_args = {
                 "max_epochs": args.max_epochs,
@@ -223,7 +223,7 @@ def main():
             if args.load_name is not None and args.load_type in load_types:
                 load_name = args.load_name
 
-            train_realloc_params = {
+            train_dyrealloc_params = {
                 "model": model,
                 "tokenizer": tokenizer,
                 "model_info": model_info,
@@ -249,8 +249,8 @@ def main():
 
             logger.info(f"##### WEIGHT DECAY ##### {args.weight_decay}")
 
-            actions.train(**train_realloc_params)
-            logger.info("Training is completed")
+            actions.train_dynamic_reallocation(**train_dyrealloc_params)
+            logger.info("Dynamic-LoRA-reallocation training is completed")
 
 
 def t():

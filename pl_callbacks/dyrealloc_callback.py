@@ -28,7 +28,7 @@ LORA_NAME_HASH = {
 ALPHA_UB = 10
 
 
-class AlphaReallocationCallback(pl.Callback):
+class DynamicLoraReallocationCallback(pl.Callback):
     def __init__(
         self,
         N: int | float,
@@ -218,6 +218,7 @@ class AlphaReallocationCallback(pl.Callback):
                     ):
                         continue
 
+                    # TODO: update printing
                     print(
                         f">>> Alpha testing layer {layer_id} projection {proj_name}",
                         end="\r",

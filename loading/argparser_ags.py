@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Union
 
 ROOT = Path(__file__).parent.parent.absolute()
-ACTIONS = ["train", "test", "alpha-test", "train-realloc"]
+ACTIONS = ["train", "test", "alpha-test", "train-dyrealloc"]
 TASKS = ["classification", "causal_language_modeling", "summarization"]
 LOAD_TYPE = [
     "pt",  # PyTorch module state dictionary
@@ -197,7 +197,7 @@ def get_arg_parser():
         dest="metric_red_tolerance",
         default=0.01,
         help="""
-            for alpha importance test and reallocation training, 
+            for alpha importance test and dynamic lora reallocation training, 
             metric reduction tolerance rate for calculating metric threshold
         """,
         type=float,
@@ -208,7 +208,7 @@ def get_arg_parser():
         dest="alpha_test_batch_num",
         default=None,
         help="""
-            for reallocation training, 
+            for dynamic lora reallocation training, 
             number / ratio of testing batches to use
         """,
         type=Union[float | int],
@@ -219,7 +219,7 @@ def get_arg_parser():
         dest="realloc_N",
         default=0.1,
         help="""
-            for reallocation training, 
+            for dynamic lora reallocation training, 
             interval (number / ratio of batches) between lora module reallocation
         """,
         type=Union[float | int],
@@ -230,7 +230,7 @@ def get_arg_parser():
         dest="turn_on_percentile",
         default=0.25,
         help="""
-            for reallocation training, 
+            for dynamic lora reallocation training, 
             percentage of lora module to be turned on (module ranks will follow lora config)
         """,
         type=float,

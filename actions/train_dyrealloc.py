@@ -11,7 +11,7 @@ from lora.lora_modules import (
     update_lora_importance_alpha_require_grad,
 )
 from models.model_info import AgsModelInfo
-from pl_callbacks.alpha_realloc_callback import AlphaReallocationCallback
+from pl_callbacks.dyrealloc_callback import DynamicLoraReallocationCallback
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 from tools.trainable_param_printer import print_trainable_parameters
@@ -19,7 +19,7 @@ from tools.trainable_param_printer import print_trainable_parameters
 logger = logging.getLogger(__name__)
 
 
-def train_realloc(
+def train_dynamic_reallocation(
     model: torch.nn.Module | torch.fx.GraphModule,
     tokenizer,
     model_info: AgsModelInfo,  # dataclass of model's task type and name
@@ -79,7 +79,7 @@ def train_realloc(
         ]
         pl_trainer_args["logger"] = [tb_logger]
 
-    alpha_reallocation_callback = AlphaReallocationCallback(
+    dynamic_reallocation_callback = DynamicLoraReallocationCallback(
         N=realloc_N,
         data_module=data_module,
         task=task,
@@ -88,7 +88,8 @@ def train_realloc(
         limit_test_batches=limit_alpha_test_batches,
         save_path=f"{save_path}/reallocation_history_{t}.toml",
     )
-    pl_trainer_args["callbacks"].append(alpha_reallocation_callback)
+    pl_trainer_args["callbacks"].append(dynamic_reallocation_callback)
+    logger.warning("Running dynamic LoRA reallocation training")
 
     if auto_requeue is not None:
         plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
@@ -184,4 +185,4 @@ def train_realloc(
         trainer = pl.Trainer(**pl_trainer_args)
         trainer.fit(pl_model, datamodule=data_module)
 
-    alpha_reallocation_callback.save_reallocation_history()
+    dynamic_reallocation_callback.save_reallocation_history()
