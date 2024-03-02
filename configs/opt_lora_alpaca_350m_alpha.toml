@@ -1,3 +1,4 @@
+# Zero-proxy training & Alpha importance testing
 # basics
 model = "opt_lora"
 dataset = "alpaca"
