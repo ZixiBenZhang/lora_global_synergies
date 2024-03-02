@@ -82,30 +82,39 @@ class AlphaReallocationCallback(pl.Callback):
         self.history_save_path = save_path
 
     def get_alpha_testing_dataloader(self):
-        # TODO: use mixed dataloader
-        return self._get_train_dataloader()
+        return self._get_mixed_dataloader()
 
     def _get_train_dataloader(self) -> DataLoader:
         return self.data_module.train_dataloader()
 
     def _get_mixed_dataloader(self) -> DataLoader:
+        # 1:1 mixed training set & validation set
         assert type(self.data_module) is AgsDataModule
         self.data_module: AgsDataModule
         if self.data_module.training_dataset is None:
             raise RuntimeError("The training dataset is not available.")
         if self.data_module.validation_dataset is None:
             raise RuntimeError("The validation dataset is not available.")
+
+        train_idx = torch.randperm(len(self.data_module.training_dataset))
+        validation_idx = torch.randperm(len(self.data_module.val_dataloader()))
+        interleave_idx = torch.stack([train_idx, validation_idx], dim=1).view(-1)
+
         data_collator = None
         if self.data_module.dataset_info.data_collator_cls is not None:
             data_collator = self.data_module.dataset_info.data_collator_cls(
                 tokenizer=self.data_module.tokenizer
             )
+
         return DataLoader(
-            torch.utils.data.ConcatDataset(
-                [self.data_module.training_dataset, self.data_module.validation_dataset]
+            torch.utils.data.Subset(
+                torch.utils.data.ConcatDataset(
+                    [self.data_module.training_dataset, self.data_module.validation_dataset]
+                ),
+                indices=interleave_idx,
             ),
             batch_size=self.data_module.batch_size,
-            shuffle=True,
+            shuffle=False,
             num_workers=self.data_module.num_workers,
             collate_fn=data_collator,
         )
