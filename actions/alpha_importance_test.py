@@ -9,6 +9,7 @@ import torch
 import pytorch_lightning as pl
 from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger, CSVLogger
+from torch.utils.data import DataLoader
 
 from dataset import AgsDatasetInfo
 from dataset.pl_dataset_module import AgsDataModule
@@ -121,7 +122,26 @@ def alpha_importance_test(
 
     # Run each test only on one minibatch
     trainer = pl.Trainer(**pl_validator_args, limit_test_batches=TEST_BATCH)
-    original_val_metrics = trainer.test(pl_model, dataloaders=data_module.val_dataloader(), verbose=True)[0]
+
+    def get_alpha_test_dataloader(datamodule: AgsDataModule):
+        if datamodule.training_dataset is None:
+            raise RuntimeError("The training dataset is not available.")
+        data_collator = None
+        if datamodule.dataset_info.data_collator_cls is not None:
+            data_collator = datamodule.dataset_info.data_collator_cls(
+                tokenizer=datamodule.tokenizer
+            )
+        return DataLoader(
+            datamodule.training_dataset,
+            batch_size=datamodule.batch_size,
+            shuffle=False,
+            num_workers=datamodule.num_workers,
+            collate_fn=data_collator,
+        )
+
+    dataloader = get_alpha_test_dataloader(data_module)
+
+    original_val_metrics = trainer.test(pl_model, dataloaders=dataloader, verbose=True)[0]
 
     def get_metric_name():
         match task:
@@ -223,14 +243,14 @@ def alpha_importance_test(
 
                 alpha = 5
                 lora.importance_alpha = alpha / 10
-                val_metrics = trainer.test(pl_model, dataloaders=data_module.val_dataloader(), verbose=False)[0]
+                val_metrics = trainer.test(pl_model, dataloaders=dataloader, verbose=False)[0]
 
                 if check_exceed_threshold(val_metrics):
                     alpha_res = 10
                     while alpha < 9:
                         alpha += 1
                         lora.importance_alpha = alpha / 10
-                        val_metrics = trainer.test(pl_model, dataloaders=data_module.val_dataloader(), verbose=False)[0]
+                        val_metrics = trainer.test(pl_model, dataloaders=dataloader, verbose=False)[0]
                         if not check_exceed_threshold(val_metrics):
                             alpha_res = alpha
                             break
@@ -239,7 +259,7 @@ def alpha_importance_test(
                     while alpha > 0:
                         alpha -= 1
                         lora.importance_alpha = alpha / 10
-                        val_metrics = trainer.test(pl_model, dataloaders=data_module.val_dataloader(), verbose=False)[0]
+                        val_metrics = trainer.test(pl_model, dataloaders=dataloader, verbose=False)[0]
                         if check_exceed_threshold(val_metrics):
                             alpha_res = alpha + 1
                             break
