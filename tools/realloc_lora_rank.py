@@ -100,4 +100,4 @@ def reallocate_lora_rank(filename):
 
 
 if __name__ == "__main__":
-    reallocate_lora_rank("../ags_output/opt_lora_classification_sst2_2024-02-29/alpha_ckpts/alpha-importance_11-30.toml")
+    reallocate_lora_rank("../ags_output/opt_lora_classification_sst2_2024-03-02/alpha_ckpts/alpha-importance_17-34.toml")
