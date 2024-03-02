@@ -2,10 +2,10 @@ import argparse
 import os.path
 from functools import partial
 from pathlib import Path
-
+from typing import Union
 
 ROOT = Path(__file__).parent.parent.absolute()
-ACTIONS = ["train", "test", "alpha-test"]
+ACTIONS = ["train", "test", "alpha-test", "train-realloc"]
 TASKS = ["classification", "causal_language_modeling", "summarization"]
 LOAD_TYPE = [
     "pt",  # PyTorch module state dictionary
@@ -43,6 +43,9 @@ CLI_DEFAULTS = {
     "backbone_model": None,
     "alpha": None,
     "metric_red_tolerance": 0.01,
+    "alpha_test_batch_num": None,
+    "realloc_N": 0.1,
+    "turn_on_percentile": 0.25,
     "lora_config": None,
     "shortcut_config": None,
     # Trainer options
@@ -193,7 +196,43 @@ def get_arg_parser():
         "--metric-red-tolerance",
         dest="metric_red_tolerance",
         default=0.01,
-        help="metric reduction tolerance rate for calculating metric threshold in the alpha importance test",
+        help="""
+            for alpha importance test and reallocation training, 
+            metric reduction tolerance rate for calculating metric threshold
+        """,
+        type=float,
+        metavar="NUM",
+    )
+    general_group.add_argument(
+        "--alpha-test-batch-num",
+        dest="alpha_test_batch_num",
+        default=None,
+        help="""
+            for reallocation training, 
+            number / ratio of testing batches to use
+        """,
+        type=Union[float | int],
+        metavar="NUM",
+    )
+    general_group.add_argument(
+        "--realloc-N",
+        dest="realloc_N",
+        default=0.1,
+        help="""
+            for reallocation training, 
+            interval (number / ratio of batches) between lora module reallocation
+        """,
+        type=Union[float | int],
+        metavar="NUM",
+    )
+    general_group.add_argument(
+        "--turn-on-percentile",
+        dest="turn_on_percentile",
+        default=0.25,
+        help="""
+            for reallocation training, 
+            percentage of lora module to be turned on (module ranks will follow lora config)
+        """,
         type=float,
         metavar="NUM",
     )

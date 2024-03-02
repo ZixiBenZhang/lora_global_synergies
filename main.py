@@ -202,6 +202,56 @@ def main():
             actions.alpha_importance_test(**test_params)
             logger.info("Alpha importance test is completed")
 
+        case "train-realloc":
+            logger.info(f"Training model {args.model!r}...")
+
+            pl_trainer_args = {
+                "max_epochs": args.max_epochs,
+                "max_steps": args.max_steps,
+                "devices": args.num_devices,
+                "num_nodes": args.num_nodes,
+                "accelerator": args.accelerator,
+                "strategy": args.strategy,
+                "fast_dev_run": args.to_debug,
+                "accumulate_grad_batches": args.accumulate_grad_batches,
+                "log_every_n_steps": args.log_every_n_steps,
+            }
+
+            # Load from a checkpoint!
+            load_name = None
+            load_types = ["pt", "pl"]
+            if args.load_name is not None and args.load_type in load_types:
+                load_name = args.load_name
+
+            train_realloc_params = {
+                "model": model,
+                "tokenizer": tokenizer,
+                "model_info": model_info,
+                "data_module": data_module,
+                "dataset_info": dataset_info,
+                "task": args.task,
+                "optimizer": args.training_optimizer,
+                "learning_rate": args.learning_rate,
+                "weight_decay": args.weight_decay,
+                "lr_scheduler": args.lr_scheduler,
+                "eta_min": args.eta_min,
+                "pl_trainer_args": pl_trainer_args,
+                "auto_requeue": args.is_to_auto_requeue,
+                "save_path": os.path.join(output_dir, "training_ckpts"),
+                "load_name": load_name,
+                "load_type": args.load_type,
+                "resume_training": args.resume_training,
+                "metric_reduction_tolerance": args.metric_red_tolerance,
+                "limit_alpha_test_batches": args.alpha_test_batch_num,
+                "realloc_N": args.realloc_N,
+                "turn_on_percentile": args.turn_on_percentile,
+            }
+
+            logger.info(f"##### WEIGHT DECAY ##### {args.weight_decay}")
+
+            actions.train(**train_realloc_params)
+            logger.info("Training is completed")
+
 
 def t():
     print(datasets.get_dataset_split_names("tatsu-lab/alpaca", None))
