@@ -2,7 +2,6 @@ import logging
 import os
 import time
 
-import toml
 import torch
 import pytorch_lightning as pl
 from lightning_fabric.plugins.environments import SLURMEnvironment
@@ -12,10 +11,9 @@ from lora.lora_modules import (
     update_lora_importance_alpha_require_grad,
 )
 from models.model_info import AgsModelInfo
-from pl_callbacks.alpha_realloc_callback import AlphaReallocationCallback, LORA_NAME_HASH
+from pl_callbacks.alpha_realloc_callback import AlphaReallocationCallback
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
-from pl_callbacks.metrics_callback import ValidationMetricsCallback
 from tools.trainable_param_printer import print_trainable_parameters
 
 logger = logging.getLogger(__name__)
@@ -88,6 +86,7 @@ def train_realloc(
         metric_reduction_tolerance=metric_reduction_tolerance,
         turn_on_percentile=turn_on_percentile,
         limit_test_batches=limit_alpha_test_batches,
+        save_path=f"{save_path}/reallocation_history_{t}.toml",
     )
     pl_trainer_args["callbacks"].append(alpha_reallocation_callback)
 
@@ -185,22 +184,4 @@ def train_realloc(
         trainer = pl.Trainer(**pl_trainer_args)
         trainer.fit(pl_model, datamodule=data_module)
 
-    # Calculate frequency each lora module has been turned on
-    turned_on_freq: dict[str, int | dict[str, int]] = {
-        "total_reallocation_number": len(alpha_reallocation_callback.reallocation_history)
-    }
-    for reallocation in alpha_reallocation_callback.reallocation_history:
-        for lora_module in reallocation:
-            layer_id, proj_hash = lora_module
-            proj_name = LORA_NAME_HASH.keys()[proj_hash]
-            if f"layer_{layer_id}" not in turned_on_freq:
-                turned_on_freq[f"layer_{layer_id}"] = {}
-            if proj_name in turned_on_freq[f"layer_{layer_id}"]:
-                turned_on_freq[f"layer_{layer_id}"][proj_name] = 0
-            else:
-                turned_on_freq[f"layer_{layer_id}"][proj_name] += 1
-
-    log_path = f"{save_path}/reallocation_history_{t}.toml"
-    with open(log_path, "w+") as fout:
-        toml.dump(turned_on_freq, fout)
-    logger.info("Reallocation history saved as toml")
+    alpha_reallocation_callback.save_reallocation_history()

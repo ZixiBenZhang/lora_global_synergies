@@ -2,6 +2,7 @@ import math
 from typing import Any, Optional
 
 import numpy as np
+import toml
 import torch
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
@@ -36,6 +37,7 @@ class AlphaReallocationCallback(pl.Callback):
         metric_reduction_tolerance: float,
         turn_on_percentile: float = 0.25,
         limit_test_batches: Optional[int | float] = None,
+        save_path: str = None,
     ):
         """
         :param N: every N steps conduct alpha testing and reallocate lora ranks
@@ -44,6 +46,7 @@ class AlphaReallocationCallback(pl.Callback):
         :param metric_reduction_tolerance: for computing the threshold for alpha testing
         :param turn_on_percentile: percentage of lora modules to be activated by the reallocation
         :param limit_test_batches: number of batches used in alpha testing
+        :param save_path: file path for saving reallocation history
         """
         super().__init__()
 
@@ -76,6 +79,7 @@ class AlphaReallocationCallback(pl.Callback):
         self.turn_on_percentile = turn_on_percentile
 
         self.reallocation_history = []
+        self.history_save_path = save_path
 
     def get_alpha_testing_dataloader(self):
         # TODO: use mixed dataloader
@@ -272,4 +276,24 @@ class AlphaReallocationCallback(pl.Callback):
                     proj_hash = LORA_NAME_HASH[proj_name]
                     lora.disable_adapters = [layer_id, proj_hash] in turn_on
 
+            self.save_reallocation_history()
         trainer.limit_test_batches = original_limit_test_batches
+
+    def save_reallocation_history(self):
+        # Calculate frequency each lora module has been turned on
+        turned_on_freq: dict[str, int | dict[str, int]] = {
+            "total_reallocation_number": len(self.reallocation_history)
+        }
+        for reallocation in self.reallocation_history:
+            for lora_module in reallocation:
+                layer_id, proj_hash = lora_module
+                proj_name = list(LORA_NAME_HASH.keys())[proj_hash]
+                if f"layer_{layer_id}" not in turned_on_freq:
+                    turned_on_freq[f"layer_{layer_id}"] = {}
+                if proj_name in turned_on_freq[f"layer_{layer_id}"]:
+                    turned_on_freq[f"layer_{layer_id}"][proj_name] = 0
+                else:
+                    turned_on_freq[f"layer_{layer_id}"][proj_name] += 1
+
+        with open(self.history_save_path, "w+") as fout:
+            toml.dump(turned_on_freq, fout)
