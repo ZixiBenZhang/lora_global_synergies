@@ -255,6 +255,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     while lb < rb:
                         alpha = (lb + rb) // 2
                         if alpha == 0:
+                            rb = 0
                             break
                         lora.importance_alpha = alpha / ALPHA_UB
                         val_metrics = trainer.test(
