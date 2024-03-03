@@ -110,7 +110,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         train_idx = torch.randperm(len(self.data_module.training_dataset))
         validation_idx = torch.randperm(len(self.data_module.val_dataloader()))
-        if train_idx >= validation_idx:
+        if len(train_idx) >= len(validation_idx):
             train_idx = train_idx[:len(validation_idx)]
             interleave_idx = torch.stack([train_idx, validation_idx], dim=1).view(-1)
         else:
@@ -239,11 +239,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     ):
                         continue
 
-                    # TODO: update printing
                     print(
                         f">>> Alpha testing layer {layer_id} projection {proj_name}",
                         end="\r",
                     )
+                    msg_len = len(f">>> Alpha testing layer {layer_id} projection {proj_name}")
 
                     lb, rb = (0, ALPHA_UB)
                     while lb < rb:
@@ -264,6 +264,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     if layer_id not in res_val:
                         res_val[layer_id] = {}
                     res_val[layer_id][proj_name] = alpha_res
+
+                    print(" " * msg_len, end="\r")
 
             # Decide which modules to keep
             alpha_list = np.concatenate(
