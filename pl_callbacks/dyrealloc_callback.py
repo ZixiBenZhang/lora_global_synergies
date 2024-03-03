@@ -242,9 +242,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
                     print(
                         f">>> Alpha testing layer {layer_id} projection {proj_name}",
-                        end="\r",
+                        # end="\r",
                     )
-                    msg_len = len(f">>> Alpha testing layer {layer_id} projection {proj_name}")
+                    # msg_len = len(f">>> Alpha testing layer {layer_id} projection {proj_name}")
 
                     lb, rb = (0, ALPHA_UB)
                     while lb < rb:
@@ -266,7 +266,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         res_val[layer_id] = {}
                     res_val[layer_id][proj_name] = alpha_res
 
-                    print(" " * msg_len, end="\r")
+                    # print(" " * msg_len, end="\r")
 
             # Decide which modules to keep
             alpha_list = np.concatenate(
