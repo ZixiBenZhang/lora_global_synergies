@@ -209,7 +209,7 @@ def get_arg_parser():
         default=None,
         help="""
             for dynamic lora reallocation training, 
-            number / ratio of testing batches to use
+            number of batches / ratio of validation batches to use for each alpha testing
         """,
         type=Union[float | int],
         metavar="NUM",
@@ -220,7 +220,7 @@ def get_arg_parser():
         default=0.1,
         help="""
             for dynamic lora reallocation training, 
-            interval (number / ratio of batches) between lora module reallocation
+            interval (number / ratio of train batches) between lora module reallocation
         """,
         type=Union[float | int],
         metavar="NUM",

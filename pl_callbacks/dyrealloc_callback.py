@@ -1,3 +1,4 @@
+import logging
 import math
 from typing import Any, Optional
 
@@ -16,6 +17,8 @@ from models.modeling_opt_lora import (
     OPTLoraDecoderLayer,
 )
 from pl_model_wrapper.base import PlWrapperBase
+
+logger = logging.getLogger(__name__)
 
 LORA_NAME_HASH = {
     "q_proj": 0,
@@ -58,20 +61,24 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.task = task
 
         if type(N) is int:
+            # Num of batches between two reallocation
             self.N: int = N
         elif type(N) is float:
+            # Percentage of training steps per epoch between two reallocation
             assert 0.0 < N <= 1.0, "N should be 0.0 < N <= 1.0"
-            self.N: int = round(len(self.get_alpha_testing_dataloader()) * N)
+            self.N: int = round(len(self._get_train_dataloader()) * N)
         else:
             raise TypeError("N should be int or float between 0.0 and 1.0")
 
         if limit_test_batches is None:
-            # Single-shot per epoch
-            self.limit_test_batches = round(len(self.get_alpha_testing_dataloader()) / N)
+            # Default: single-shot per epoch on the validation set
+            self.limit_test_batches = round(len(self._get_val_dataloader()) / (N//2))
         elif type(limit_test_batches) is int:
+            # Number of alpha test batches
             self.limit_test_batches = limit_test_batches
         elif type(limit_test_batches) is float:
-            self.limit_test_batches = round(len(self.get_alpha_testing_dataloader()) * limit_test_batches)
+            # Percentage of validation set
+            self.limit_test_batches = round(len(self._get_val_dataloader()) * limit_test_batches) * 2
         else:
             raise TypeError(
                 "limit_test_batches should be None (assumed single-shot) or int or float between 0.0 and 1.0"
@@ -89,6 +96,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
     def _get_train_dataloader(self) -> DataLoader:
         return self.data_module.train_dataloader()
 
+    def _get_val_dataloader(self) -> DataLoader:
+        return self.data_module.val_dataloader()
+
     def _get_mixed_dataloader(self) -> DataLoader:
         # 1:1 mixed training set & validation set
         assert type(self.data_module) is AgsDataModule
@@ -100,7 +110,16 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         train_idx = torch.randperm(len(self.data_module.training_dataset))
         validation_idx = torch.randperm(len(self.data_module.val_dataloader()))
-        interleave_idx = torch.stack([train_idx, validation_idx], dim=1).view(-1)
+        if train_idx >= validation_idx:
+            train_idx = train_idx[:len(validation_idx)]
+            interleave_idx = torch.stack([train_idx, validation_idx], dim=1).view(-1)
+        else:
+            interleave_idx = torch.cat(
+                [
+                    torch.stack([train_idx, validation_idx[:len(train_idx)]], dim=1).view(-1),
+                    validation_idx[len(train_idx):],
+                ]
+            )
 
         data_collator = None
         if self.data_module.dataset_info.data_collator_cls is not None:
