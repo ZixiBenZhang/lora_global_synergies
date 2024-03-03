@@ -88,7 +88,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.metric_reduction_tolerance = metric_reduction_tolerance
         self.turn_on_percentile = turn_on_percentile
 
-        self.reallocation_history = []
+        self.reallocation_history: list[dict[str, int | list]] = []
         t = time.strftime("%H-%M")
         self.history_save_path = f"{save_path}/reallocation_history_{t}.toml"
         self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
@@ -153,6 +153,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
     ) -> None:
         if batch_idx % self.N > 0:
             return
+
+        logger.warning(f">>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<")
 
         original_limit_test_batches = trainer.limit_test_batches
         trainer.limit_test_batches = self.limit_test_batches
@@ -243,7 +245,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     ):
                         continue
 
-                    print(
+                    logger.warning(
                         f">>> Alpha testing layer {layer_id} projection {proj_name}",
                         # end="\r",
                     )
@@ -289,7 +291,13 @@ class DynamicLoraReallocationCallback(pl.Callback):
             idx = alpha_list[:, 2].argsort(kind="stable")[-budget:]
             turn_on = alpha_list[idx, :2].tolist()
 
-            self.reallocation_history.append(turn_on)
+            self.reallocation_history.append(
+                {
+                    "epoch": pl_module.current_epoch,
+                    "step": batch_idx,
+                    "turn_on": turn_on
+                }
+            )
 
             # Turn on/off lora modules
             for decoder_layer in reversed(model.model.decoder.layers):
@@ -316,15 +324,18 @@ class DynamicLoraReallocationCallback(pl.Callback):
             self.save_reallocation_history()
         trainer.limit_test_batches = original_limit_test_batches
 
+        logger.warning(f">>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<")
+
     def save_reallocation_history(self):
         # Calculate frequency each lora module has been turned on
         turned_on_freq: dict[str, int | dict[str, int]] = {
             "total_reallocation_number": len(self.reallocation_history)
         }
-        history: dict[str, list] = {}
+        # format: {dyrealloc_{i}: {epoch: epoch, step: step, turn_on: turn_on[]}
+        history: dict[str, dict[str, int | list]] = {}
         for i, reallocation in enumerate(self.reallocation_history):
             history[f"dyrealloc_{i}"] = reallocation
-            for lora_module in reallocation:
+            for lora_module in reallocation["turn_on"]:
                 layer_id, proj_hash = lora_module
                 proj_name = list(LORA_NAME_HASH.keys())[proj_hash]
                 if f"layer_{layer_id}" not in turned_on_freq:
