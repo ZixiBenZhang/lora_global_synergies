@@ -154,7 +154,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         if batch_idx % self.N > 0:
             return
 
-        logger.warning(f">>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<")
+        logger.warning(f"\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
 
         original_limit_test_batches = trainer.limit_test_batches
         trainer.limit_test_batches = self.limit_test_batches
@@ -246,7 +246,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         continue
 
                     logger.warning(
-                        f">>> Alpha testing layer {layer_id} projection {proj_name}",
+                        f"Alpha testing layer {layer_id} projection {proj_name}",
                         # end="\r",
                     )
                     # msg_len = len(f">>> Alpha testing layer {layer_id} projection {proj_name}")
@@ -271,7 +271,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         res_val[layer_id] = {}
                     res_val[layer_id][proj_name] = alpha_res
 
-                    # print(" " * msg_len, end="\r")
+                    logger.warning(f">>> Layer {layer_id} Projection {proj_name} Alpha {alpha_res}")
 
             # Decide which modules to keep
             alpha_list = np.concatenate(
@@ -324,7 +324,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             self.save_reallocation_history()
         trainer.limit_test_batches = original_limit_test_batches
 
-        logger.warning(f">>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<")
+        logger.warning(f"\n>>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
 
     def save_reallocation_history(self):
         # Calculate frequency each lora module has been turned on
@@ -340,7 +340,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 proj_name = list(LORA_NAME_HASH.keys())[proj_hash]
                 if f"layer_{layer_id}" not in turned_on_freq:
                     turned_on_freq[f"layer_{layer_id}"] = {}
-                if proj_name in turned_on_freq[f"layer_{layer_id}"]:
+                if proj_name not in turned_on_freq[f"layer_{layer_id}"]:
                     turned_on_freq[f"layer_{layer_id}"][proj_name] = 0
                 else:
                     turned_on_freq[f"layer_{layer_id}"][proj_name] += 1
