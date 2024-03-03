@@ -89,7 +89,7 @@ def train_dynamic_reallocation(
         metric_reduction_tolerance=metric_reduction_tolerance,
         turn_on_percentile=turn_on_percentile,
         limit_test_batches=limit_alpha_test_batches,
-        save_path=f"{save_path}/reallocation_history_{t}.toml",
+        save_path=save_path,
     )
     pl_trainer_args["callbacks"].append(dynamic_reallocation_callback)
     logger.warning("Running dynamic LoRA reallocation training")

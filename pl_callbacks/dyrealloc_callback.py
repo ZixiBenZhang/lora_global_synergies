@@ -1,5 +1,6 @@
 import logging
 import math
+import time
 from typing import Any, Optional
 
 import numpy as np
@@ -88,7 +89,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.turn_on_percentile = turn_on_percentile
 
         self.reallocation_history = []
-        self.history_save_path = save_path
+        t = time.strftime("%H-%M")
+        self.history_save_path = f"{save_path}/reallocation_history_{t}.toml"
+        self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
 
     def get_alpha_testing_dataloader(self):
         return self._get_mixed_dataloader()
@@ -318,7 +321,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
         turned_on_freq: dict[str, int | dict[str, int]] = {
             "total_reallocation_number": len(self.reallocation_history)
         }
-        for reallocation in self.reallocation_history:
+        history: dict[str, list] = {}
+        for i, reallocation in enumerate(self.reallocation_history):
+            history[f"dyrealloc_{i}"] = reallocation
             for lora_module in reallocation:
                 layer_id, proj_hash = lora_module
                 proj_name = list(LORA_NAME_HASH.keys())[proj_hash]
@@ -330,4 +335,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     turned_on_freq[f"layer_{layer_id}"][proj_name] += 1
 
         with open(self.history_save_path, "w+") as fout:
+            toml.dump(history, fout)
+        with open(self.frequency_save_path, "w+") as fout:
             toml.dump(turned_on_freq, fout)
+        logger.warning("Reallocation history and frequency saved as toml")
