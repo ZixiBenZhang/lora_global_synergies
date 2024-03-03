@@ -50,6 +50,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
         """
         super().__init__()
 
+        self.data_module = data_module
+        assert task in ["classification", "summarization", "causal_language_modeling"]
+        self.task = task
+
         if type(N) is int:
             self.N: int = N
         elif type(N) is float:
@@ -69,11 +73,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
             raise TypeError(
                 "limit_test_batches should be None (assumed single-shot) or int or float between 0.0 and 1.0"
             )
-
-        self.data_module = data_module
-
-        assert task in ["classification", "summarization", "causal_language_modeling"]
-        self.task = task
 
         self.metric_reduction_tolerance = metric_reduction_tolerance
         self.turn_on_percentile = turn_on_percentile
