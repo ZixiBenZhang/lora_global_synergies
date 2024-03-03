@@ -120,6 +120,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     validation_idx[len(train_idx):],
                 ]
             )
+        interleave_idx = interleave_idx.tolist()
 
         data_collator = None
         if self.data_module.dataset_info.data_collator_cls is not None:
