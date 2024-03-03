@@ -7,6 +7,7 @@ import pytorch_lightning as pl
 from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger
 
+from dataset.pl_dataset_module import AgsDataModule
 from lora.lora_modules import (
     update_lora_importance_alpha_require_grad,
 )
@@ -79,6 +80,8 @@ def train_dynamic_reallocation(
         ]
         pl_trainer_args["logger"] = [tb_logger]
 
+    assert type(data_module) is AgsDataModule, "Only AgsDataModule supported for dynamic-lora-reallocation training"
+    data_module: AgsDataModule
     dynamic_reallocation_callback = DynamicLoraReallocationCallback(
         N=realloc_N,
         data_module=data_module,

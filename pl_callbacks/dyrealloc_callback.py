@@ -32,7 +32,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
     def __init__(
         self,
         N: int | float,
-        data_module: pl.LightningDataModule,
+        data_module: AgsDataModule,
         task: str,
         metric_reduction_tolerance: float,
         turn_on_percentile: float = 0.25,
@@ -51,6 +51,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
         super().__init__()
 
         self.data_module = data_module
+        self.data_module.prepare_data()
+        self.data_module.setup()
+
         assert task in ["classification", "summarization", "causal_language_modeling"]
         self.task = task
 
