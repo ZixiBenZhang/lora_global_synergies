@@ -153,11 +153,12 @@ class DynamicLoraReallocationCallback(pl.Callback):
         batch: Any,
         batch_idx: int,
     ) -> None:
-        print(f"PL MODEL INIT DEVICE: {pl_module.model.device}")
         if batch_idx % self.N > 0:
             return
 
         logger.warning(f"\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
+
+        device = pl_module.model.device
 
         original_limit_test_batches = trainer.limit_test_batches
         trainer.limit_test_batches = self.limit_test_batches
@@ -167,7 +168,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
         original_val_metrics = trainer.test(
             pl_module, dataloaders=dataloader, verbose=False
         )[0]
-        print(f"PL MODEL DEVICE: {pl_module.model.device}")
 
         def get_metric_name():
             match self.task:
@@ -337,6 +337,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
             self.save_reallocation_history()
         trainer.limit_test_batches = original_limit_test_batches
+        pl_module.model.to(device)
 
         logger.warning(f"\n>>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
 
