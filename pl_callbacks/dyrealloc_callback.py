@@ -168,6 +168,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         logger.warning(f"\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
 
+        device = pl_module.model.device
+
         alpha_pl_module = copy.copy(pl_module)
 
         dataloader = self.get_alpha_testing_dataloader()
@@ -340,6 +342,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     lora.disable_adapters = [layer_id, proj_hash] in turn_on
 
             self.save_reallocation_history()
+        pl_module.model.to(device)
 
         logger.warning(f"\n>>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
 
