@@ -172,64 +172,65 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         device = pl_module.model.device
 
-        dataloader = self.get_alpha_testing_dataloader()
-
-        original_val_metrics = self.alpha_trainer.test(
-            self.alpha_pl_module, dataloaders=dataloader, verbose=False
-        )[0]
-
-        def get_metric_name():
-            match self.task:
-                case "classification":
-                    return "test_acc_epoch"
-                case "summarization":
-                    return "test_rouge_epoch"
-                case "causal_language_modeling":
-                    return "test_perplexity_epoch"
-                case _:
-                    raise ValueError(f"Unsupported task: {self.task}")
-
-        def get_metric_threshold():
-            original_metric = original_val_metrics[get_metric_name()]
-            match self.task:
-                case "classification":
-                    # Accuracy
-                    return (
-                        original_metric
-                        - original_metric * self.metric_reduction_tolerance
-                    )
-                case "summarization":
-                    # Rouge score
-                    return (
-                        original_metric
-                        - original_metric * self.metric_reduction_tolerance
-                    )
-                case "causal_language_modeling":
-                    # Perplexity
-                    return (
-                        original_metric
-                        + original_metric * self.metric_reduction_tolerance
-                    )
-                case _:
-                    raise ValueError(f"Unsupported task: {self.task}")
-
-        def check_exceed_threshold(val_metrics_dict):
-            val_metric = val_metrics_dict[get_metric_name()]
-            threshold = get_metric_threshold()
-            match self.task:
-                case "classification":
-                    return val_metric < threshold
-                case "summarization":
-                    return val_metric < threshold
-                case "causal_language_modeling":
-                    return val_metric > threshold
-                case _:
-                    raise ValueError(f"Unsupported task: {self.task}")
-
-        # Result format: {layer_idx: {proj: alpha}}
-        res_val: dict[int, dict[str, float]] = {}
-
         with torch.no_grad():
+            dataloader = self.get_alpha_testing_dataloader()
+
+            # todo: disable progress bar
+            original_val_metrics = self.alpha_trainer.test(
+                self.alpha_pl_module, dataloaders=dataloader, verbose=False
+            )[0]
+
+            def get_metric_name():
+                match self.task:
+                    case "classification":
+                        return "test_acc_epoch"
+                    case "summarization":
+                        return "test_rouge_epoch"
+                    case "causal_language_modeling":
+                        return "test_perplexity_epoch"
+                    case _:
+                        raise ValueError(f"Unsupported task: {self.task}")
+
+            def get_metric_threshold():
+                original_metric = original_val_metrics[get_metric_name()]
+                match self.task:
+                    case "classification":
+                        # Accuracy
+                        return (
+                            original_metric
+                            - original_metric * self.metric_reduction_tolerance
+                        )
+                    case "summarization":
+                        # Rouge score
+                        return (
+                            original_metric
+                            - original_metric * self.metric_reduction_tolerance
+                        )
+                    case "causal_language_modeling":
+                        # Perplexity
+                        return (
+                            original_metric
+                            + original_metric * self.metric_reduction_tolerance
+                        )
+                    case _:
+                        raise ValueError(f"Unsupported task: {self.task}")
+
+            def check_exceed_threshold(val_metrics_dict):
+                val_metric = val_metrics_dict[get_metric_name()]
+                threshold = get_metric_threshold()
+                match self.task:
+                    case "classification":
+                        return val_metric < threshold
+                    case "summarization":
+                        return val_metric < threshold
+                    case "causal_language_modeling":
+                        return val_metric > threshold
+                    case _:
+                        raise ValueError(f"Unsupported task: {self.task}")
+
+            # Result format: {layer_idx: {proj: alpha}}
+            res_val: dict[int, dict[str, float]] = {}
+
             model = self.alpha_pl_module.model
             assert (
                 type(model) is OPTLoraForCausalLM
@@ -295,10 +296,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 ],
                 axis=0,
             )
-            alpha_list = alpha_list[alpha_list[:, 0].argsort(kind="stable")]
             original_lora_module_num = len(alpha_list)
             budget = math.floor(self.turn_on_percentile * original_lora_module_num)
-            idx = alpha_list[:, 2].argsort(kind="stable")
+            idx = alpha_list[:, 2].argsort()
             alpha_threshold = alpha_list[idx[-budget], 2]
             if sum(alpha_list[:, 2] == alpha_threshold) > 1:
                 # Uniformly break tie
@@ -311,11 +311,16 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 turn_on = alpha_list[idx, :2].tolist()
             assert len(turn_on) == budget
 
+            reallocation: list[list[int]] = alpha_list.tolist()
+            reallocation = [
+                [layer_id, list(LORA_NAME_HASH.keys())[proj_hash], alpha, ([layer_id, proj_hash] in turn_on)]
+                for layer_id, proj_hash, alpha in reallocation
+            ]
             self.reallocation_history.append(
                 {
                     "epoch": self.alpha_pl_module.current_epoch,
                     "step": batch_idx,
-                    "turn_on": turn_on
+                    "turn_on": reallocation,
                 }
             )
 
@@ -352,7 +357,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
             "total_reallocation_number": len(self.reallocation_history)
         }
         # format: {dyrealloc_{i}: {epoch: epoch, step: step, turn_on: turn_on[]}
-        history: dict[str, dict[str, int | list]] = {}
+        history: dict[str, int | dict[str, int | list]] = {
+            "max_alpha": ALPHA_UB,
+        }
         for i, reallocation in enumerate(self.reallocation_history):
             history[f"dyrealloc_{i}"] = reallocation
             for lora_module in reallocation["turn_on"]:
