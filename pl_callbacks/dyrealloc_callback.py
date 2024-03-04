@@ -57,8 +57,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         """
         super().__init__()
 
-        self.data_module = copy.deepcopy(data_module)
-        self.data_module.prepare_data()
+        self.data_module = data_module
         self.alpha_trainer_args = alpha_trainer_args
         self.alpha_trainer = None
 
@@ -77,8 +76,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
 
     def setup(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", stage: str) -> None:
-        self.data_module.setup(stage)
-
         if type(self.N) is int:
             # Num of batches between two reallocation
             self.N: int
@@ -173,10 +170,12 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         device = pl_module.model.device
 
+        alpha_pl_module = copy.deepcopy(pl_module)
+
         dataloader = self.get_alpha_testing_dataloader()
 
         original_val_metrics = self.alpha_trainer.test(
-            pl_module, dataloaders=dataloader, verbose=False
+            alpha_pl_module, dataloaders=dataloader, verbose=False
         )[0]
 
         def get_metric_name():
@@ -231,7 +230,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         res_val: dict[int, dict[str, float]] = {}
 
         with torch.no_grad():
-            model = pl_module.model
+            model = alpha_pl_module.model
             assert (
                 type(model) is OPTLoraForCausalLM
                 or type(model) is OPTLoraForSequenceClassification
@@ -270,7 +269,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         alpha = (lb + rb) // 2
                         lora.importance_alpha = alpha / ALPHA_UB
                         val_metrics = self.alpha_trainer.test(
-                            pl_module, dataloaders=dataloader, verbose=False
+                            alpha_pl_module, dataloaders=dataloader, verbose=False
                         )[0]
                         if check_exceed_threshold(val_metrics):
                             lb = alpha + 1
@@ -314,7 +313,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
             self.reallocation_history.append(
                 {
-                    "epoch": pl_module.current_epoch,
+                    "epoch": alpha_pl_module.current_epoch,
                     "step": batch_idx,
                     "turn_on": turn_on
                 }
