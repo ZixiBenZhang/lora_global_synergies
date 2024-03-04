@@ -5,6 +5,8 @@ from torchmetrics import MeanMetric
 from transformers import PreTrainedModel
 
 from dataset import AgsDatasetInfo
+from lora.lora_modules import LoraLinear
+from models.modeling_opt_lora import OPTLoraForCausalLM
 from .base import PlWrapperBase
 
 
@@ -56,9 +58,19 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
             prog_bar=True,
         )
         # todo: check whether reallocation updates are effective
-        for name, param in self.model.named_parameters():
-            print(name, param.requires_grad)
-        print("DEBUG <<<<<<<<<<<<<<<<")
+        model: OPTLoraForCausalLM = self.model
+        for decoder_layer in model.model.decoder.layers:
+            lora_modules: dict[str, LoraLinear] = {
+                "q_proj": decoder_layer.self_attn.q_proj,
+                "k_proj": decoder_layer.self_attn.k_proj,
+                "v_proj": decoder_layer.self_attn.v_proj,
+                "out_proj": decoder_layer.self_attn.out_proj,
+                "fc1": decoder_layer.fc1,
+                "fc2": decoder_layer.fc2,
+            }
+            for proj_name, lora in lora_modules.items():
+                print(proj_name, lora.disable_adapters)
+        print("DEBUG <<<<<<<<<<<<<<<<<<<<<<")
 
         return loss
 
