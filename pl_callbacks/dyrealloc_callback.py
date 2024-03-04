@@ -153,6 +153,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
         batch: Any,
         batch_idx: int,
     ) -> None:
+        print(f"MODEL DEVICE: {pl_module.model.device}")
+        return
         if batch_idx % self.N > 0:
             return
 
@@ -275,8 +277,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     res_val[layer_id][proj_name] = alpha_res
 
                     logger.warning(f">>> Layer {layer_id} Projection {proj_name} Alpha {alpha_res}")
-                    device = model.device
-                    print(f"MODEL DEVICE: {device}")
 
             # Decide which modules to keep
             alpha_list = np.concatenate(
@@ -336,7 +336,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     lora.disable_adapters = [layer_id, proj_hash] in turn_on
 
             self.save_reallocation_history()
-            model.to(device)
         trainer.limit_test_batches = original_limit_test_batches
 
         logger.warning(f"\n>>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
