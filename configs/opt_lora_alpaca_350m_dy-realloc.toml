@@ -6,7 +6,7 @@ load_name = "facebook/opt-350m"
 load_type = "hf"
 metric_red_tolerance = 0.0005
 alpha_test_batch_num = 32
-realloc_N = 0.1
+realloc_N = 0.2
 turn_on_percentile = 0.25
 # training
 training_optimizer = "adamw"

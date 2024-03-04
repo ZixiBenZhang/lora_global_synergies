@@ -55,7 +55,6 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
             perplexity,
             prog_bar=True,
         )
-        print("DEBUG <<<<<<<<<<<<<")
         loss.requires_grad = True
 
         return loss
