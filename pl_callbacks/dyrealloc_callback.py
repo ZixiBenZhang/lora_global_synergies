@@ -93,6 +93,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.history_save_path = f"{save_path}/reallocation_history_{t}.toml"
         self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
 
+        self.get_alpha_testing_dataloader()
+
     def get_alpha_testing_dataloader(self):
         return self._get_mixed_dataloader()
 
