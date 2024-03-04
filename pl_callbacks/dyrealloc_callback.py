@@ -153,8 +153,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         batch: Any,
         batch_idx: int,
     ) -> None:
-        print(f"MODEL DEVICE: {pl_module.model.device}")
-        return
+        print(f"PL MODEL INIT DEVICE: {pl_module.model.device}")
         if batch_idx % self.N > 0:
             return
 
@@ -222,6 +221,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         with torch.no_grad():
             model = pl_module.model
+            print(f"PL MODEL DEVICE: {pl_module.model.device}")
+            print(f"MODEL DEVICE: {model.device}")
             assert (
                 type(model) is OPTLoraForCausalLM
                 or type(model) is OPTLoraForSequenceClassification
