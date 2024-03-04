@@ -367,8 +367,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         for i, reallocation in enumerate(self.reallocation_history):
             history[f"dyrealloc_{i}"] = reallocation
             for lora_module in reallocation["turn_on"]:
-                layer_id, proj_hash, _, turned_on = lora_module
-                proj_name = list(LORA_NAME_HASH.keys())[proj_hash]
+                layer_id, proj_name, _, turned_on = lora_module
                 if turned_on:
                     if f"layer_{layer_id}" not in turned_on_freq:
                         turned_on_freq[f"layer_{layer_id}"] = {}
