@@ -29,7 +29,7 @@ LORA_NAME_HASH = {
     "fc1": 4,
     "fc2": 5,
 }
-ALPHA_UB = 2
+ALPHA_UB = 1
 
 
 class DynamicLoraReallocationCallback(pl.Callback):
@@ -367,14 +367,20 @@ class DynamicLoraReallocationCallback(pl.Callback):
         for i, reallocation in enumerate(self.reallocation_history):
             history[f"dyrealloc_{i}"] = reallocation
             for lora_module in reallocation["turn_on"]:
-                layer_id, proj_hash = lora_module
+                layer_id, proj_hash, _, turned_on = lora_module
                 proj_name = list(LORA_NAME_HASH.keys())[proj_hash]
-                if f"layer_{layer_id}" not in turned_on_freq:
-                    turned_on_freq[f"layer_{layer_id}"] = {}
-                if proj_name not in turned_on_freq[f"layer_{layer_id}"]:
-                    turned_on_freq[f"layer_{layer_id}"][proj_name] = 0
+                if turned_on:
+                    if f"layer_{layer_id}" not in turned_on_freq:
+                        turned_on_freq[f"layer_{layer_id}"] = {}
+                    if proj_name not in turned_on_freq[f"layer_{layer_id}"]:
+                        turned_on_freq[f"layer_{layer_id}"][proj_name] = 1
+                    else:
+                        turned_on_freq[f"layer_{layer_id}"][proj_name] += 1
                 else:
-                    turned_on_freq[f"layer_{layer_id}"][proj_name] += 1
+                    if f"layer_{layer_id}" not in turned_on_freq:
+                        turned_on_freq[f"layer_{layer_id}"] = {}
+                    if proj_name not in turned_on_freq[f"layer_{layer_id}"]:
+                        turned_on_freq[f"layer_{layer_id}"][proj_name] = 0
 
         with open(self.history_save_path, "w+") as fout:
             toml.dump(history, fout)
