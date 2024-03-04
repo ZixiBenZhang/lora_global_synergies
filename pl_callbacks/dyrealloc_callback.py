@@ -229,118 +229,119 @@ class DynamicLoraReallocationCallback(pl.Callback):
         # Result format: {layer_idx: {proj: alpha}}
         res_val: dict[int, dict[str, float]] = {}
 
-        model = self.alpha_pl_module.model
-        assert (
-            type(model) is OPTLoraForCausalLM
-            or type(model) is OPTLoraForSequenceClassification
-            or type(model) is OPTLoraForQuestionAnswering
-        )
-        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+        with torch.no_grad():
+            model = self.alpha_pl_module.model
+            assert (
+                type(model) is OPTLoraForCausalLM
+                or type(model) is OPTLoraForSequenceClassification
+                or type(model) is OPTLoraForQuestionAnswering
+            )
+            model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
 
-        # Get alpha importance for each module
-        for decoder_layer in reversed(model.model.decoder.layers):
-            decoder_layer: OPTLoraDecoderLayer
-            layer_id = decoder_layer.layer_id
-            lora_modules: dict[str, LoraLinear] = {
-                "q_proj": decoder_layer.self_attn.q_proj,
-                "k_proj": decoder_layer.self_attn.k_proj,
-                "v_proj": decoder_layer.self_attn.v_proj,
-                "out_proj": decoder_layer.self_attn.out_proj,
-                "fc1": decoder_layer.fc1,
-                "fc2": decoder_layer.fc2,
-            }
+            # Get alpha importance for each module
+            for decoder_layer in reversed(model.model.decoder.layers):
+                decoder_layer: OPTLoraDecoderLayer
+                layer_id = decoder_layer.layer_id
+                lora_modules: dict[str, LoraLinear] = {
+                    "q_proj": decoder_layer.self_attn.q_proj,
+                    "k_proj": decoder_layer.self_attn.k_proj,
+                    "v_proj": decoder_layer.self_attn.v_proj,
+                    "out_proj": decoder_layer.self_attn.out_proj,
+                    "fc1": decoder_layer.fc1,
+                    "fc2": decoder_layer.fc2,
+                }
 
-            for proj_name, lora in lora_modules.items():
-                if (
-                    lora.active_adapter not in lora.lora_A.keys()
-                    or lora.r[lora.active_adapter] == 0
-                ):
-                    continue
+                for proj_name, lora in lora_modules.items():
+                    if (
+                        lora.active_adapter not in lora.lora_A.keys()
+                        or lora.r[lora.active_adapter] == 0
+                    ):
+                        continue
 
-                logger.warning(
-                    f"Alpha testing layer {layer_id} projection {proj_name}",
-                    # end="\r",
-                )
-                # msg_len = len(f">>> Alpha testing layer {layer_id} projection {proj_name}")
+                    logger.warning(
+                        f"Alpha testing layer {layer_id} projection {proj_name}",
+                        # end="\r",
+                    )
+                    # msg_len = len(f">>> Alpha testing layer {layer_id} projection {proj_name}")
 
-                lb, rb = (0, ALPHA_UB)
-                while lb < rb:
-                    alpha = (lb + rb) // 2
-                    lora.importance_alpha = alpha / ALPHA_UB
-                    val_metrics = self.alpha_trainer.test(
-                        self.alpha_pl_module, dataloaders=dataloader, verbose=False
-                    )[0]
-                    if check_exceed_threshold(val_metrics):
-                        lb = alpha + 1
-                    else:
-                        rb = alpha
-                alpha_res = rb
+                    lb, rb = (0, ALPHA_UB)
+                    while lb < rb:
+                        alpha = (lb + rb) // 2
+                        lora.importance_alpha = alpha / ALPHA_UB
+                        val_metrics = self.alpha_trainer.test(
+                            self.alpha_pl_module, dataloaders=dataloader, verbose=False
+                        )[0]
+                        if check_exceed_threshold(val_metrics):
+                            lb = alpha + 1
+                        else:
+                            rb = alpha
+                    alpha_res = rb
 
-                lora.importance_alpha = 1.0
-                if layer_id not in res_val:
-                    res_val[layer_id] = {}
-                res_val[layer_id][proj_name] = alpha_res
+                    lora.importance_alpha = 1.0
+                    if layer_id not in res_val:
+                        res_val[layer_id] = {}
+                    res_val[layer_id][proj_name] = alpha_res
 
-                logger.warning(f">>> Layer {layer_id} Projection {proj_name} Alpha {alpha_res}")
+                    logger.warning(f">>> Layer {layer_id} Projection {proj_name} Alpha {alpha_res}")
 
-        # Decide which modules to keep
-        alpha_list = np.concatenate(
-            [
+            # Decide which modules to keep
+            alpha_list = np.concatenate(
                 [
-                    (layer_id, LORA_NAME_HASH[proj_name], v)
-                    for proj_name, v in d.items()
-                ]
-                for layer_id, d in res_val.items()
-            ],
-            axis=0,
-        )
-        alpha_list = alpha_list[alpha_list[:, 0].argsort(kind="stable")]
-        original_lora_module_num = len(alpha_list)
-        budget = math.floor(self.turn_on_percentile * original_lora_module_num)
-        idx = alpha_list[:, 2].argsort(kind="stable")
-        alpha_threshold = alpha_list[idx[-budget], 2]
-        if sum(alpha_list[:, 2] == alpha_threshold) > 1:
-            # Uniformly break tie
-            greater = alpha_list[alpha_list[:, 2] > alpha_threshold, :2]
-            tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
-            tie_idx = np.random.choice(len(tie), size=budget-len(greater), replace=False)
-            turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
-        else:
-            idx = idx[-budget:]
-            turn_on = alpha_list[idx, :2].tolist()
-        assert len(turn_on) == budget
+                    [
+                        (layer_id, LORA_NAME_HASH[proj_name], v)
+                        for proj_name, v in d.items()
+                    ]
+                    for layer_id, d in res_val.items()
+                ],
+                axis=0,
+            )
+            alpha_list = alpha_list[alpha_list[:, 0].argsort(kind="stable")]
+            original_lora_module_num = len(alpha_list)
+            budget = math.floor(self.turn_on_percentile * original_lora_module_num)
+            idx = alpha_list[:, 2].argsort(kind="stable")
+            alpha_threshold = alpha_list[idx[-budget], 2]
+            if sum(alpha_list[:, 2] == alpha_threshold) > 1:
+                # Uniformly break tie
+                greater = alpha_list[alpha_list[:, 2] > alpha_threshold, :2]
+                tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
+                tie_idx = np.random.choice(len(tie), size=budget-len(greater), replace=False)
+                turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
+            else:
+                idx = idx[-budget:]
+                turn_on = alpha_list[idx, :2].tolist()
+            assert len(turn_on) == budget
 
-        self.reallocation_history.append(
-            {
-                "epoch": self.alpha_pl_module.current_epoch,
-                "step": batch_idx,
-                "turn_on": turn_on
-            }
-        )
+            self.reallocation_history.append(
+                {
+                    "epoch": self.alpha_pl_module.current_epoch,
+                    "step": batch_idx,
+                    "turn_on": turn_on
+                }
+            )
 
-        # Turn on/off lora modules
-        for decoder_layer in reversed(model.model.decoder.layers):
-            decoder_layer: OPTLoraDecoderLayer
-            layer_id = decoder_layer.layer_id
-            lora_modules: dict[str, LoraLinear] = {
-                "q_proj": decoder_layer.self_attn.q_proj,
-                "k_proj": decoder_layer.self_attn.k_proj,
-                "v_proj": decoder_layer.self_attn.v_proj,
-                "out_proj": decoder_layer.self_attn.out_proj,
-                "fc1": decoder_layer.fc1,
-                "fc2": decoder_layer.fc2,
-            }
+            # Turn on/off lora modules
+            for decoder_layer in reversed(model.model.decoder.layers):
+                decoder_layer: OPTLoraDecoderLayer
+                layer_id = decoder_layer.layer_id
+                lora_modules: dict[str, LoraLinear] = {
+                    "q_proj": decoder_layer.self_attn.q_proj,
+                    "k_proj": decoder_layer.self_attn.k_proj,
+                    "v_proj": decoder_layer.self_attn.v_proj,
+                    "out_proj": decoder_layer.self_attn.out_proj,
+                    "fc1": decoder_layer.fc1,
+                    "fc2": decoder_layer.fc2,
+                }
 
-            for proj_name, lora in lora_modules.items():
-                if (
-                    lora.active_adapter not in lora.lora_A.keys()
-                    or lora.r[lora.active_adapter] == 0
-                ):
-                    continue
-                proj_hash = LORA_NAME_HASH[proj_name]
-                lora.disable_adapters = [layer_id, proj_hash] in turn_on
+                for proj_name, lora in lora_modules.items():
+                    if (
+                        lora.active_adapter not in lora.lora_A.keys()
+                        or lora.r[lora.active_adapter] == 0
+                    ):
+                        continue
+                    proj_hash = LORA_NAME_HASH[proj_name]
+                    lora.disable_adapters = [layer_id, proj_hash] in turn_on
 
-        self.save_reallocation_history()
+            self.save_reallocation_history()
         pl_module.model.to(device)
 
         logger.warning(f"\n>>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")

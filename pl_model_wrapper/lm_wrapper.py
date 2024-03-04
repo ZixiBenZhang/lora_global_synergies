@@ -46,6 +46,7 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
         labels = batch["labels"]
         outputs = self.forward(input_ids, attention_mask, labels)
         loss = outputs["loss"]
+        loss.require_grad = True
 
         perplexity = torch.exp(loss)
 
