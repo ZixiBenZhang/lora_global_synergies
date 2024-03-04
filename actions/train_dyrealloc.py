@@ -43,6 +43,8 @@ def train_dynamic_reallocation(
     realloc_N,  # frequency to perform rank reallocation
     turn_on_percentile,  # for reallocating lora ranks
 ):
+    alpha_pl_trainer_args = copy.deepcopy(pl_trainer_args)
+
     if save_path is not None:  # if save_path is None, model won't be saved
         # setup callbacks
         if not os.path.isdir(save_path):
@@ -76,13 +78,16 @@ def train_dynamic_reallocation(
             latest_checkpoint_callback,
             lr_monitor_callback,
         ]
+        alpha_pl_trainer_args["callbacks"] = []
         pl_trainer_args["logger"] = [tb_logger]
+        alpha_pl_trainer_args["logger"] = [tb_logger]
 
     if auto_requeue is not None:
         plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
     else:
         plugins = None
     pl_trainer_args["plugins"] = plugins
+    alpha_pl_trainer_args["plugins"] = plugins
 
     wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
         model_info, task
@@ -90,7 +95,6 @@ def train_dynamic_reallocation(
 
     assert type(data_module) is AgsDataModule, "Only AgsDataModule supported for dynamic-lora-reallocation training"
     data_module: AgsDataModule
-    alpha_pl_trainer_args = copy.deepcopy(pl_trainer_args)
     if resume_training:
         alpha_pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
     else:
@@ -99,8 +103,8 @@ def train_dynamic_reallocation(
             dataset_info=dataset_info,
             learning_rate=learning_rate,
             weight_decay=weight_decay,
-            lr_scheduler=lr_scheduler,  # for building lr scheduler
-            eta_min=eta_min,  # for building lr scheduler
+            lr_scheduler=lr_scheduler,
+            eta_min=eta_min,
             epochs=pl_trainer_args["max_epochs"],
             optimizer=optimizer,
         )
@@ -173,7 +177,6 @@ def train_dynamic_reallocation(
             trainable_params.append("proj_")
         if len(trainable_params) > 0:
             for name, param in model.named_parameters():
-                # print(name)
                 if name.startswith("model") or name.startswith("roberta"):
                     param.requires_grad = False
                     for trainable_param in trainable_params:

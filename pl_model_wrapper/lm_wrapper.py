@@ -55,7 +55,10 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
             perplexity,
             prog_bar=True,
         )
-        loss.requires_grad = True
+        # todo: check whether reallocation updates are effective
+        for name, param in self.model.named_parameters():
+            print(name, param.requires_grad)
+        print("DEBUG <<<<<<<<<<<<<<<<")
 
         return loss
 

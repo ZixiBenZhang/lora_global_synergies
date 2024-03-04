@@ -77,20 +77,24 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.history_save_path = f"{save_path}/reallocation_history_{t}.toml"
         self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
 
-    def setup(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", stage: str) -> None:
+    def setup(self, trainer: pl.Trainer, pl_module: AgsDataModule, stage: str) -> None:
+        effective_batch_size = trainer.num_devices * pl_module.batch_size
         if type(self.N) is int:
             # Num of batches between two reallocation
             self.N: int
         elif type(self.N) is float:
+            # todo: debug batch num vs. row num  -->  how to get total batch num?
             # Percentage of training steps per epoch between two reallocation
             assert 0.0 < self.N <= 1.0, "N should be 0.0 < N <= 1.0"
-            self.N: int = round(len(self._get_train_dataloader()) * self.N)
+            self.N: int = round(len(self._get_train_dataloader()) // effective_batch_size * self.N)
         else:
             raise TypeError("N should be int or float between 0.0 and 1.0")
 
         if self.limit_test_batches is None:
             # Default: single-shot per epoch on the validation set
-            self.limit_test_batches: int = round(len(self._get_val_dataloader()) / (self.N//2))
+            self.limit_test_batches: int = math.ceil(
+                round(len(self._get_val_dataloader()) / (self.N//2)) / effective_batch_size
+            )
         elif type(self.limit_test_batches) is int:
             # Number of alpha test batches
             self.limit_test_batches: int
@@ -325,26 +329,26 @@ class DynamicLoraReallocationCallback(pl.Callback):
             )
 
             # Turn on/off lora modules
-            # for decoder_layer in reversed(model.model.decoder.layers):
-            #     decoder_layer: OPTLoraDecoderLayer
-            #     layer_id = decoder_layer.layer_id
-            #     lora_modules: dict[str, LoraLinear] = {
-            #         "q_proj": decoder_layer.self_attn.q_proj,
-            #         "k_proj": decoder_layer.self_attn.k_proj,
-            #         "v_proj": decoder_layer.self_attn.v_proj,
-            #         "out_proj": decoder_layer.self_attn.out_proj,
-            #         "fc1": decoder_layer.fc1,
-            #         "fc2": decoder_layer.fc2,
-            #     }
-            #
-            #     for proj_name, lora in lora_modules.items():
-            #         if (
-            #             lora.active_adapter not in lora.lora_A.keys()
-            #             or lora.r[lora.active_adapter] == 0
-            #         ):
-            #             continue
-            #         proj_hash = LORA_NAME_HASH[proj_name]
-            #         lora.disable_adapters = [layer_id, proj_hash] in turn_on
+            for decoder_layer in reversed(model.model.decoder.layers):
+                decoder_layer: OPTLoraDecoderLayer
+                layer_id = decoder_layer.layer_id
+                lora_modules: dict[str, LoraLinear] = {
+                    "q_proj": decoder_layer.self_attn.q_proj,
+                    "k_proj": decoder_layer.self_attn.k_proj,
+                    "v_proj": decoder_layer.self_attn.v_proj,
+                    "out_proj": decoder_layer.self_attn.out_proj,
+                    "fc1": decoder_layer.fc1,
+                    "fc2": decoder_layer.fc2,
+                }
+
+                for proj_name, lora in lora_modules.items():
+                    if (
+                        lora.active_adapter not in lora.lora_A.keys()
+                        or lora.r[lora.active_adapter] == 0
+                    ):
+                        continue
+                    proj_hash = LORA_NAME_HASH[proj_name]
+                    lora.disable_adapters = [layer_id, proj_hash] in turn_on
 
             self.save_reallocation_history()
         pl_module.model.to(device)
