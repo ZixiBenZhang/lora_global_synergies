@@ -77,8 +77,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.history_save_path = f"{save_path}/reallocation_history_{t}.toml"
         self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
 
-    def setup(self, trainer: pl.Trainer, pl_module: AgsDataModule, stage: str) -> None:
-        effective_batch_size = trainer.num_devices * pl_module.batch_size
+    def setup(self, trainer: "pl.Trainer", pl_module: PlWrapperBase, stage: str) -> None:
+        effective_batch_size = trainer.num_devices * self.data_module.batch_size
         if type(self.N) is int:
             # Num of batches between two reallocation
             self.N: int
