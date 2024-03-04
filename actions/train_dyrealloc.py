@@ -72,15 +72,15 @@ def train_dynamic_reallocation(
         lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval="step")
         # TensorBoard logger
         tb_logger = pl.loggers.TensorBoardLogger(save_dir=save_path, name="logs")
+        alpha_tb_logger = pl.loggers.TensorBoardLogger(save_dir=save_path, name="alpha_logs")
         # Lora rank reallocation callback
         pl_trainer_args["callbacks"] = [
             best_checkpoint_callback,
             latest_checkpoint_callback,
             lr_monitor_callback,
         ]
-        alpha_pl_trainer_args["callbacks"] = []
         pl_trainer_args["logger"] = [tb_logger]
-        alpha_pl_trainer_args["logger"] = [tb_logger]
+        alpha_pl_trainer_args["logger"] = [alpha_tb_logger]
 
     if auto_requeue is not None:
         plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]

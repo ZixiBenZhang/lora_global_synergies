@@ -69,9 +69,6 @@ CLI_DEFAULTS = {
     "github_ci": False,
     "disable_dataset_cache": False,
     "dataset_saved_path": None,
-    # Hardware generation options
-    "target": "xcu250-figd2104-2L-e",
-    "num_targets": 100,
     # Language model options
     "is_pretrained": False,
     "max_token_len": 512,
@@ -402,17 +399,6 @@ def get_arg_parser():
             %(default)s)
         """,
     )
-    # TODO: args for GitHub CI
-    # runtime_group.add_argument(
-    #     "--github-ci",
-    #     action="store_true",
-    #     dest="github_ci",
-    #     help="""
-    #         set the execution environment to GitHub's CI pipeline; it's used in the
-    #         MASE verilog emitter transform pass to skip simulations.
-    #         (default: %(default)s)
-    #     """,
-    # )
 
     # Language model options
     lm_group = parser.add_argument_group(title="language model options")
