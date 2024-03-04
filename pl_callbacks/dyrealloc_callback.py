@@ -1,3 +1,4 @@
+import copy
 import logging
 import math
 import time
@@ -56,7 +57,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         """
         super().__init__()
 
-        self.data_module = data_module
+        self.data_module = copy.deepcopy(data_module)
         self.alpha_trainer_args = alpha_trainer_args
         self.alpha_trainer = None
 
