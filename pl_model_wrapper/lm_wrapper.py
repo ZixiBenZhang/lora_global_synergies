@@ -56,8 +56,7 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
             prog_bar=True,
         )
         print("DEBUG <<<<<<<<<<<<<")
-        print(type(loss))
-        print(loss.require_grad)
+        loss.requires_grad = True
 
         return loss
 
