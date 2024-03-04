@@ -167,6 +167,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         original_val_metrics = trainer.test(
             pl_module, dataloaders=dataloader, verbose=False
         )[0]
+        print(f"PL MODEL DEVICE: {pl_module.model.device}")
 
         def get_metric_name():
             match self.task:
@@ -221,8 +222,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         with torch.no_grad():
             model = pl_module.model
-            print(f"PL MODEL DEVICE: {pl_module.model.device}")
-            print(f"MODEL DEVICE: {model.device}")
             assert (
                 type(model) is OPTLoraForCausalLM
                 or type(model) is OPTLoraForSequenceClassification
