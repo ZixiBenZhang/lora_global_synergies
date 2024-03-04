@@ -59,7 +59,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         self.data_module = data_module
         self.alpha_trainer_args = alpha_trainer_args
-        self.alpha_trainer = None
+        self.alpha_trainer: pl.Trainer = None
 
         assert task in ["classification", "summarization", "causal_language_modeling"]
         self.task = task
@@ -177,6 +177,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
         original_val_metrics = self.alpha_trainer.test(
             alpha_pl_module, dataloaders=dataloader, verbose=False
         )[0]
+        print("DEBUG <<<<<<<<<<<<<<<")
+        self.alpha_trainer.fit(alpha_pl_module, datamodule=self.data_module)
 
         def get_metric_name():
             match self.task:
