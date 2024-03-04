@@ -220,6 +220,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         with torch.no_grad():
             model = pl_module.model
+            device = model.device
+            print(f"MODEL DEVICE: {device}")
             assert (
                 type(model) is OPTLoraForCausalLM
                 or type(model) is OPTLoraForSequenceClassification
@@ -332,9 +334,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         continue
                     proj_hash = LORA_NAME_HASH[proj_name]
                     lora.disable_adapters = [layer_id, proj_hash] in turn_on
-                    # todo: debug: tensors not on the same device
 
             self.save_reallocation_history()
+            model.to(device)
         trainer.limit_test_batches = original_limit_test_batches
 
         logger.warning(f"\n>>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
