@@ -178,7 +178,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
             alpha_pl_module, dataloaders=dataloader, verbose=False
         )[0]
         print("DEBUG <<<<<<<<<<<<<<<")
-        self.alpha_trainer.fit(alpha_pl_module, datamodule=self.data_module)
+        for name, param in alpha_pl_module.model.named_parameters():
+            print(name, param.requires_grad)
 
         def get_metric_name():
             match self.task:
