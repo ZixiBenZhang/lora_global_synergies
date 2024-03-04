@@ -29,7 +29,7 @@ LORA_NAME_HASH = {
     "fc1": 4,
     "fc2": 5,
 }
-ALPHA_UB = 1
+ALPHA_UB = 10
 
 
 class DynamicLoraReallocationCallback(pl.Callback):
@@ -112,7 +112,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             enable_checkpointing=False,
         )
 
-    def get_alpha_testing_dataloader(self):
+    def _get_alpha_testing_dataloader(self):
         return self._get_mixed_dataloader()
 
     def _get_train_dataloader(self) -> DataLoader:
@@ -172,15 +172,22 @@ class DynamicLoraReallocationCallback(pl.Callback):
     ) -> None:
         if batch_idx % self.N > 0:
             return
+        self._reallocation(trainer, pl_module, batch, batch_idx)
 
+    def _reallocation(
+        self,
+        trainer: pl.Trainer,
+        pl_module: PlWrapperBase,
+        batch: Any,
+        batch_idx: int,
+    ) -> None:
         logger.warning(f"\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
 
         device = pl_module.model.device
 
         with torch.no_grad():
-            dataloader = self.get_alpha_testing_dataloader()
+            dataloader = self._get_alpha_testing_dataloader()
 
-            # todo: disable progress bar
             original_val_metrics = self.alpha_trainer.test(
                 self.alpha_pl_module, dataloaders=dataloader, verbose=False
             )[0]
