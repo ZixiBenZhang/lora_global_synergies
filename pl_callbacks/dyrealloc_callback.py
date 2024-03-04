@@ -151,6 +151,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         batch: Any,
         batch_idx: int,
     ) -> None:
+        return
         if batch_idx % self.N > 0:
             return
 
@@ -288,9 +289,18 @@ class DynamicLoraReallocationCallback(pl.Callback):
             alpha_list = alpha_list[alpha_list[:, 0].argsort(kind="stable")]
             original_lora_module_num = len(alpha_list)
             budget = math.floor(self.turn_on_percentile * original_lora_module_num)
-            # prioritise later layers
-            idx = alpha_list[:, 2].argsort(kind="stable")[-budget:]
-            turn_on = alpha_list[idx, :2].tolist()
+            idx = alpha_list[:, 2].argsort(kind="stable")
+            alpha_threshold = alpha_list[idx[-budget], 2]
+            if sum(alpha_list[:, 2] == alpha_threshold) > 1:
+                # Uniformly break tie
+                greater = alpha_list[alpha_list[:, 2] > alpha_threshold, :2]
+                tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
+                tie_idx = np.random.choice(len(tie), size=budget-len(greater), replace=False)
+                turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
+            else:
+                idx = idx[-budget:]
+                turn_on = alpha_list[idx, :2].tolist()
+            assert len(turn_on) == budget
 
             self.reallocation_history.append(
                 {
@@ -321,6 +331,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         continue
                     proj_hash = LORA_NAME_HASH[proj_name]
                     lora.disable_adapters = [layer_id, proj_hash] in turn_on
+                    # todo: debug: tensors not on the same device
 
             self.save_reallocation_history()
         trainer.limit_test_batches = original_limit_test_batches
