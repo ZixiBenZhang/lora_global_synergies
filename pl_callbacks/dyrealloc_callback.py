@@ -78,24 +78,20 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
 
     def setup(self, trainer: "pl.Trainer", pl_module: PlWrapperBase, stage: str) -> None:
-        print(f"TRAIN DATALOADER LEN: {len(self._get_train_dataloader())}")
-        print("DEBUG <<<<<<<<<<<<<<<<<<<<<<<")
-        effective_batch_size = trainer.num_devices * self.data_module.batch_size
         if type(self.N) is int:
             # Num of batches between two reallocation
             self.N: int
         elif type(self.N) is float:
-            # todo: debug batch num vs. row num  -->  how to get total batch num?
             # Percentage of training steps per epoch between two reallocation
             assert 0.0 < self.N <= 1.0, "N should be 0.0 < N <= 1.0"
-            self.N: int = round(len(self._get_train_dataloader()) // effective_batch_size * self.N)
+            self.N: int = round(math.ceil(len(self._get_train_dataloader()) / trainer.num_devices) * self.N)
         else:
             raise TypeError("N should be int or float between 0.0 and 1.0")
 
         if self.limit_test_batches is None:
             # Default: single-shot per epoch on the validation set
             self.limit_test_batches: int = math.ceil(
-                round(len(self._get_val_dataloader()) / (self.N//2)) / effective_batch_size
+                round(math.ceil(len(self._get_val_dataloader()) / trainer.num_devices) / (self.N//2))
             )
         elif type(self.limit_test_batches) is int:
             # Number of alpha test batches
@@ -111,6 +107,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.alpha_trainer = pl.Trainer(
             **self.alpha_trainer_args,
             limit_test_batches=self.limit_test_batches,
+            enable_progress_bar=False,
+            enable_model_summary=False,
+            enable_checkpointing=False,
         )
 
     def get_alpha_testing_dataloader(self):
