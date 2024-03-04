@@ -58,6 +58,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         super().__init__()
 
         self.data_module = copy.deepcopy(data_module)
+        self.data_module.prepare_data()
         self.alpha_trainer_args = alpha_trainer_args
         self.alpha_trainer = None
 
@@ -76,6 +77,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
 
     def setup(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", stage: str) -> None:
+        self.data_module.setup(stage)
+
         if type(self.N) is int:
             # Num of batches between two reallocation
             self.N: int
