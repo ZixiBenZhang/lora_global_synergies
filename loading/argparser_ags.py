@@ -211,7 +211,7 @@ def get_arg_parser():
             for dynamic lora reallocation training, 
             number of batches / ratio of validation batches to use for each alpha testing
         """,
-        type=Union[float | int],
+        type=_positive_int_or_percentage,
         metavar="NUM",
     )
     general_group.add_argument(
@@ -222,7 +222,7 @@ def get_arg_parser():
             for dynamic lora reallocation training, 
             interval (number / ratio of train batches) between lora module reallocation
         """,
-        type=Union[float | int],
+        type=_positive_int_or_percentage,
         metavar="NUM",
     )
     general_group.add_argument(
@@ -486,4 +486,19 @@ def _positive_int(s: str) -> int | None:
         raise argparse.ArgumentError(None, f"expected integer, got {s!r}")
     if v <= 0:
         return None
+    return v
+
+
+def _positive_int_or_percentage(s: str) -> int | float | None:
+    try:
+        v = int(s)
+        if v <= 0:
+            return None
+    except ValueError:
+        try:
+            v = float(s)
+            if v <= 0.0 or v > 1.0:
+                return None
+        except ValueError:
+            raise argparse.ArgumentError(None, f"expected integer, got {s!r}")
     return v
