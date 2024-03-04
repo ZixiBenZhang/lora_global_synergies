@@ -264,9 +264,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     lb, rb = (0, ALPHA_UB)
                     while lb < rb:
                         alpha = (lb + rb) // 2
-                        if alpha == 0:
-                            rb = 0
-                            break
                         lora.importance_alpha = alpha / ALPHA_UB
                         val_metrics = self.alpha_trainer.test(
                             pl_module, dataloaders=dataloader, verbose=False

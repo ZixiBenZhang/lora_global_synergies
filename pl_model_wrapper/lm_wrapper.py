@@ -51,6 +51,7 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
         # print(f"wrapper loss: {loss}\nperplexity: {perplexity}\n")
 
         print("ACTIVE LOOP:", self.trainer._active_loop)
+        print(self.trainer.state.stage)
         self.log("train_loss_step", loss, prog_bar=True)
         self.log(
             "train_perplexity_step",
