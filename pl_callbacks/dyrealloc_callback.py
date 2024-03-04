@@ -312,7 +312,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
             else:
                 idx = idx[-budget:]
-                turn_on = alpha_list[idx, :2].tolist()
+                turn_on = alpha_list[idx, :2]
+            turn_on = turn_on.tolist()
             assert len(turn_on) == budget
 
             reallocation: list[list[int]] = alpha_list.tolist()
@@ -348,7 +349,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     ):
                         continue
                     proj_hash = LORA_NAME_HASH[proj_name]
-                    lora.disable_adapters = [layer_id, proj_hash] in turn_on
+                    lora.disable_adapters = [layer_id, proj_hash] not in turn_on
 
             self.save_reallocation_history()
         pl_module.model.to(device)

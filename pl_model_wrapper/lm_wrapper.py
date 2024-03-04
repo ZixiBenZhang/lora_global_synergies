@@ -59,7 +59,7 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
         )
         # todo: check whether reallocation updates are effective
         model: OPTLoraForCausalLM = self.model
-        for decoder_layer in model.model.decoder.layers:
+        for layer_id, decoder_layer in enumerate(model.model.decoder.layers):
             lora_modules: dict[str, LoraLinear] = {
                 "q_proj": decoder_layer.self_attn.q_proj,
                 "k_proj": decoder_layer.self_attn.k_proj,
@@ -69,7 +69,7 @@ class NLPLanguageModelingModelWrapper(PlWrapperBase):
                 "fc2": decoder_layer.fc2,
             }
             for proj_name, lora in lora_modules.items():
-                print(proj_name, lora.disable_adapters)
+                print(layer_id, proj_name, lora.disable_adapters)
         print("DEBUG <<<<<<<<<<<<<<<<<<<<<<")
 
         return loss
