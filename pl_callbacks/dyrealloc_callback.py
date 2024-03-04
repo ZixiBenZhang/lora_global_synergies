@@ -29,7 +29,7 @@ LORA_NAME_HASH = {
     "fc1": 4,
     "fc2": 5,
 }
-ALPHA_UB = 10
+ALPHA_UB = 2
 
 
 class DynamicLoraReallocationCallback(pl.Callback):
@@ -55,35 +55,12 @@ class DynamicLoraReallocationCallback(pl.Callback):
         super().__init__()
 
         self.data_module = data_module
-        self.data_module.prepare_data()
-        self.data_module.setup()
 
         assert task in ["classification", "summarization", "causal_language_modeling"]
         self.task = task
 
-        if type(N) is int:
-            # Num of batches between two reallocation
-            self.N: int = N
-        elif type(N) is float:
-            # Percentage of training steps per epoch between two reallocation
-            assert 0.0 < N <= 1.0, "N should be 0.0 < N <= 1.0"
-            self.N: int = round(len(self._get_train_dataloader()) * N)
-        else:
-            raise TypeError("N should be int or float between 0.0 and 1.0")
-
-        if limit_test_batches is None:
-            # Default: single-shot per epoch on the validation set
-            self.limit_test_batches = round(len(self._get_val_dataloader()) / (N//2))
-        elif type(limit_test_batches) is int:
-            # Number of alpha test batches
-            self.limit_test_batches = limit_test_batches
-        elif type(limit_test_batches) is float:
-            # Percentage of validation set
-            self.limit_test_batches = round(len(self._get_val_dataloader()) * limit_test_batches) * 2
-        else:
-            raise TypeError(
-                "limit_test_batches should be None (assumed single-shot) or int or float between 0.0 and 1.0"
-            )
+        self.N = N
+        self.limit_test_batches = limit_test_batches
 
         self.metric_reduction_tolerance = metric_reduction_tolerance
         self.turn_on_percentile = turn_on_percentile
@@ -92,6 +69,31 @@ class DynamicLoraReallocationCallback(pl.Callback):
         t = time.strftime("%H-%M")
         self.history_save_path = f"{save_path}/reallocation_history_{t}.toml"
         self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
+
+    def setup(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", stage: str) -> None:
+        if type(self.N) is int:
+            # Num of batches between two reallocation
+            self.N: int
+        elif type(self.N) is float:
+            # Percentage of training steps per epoch between two reallocation
+            assert 0.0 < self.N <= 1.0, "N should be 0.0 < N <= 1.0"
+            self.N: int = round(len(self._get_train_dataloader()) * self.N)
+        else:
+            raise TypeError("N should be int or float between 0.0 and 1.0")
+
+        if self.limit_test_batches is None:
+            # Default: single-shot per epoch on the validation set
+            self.limit_test_batches: int = round(len(self._get_val_dataloader()) / (self.N//2))
+        elif type(self.limit_test_batches) is int:
+            # Number of alpha test batches
+            self.limit_test_batches: int
+        elif type(self.limit_test_batches) is float:
+            # Percentage of validation set
+            self.limit_test_batches: int = round(len(self._get_val_dataloader()) * self.limit_test_batches) * 2
+        else:
+            raise TypeError(
+                "limit_test_batches should be None (assumed single-shot) or int or float between 0.0 and 1.0"
+            )
 
     def get_alpha_testing_dataloader(self):
         return self._get_mixed_dataloader()
