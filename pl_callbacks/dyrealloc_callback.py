@@ -29,7 +29,7 @@ LORA_NAME_HASH = {
     "fc1": 4,
     "fc2": 5,
 }
-ALPHA_UB = 2
+ALPHA_UB = 8
 
 
 class DynamicLoraReallocationCallback(pl.Callback):
@@ -37,6 +37,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self,
         N: int | float,
         data_module: AgsDataModule,
+        alpha_trainer_args: pl.Trainer,
         task: str,
         metric_reduction_tolerance: float,
         turn_on_percentile: float = 0.25,
@@ -46,6 +47,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         """
         :param N: every N steps conduct alpha testing and reallocate lora ranks
         :param data_module: for loading batches for alpha testing
+        :param alpha_trainer_args: for building the pl trainer to conduct alpha testing
         :param task: task type for determining threshold comparison
         :param metric_reduction_tolerance: for computing the threshold for alpha testing
         :param turn_on_percentile: percentage of lora modules to be activated by the reallocation
@@ -55,6 +57,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
         super().__init__()
 
         self.data_module = data_module
+        self.alpha_trainer_args = alpha_trainer_args
+        self.alpha_trainer = None
 
         assert task in ["classification", "summarization", "causal_language_modeling"]
         self.task = task
@@ -94,6 +98,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
             raise TypeError(
                 "limit_test_batches should be None (assumed single-shot) or int or float between 0.0 and 1.0"
             )
+
+        self.alpha_trainer = pl.Trainer(
+            **self.alpha_trainer_args,
+            limit_test_batches=self.limit_test_batches,
+        )
 
     def get_alpha_testing_dataloader(self):
         return self._get_mixed_dataloader()
@@ -160,12 +169,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         device = pl_module.model.device
 
-        original_limit_test_batches = trainer.limit_test_batches
-        trainer.limit_test_batches = self.limit_test_batches
-
         dataloader = self.get_alpha_testing_dataloader()
 
-        original_val_metrics = trainer.test(
+        original_val_metrics = self.alpha_trainer.test(
             pl_module, dataloaders=dataloader, verbose=False
         )[0]
 
@@ -262,7 +268,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                             rb = 0
                             break
                         lora.importance_alpha = alpha / ALPHA_UB
-                        val_metrics = trainer.test(
+                        val_metrics = self.alpha_trainer.test(
                             pl_module, dataloaders=dataloader, verbose=False
                         )[0]
                         if check_exceed_threshold(val_metrics):
@@ -336,7 +342,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     lora.disable_adapters = [layer_id, proj_hash] in turn_on
 
             self.save_reallocation_history()
-        trainer.limit_test_batches = original_limit_test_batches
         pl_module.model.to(device)
 
         logger.warning(f"\n>>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")

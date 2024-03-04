@@ -1,6 +1,6 @@
+import copy
 import logging
 import os
-import time
 
 import torch
 import pytorch_lightning as pl
@@ -43,8 +43,6 @@ def train_dynamic_reallocation(
     realloc_N,  # frequency to perform rank reallocation
     turn_on_percentile,  # for reallocating lora ranks
 ):
-    t = time.strftime("%H-%M")
-
     if save_path is not None:  # if save_path is None, model won't be saved
         # setup callbacks
         if not os.path.isdir(save_path):
@@ -80,11 +78,18 @@ def train_dynamic_reallocation(
         ]
         pl_trainer_args["logger"] = [tb_logger]
 
+    if auto_requeue is not None:
+        plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
+    else:
+        plugins = None
+    pl_trainer_args["plugins"] = plugins
+
     assert type(data_module) is AgsDataModule, "Only AgsDataModule supported for dynamic-lora-reallocation training"
     data_module: AgsDataModule
     dynamic_reallocation_callback = DynamicLoraReallocationCallback(
         N=realloc_N,
         data_module=data_module,
+        alpha_trainer_args=copy.deepcopy(pl_trainer_args),
         task=task,
         metric_reduction_tolerance=metric_reduction_tolerance,
         turn_on_percentile=turn_on_percentile,
@@ -93,12 +98,6 @@ def train_dynamic_reallocation(
     )
     pl_trainer_args["callbacks"].append(dynamic_reallocation_callback)
     logger.warning("Running dynamic LoRA reallocation training")
-
-    if auto_requeue is not None:
-        plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
-    else:
-        plugins = None
-    pl_trainer_args["plugins"] = plugins
 
     wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
         model_info, task
@@ -115,7 +114,8 @@ def train_dynamic_reallocation(
         if load_type != "pl":
             raise ValueError("Load-type pl is required for resuming full training state. Please use --load-type pl.")
         logger.warning(
-            f"Resume full training state from pl checkpoint {load_name}. Entered hyperparameters and configuration ignored."
+            f"Resume full training state from pl checkpoint {load_name}. "
+            f"Entered hyperparameters and configuration ignored."
         )
 
         trainable_params = []
@@ -123,7 +123,6 @@ def train_dynamic_reallocation(
             trainable_params.append("lora_")
         if model_info.is_ags:
             trainable_params.append("proj_")
-
         if len(trainable_params) > 0:
             for name, param in model.named_parameters():
                 if name.startswith("model") or name.startswith("roberta"):
@@ -134,7 +133,6 @@ def train_dynamic_reallocation(
                             break
                 else:
                     param.requires_grad = True
-
         update_lora_importance_alpha_require_grad(model, require_grad=False)
         print_trainable_parameters(model)
 
@@ -158,7 +156,6 @@ def train_dynamic_reallocation(
             trainable_params.append("lora_")
         if model_info.is_ags:
             trainable_params.append("proj_")
-
         if len(trainable_params) > 0:
             for name, param in model.named_parameters():
                 # print(name)
@@ -170,7 +167,6 @@ def train_dynamic_reallocation(
                             break
                 else:
                     param.requires_grad = True
-
         update_lora_importance_alpha_require_grad(model, require_grad=False)
         print_trainable_parameters(model)
 
