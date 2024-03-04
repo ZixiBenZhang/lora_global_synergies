@@ -84,12 +84,31 @@ def train_dynamic_reallocation(
         plugins = None
     pl_trainer_args["plugins"] = plugins
 
+    wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
+        model_info, task
+    )
+
     assert type(data_module) is AgsDataModule, "Only AgsDataModule supported for dynamic-lora-reallocation training"
     data_module: AgsDataModule
+    alpha_pl_trainer_args = copy.deepcopy(pl_trainer_args)
+    if resume_training:
+        alpha_pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
+    else:
+        alpha_pl_model = wrapper_pl_model(
+            model,
+            dataset_info=dataset_info,
+            learning_rate=learning_rate,
+            weight_decay=weight_decay,
+            lr_scheduler=lr_scheduler,  # for building lr scheduler
+            eta_min=eta_min,  # for building lr scheduler
+            epochs=pl_trainer_args["max_epochs"],
+            optimizer=optimizer,
+        )
     dynamic_reallocation_callback = DynamicLoraReallocationCallback(
         N=realloc_N,
         data_module=data_module,
-        alpha_trainer_args=copy.deepcopy(pl_trainer_args),
+        alpha_trainer_args=alpha_pl_trainer_args,
+        alpha_pl_module=alpha_pl_model,
         task=task,
         metric_reduction_tolerance=metric_reduction_tolerance,
         turn_on_percentile=turn_on_percentile,
@@ -98,10 +117,6 @@ def train_dynamic_reallocation(
     )
     pl_trainer_args["callbacks"].append(dynamic_reallocation_callback)
     logger.warning("Running dynamic LoRA reallocation training")
-
-    wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
-        model_info, task
-    )
 
     if resume_training:
         # resume full training from pl checkpoint

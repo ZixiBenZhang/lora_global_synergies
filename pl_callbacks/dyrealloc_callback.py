@@ -1,4 +1,3 @@
-import copy
 import logging
 import math
 import time
@@ -39,6 +38,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         N: int | float,
         data_module: AgsDataModule,
         alpha_trainer_args: pl.Trainer,
+        alpha_pl_module: PlWrapperBase,
         task: str,
         metric_reduction_tolerance: float,
         turn_on_percentile: float = 0.25,
@@ -49,6 +49,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         :param N: every N steps conduct alpha testing and reallocate lora ranks
         :param data_module: for loading batches for alpha testing
         :param alpha_trainer_args: for building the pl trainer to conduct alpha testing
+        :param alpha_pl_module: copy of pl_module, in order to separate its update to trainer
         :param task: task type for determining threshold comparison
         :param metric_reduction_tolerance: for computing the threshold for alpha testing
         :param turn_on_percentile: percentage of lora modules to be activated by the reallocation
@@ -60,6 +61,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.data_module = data_module
         self.alpha_trainer_args = alpha_trainer_args
         self.alpha_trainer: pl.Trainer = None
+        self.alpha_pl_module = alpha_pl_module
 
         assert task in ["classification", "summarization", "causal_language_modeling"]
         self.task = task
@@ -170,16 +172,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         device = pl_module.model.device
 
-        alpha_pl_module = copy.copy(pl_module)
-
         dataloader = self.get_alpha_testing_dataloader()
 
         original_val_metrics = self.alpha_trainer.test(
-            alpha_pl_module, dataloaders=dataloader, verbose=False
+            self.alpha_pl_module, dataloaders=dataloader, verbose=False
         )[0]
-        print("DEBUG <<<<<<<<<<<<<<<")
-        for name, param in alpha_pl_module.model.named_parameters():
-            print(name, param.requires_grad)
 
         def get_metric_name():
             match self.task:
@@ -233,7 +230,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         res_val: dict[int, dict[str, float]] = {}
 
         with torch.no_grad():
-            model = alpha_pl_module.model
+            model = self.alpha_pl_module.model
             assert (
                 type(model) is OPTLoraForCausalLM
                 or type(model) is OPTLoraForSequenceClassification
@@ -272,7 +269,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         alpha = (lb + rb) // 2
                         lora.importance_alpha = alpha / ALPHA_UB
                         val_metrics = self.alpha_trainer.test(
-                            alpha_pl_module, dataloaders=dataloader, verbose=False
+                            self.alpha_pl_module, dataloaders=dataloader, verbose=False
                         )[0]
                         if check_exceed_threshold(val_metrics):
                             lb = alpha + 1
@@ -316,7 +313,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
             self.reallocation_history.append(
                 {
-                    "epoch": alpha_pl_module.current_epoch,
+                    "epoch": self.alpha_pl_module.current_epoch,
                     "step": batch_idx,
                     "turn_on": turn_on
                 }
