@@ -220,8 +220,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         with torch.no_grad():
             model = pl_module.model
-            device = model.device
-            print(f"MODEL DEVICE: {device}")
             assert (
                 type(model) is OPTLoraForCausalLM
                 or type(model) is OPTLoraForSequenceClassification
@@ -277,6 +275,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     res_val[layer_id][proj_name] = alpha_res
 
                     logger.warning(f">>> Layer {layer_id} Projection {proj_name} Alpha {alpha_res}")
+                    device = model.device
+                    print(f"MODEL DEVICE: {device}")
 
             # Decide which modules to keep
             alpha_list = np.concatenate(
