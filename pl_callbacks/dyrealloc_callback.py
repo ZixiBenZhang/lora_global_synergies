@@ -142,6 +142,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     validation_idx[len(train_idx):],
                 ]
             )
+        print(f"DataLoader idx: {interleave_idx[:10]}")
         interleave_idx = interleave_idx.tolist()
 
         data_collator = None
@@ -185,7 +186,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         device = pl_module.model.device
 
-        # np.random.seed()
+        np.random.seed()
 
         with torch.no_grad():
             dataloader = self._get_alpha_testing_dataloader()
@@ -320,8 +321,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
                 tie_idx = torch.randperm(len(tie))[:(budget - len(greater))]
                 # tie_idx = np.random.choice(len(tie), size=budget-len(greater), replace=False)
-                print(f"TIE idx: {tie_idx}")
-                tie_idx = torch.randperm(len(tie))[:(budget - len(greater))]
                 print(f"TIE idx: {tie_idx}")
                 # todo: debug: why tie_idx always the same?
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
