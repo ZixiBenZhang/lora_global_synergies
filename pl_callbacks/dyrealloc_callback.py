@@ -316,7 +316,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 # Uniformly break tie
                 greater = alpha_list[alpha_list[:, 2] > alpha_threshold, :2]
                 tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
-                tie_idx = np.random.choice(len(tie), size=budget-len(greater), replace=False)
+                tie_idx = torch.randperm(len(tie))[:(budget - len(greater))]
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
             else:
                 idx = idx[-budget:]
