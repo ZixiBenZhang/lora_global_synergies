@@ -72,7 +72,9 @@ def train_dynamic_reallocation(
         lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval="step")
         # TensorBoard logger
         tb_logger = pl.loggers.TensorBoardLogger(save_dir=save_path, name="logs")
-        alpha_tb_logger = pl.loggers.TensorBoardLogger(save_dir=save_path, name="alpha_logs")
+        alpha_tb_logger = pl.loggers.TensorBoardLogger(
+            save_dir=save_path, name="alpha_logs"
+        )
         # Lora rank reallocation callback
         pl_trainer_args["callbacks"] = [
             best_checkpoint_callback,
@@ -93,7 +95,9 @@ def train_dynamic_reallocation(
         model_info, task
     )
 
-    assert type(data_module) is AgsDataModule, "Only AgsDataModule supported for dynamic-lora-reallocation training"
+    assert (
+        type(data_module) is AgsDataModule
+    ), "Only AgsDataModule supported for dynamic-lora-reallocation training"
     data_module: AgsDataModule
     if resume_training:
         alpha_pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
@@ -131,7 +135,9 @@ def train_dynamic_reallocation(
         model = load_model_chkpt(load_name, load_type=load_type, model=model)
 
         if load_type != "pl":
-            raise ValueError("Load-type pl is required for resuming full training state. Please use --load-type pl.")
+            raise ValueError(
+                "Load-type pl is required for resuming full training state. Please use --load-type pl."
+            )
         logger.warning(
             f"Resume full training state from pl checkpoint {load_name}. "
             f"Entered hyperparameters and configuration ignored."

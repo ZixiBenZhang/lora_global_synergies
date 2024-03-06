@@ -100,15 +100,15 @@ class AgsDatasetInfo:
 
 
 def add_dataset_info(
-        name: str,
-        dataset_source: DatasetSource,
-        available_splits: tuple[DatasetSplit],
-        sequence_classification: bool = False,
-        causal_LM: bool = False,
-        seq2seqLM: bool = False,
-        num_classes: int = None,
-        num_features: int = None,
-        data_collator_cls=None,
+    name: str,
+    dataset_source: DatasetSource,
+    available_splits: tuple[DatasetSplit],
+    sequence_classification: bool = False,
+    causal_LM: bool = False,
+    seq2seqLM: bool = False,
+    num_classes: int = None,
+    num_features: int = None,
+    data_collator_cls=None,
 ):
     """
     a decorator (factory) for adding dataset info to a dataset class

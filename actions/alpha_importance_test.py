@@ -18,7 +18,8 @@ from models.model_info import AgsModelInfo
 from models.modeling_opt_lora import (
     OPTLoraForCausalLM,
     OPTLoraForQuestionAnswering,
-    OPTLoraForSequenceClassification, OPTLoraDecoderLayer,
+    OPTLoraForSequenceClassification,
+    OPTLoraDecoderLayer,
 )
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
@@ -141,7 +142,9 @@ def alpha_importance_test(
 
     dataloader = get_alpha_test_dataloader(data_module)
 
-    original_val_metrics = trainer.test(pl_model, dataloaders=dataloader, verbose=True)[0]
+    original_val_metrics = trainer.test(
+        pl_model, dataloaders=dataloader, verbose=True
+    )[0]
 
     def get_metric_name():
         match task:
@@ -206,7 +209,9 @@ def alpha_importance_test(
         if resume_layer_id > 0:
             with open(resume_toml, "r") as f:
                 res_val = toml.load(f)
-            logger.warning(f"Resuming alpha testing from layer {resume_layer_id} based on {resume_toml}")
+            logger.warning(
+                f"Resuming alpha testing from layer {resume_layer_id} based on {resume_toml}"
+            )
 
         def save_toml(res: dict):
             log_path = f"{save_path}/alpha-importance_{t}.toml"
@@ -239,18 +244,24 @@ def alpha_importance_test(
                 ):
                     continue
 
-                logger.warning(f">>> Testing layer {layer_id} projection {proj_name} <<<")
+                logger.warning(
+                    f">>> Testing layer {layer_id} projection {proj_name} <<<"
+                )
 
                 alpha = 5
                 lora.importance_alpha = alpha / 10
-                val_metrics = trainer.test(pl_model, dataloaders=dataloader, verbose=False)[0]
+                val_metrics = trainer.test(
+                    pl_model, dataloaders=dataloader, verbose=False
+                )[0]
 
                 if check_exceed_threshold(val_metrics):
                     alpha_res = 10
                     while alpha < 9:
                         alpha += 1
                         lora.importance_alpha = alpha / 10
-                        val_metrics = trainer.test(pl_model, dataloaders=dataloader, verbose=False)[0]
+                        val_metrics = trainer.test(
+                            pl_model, dataloaders=dataloader, verbose=False
+                        )[0]
                         if not check_exceed_threshold(val_metrics):
                             alpha_res = alpha
                             break
@@ -259,7 +270,9 @@ def alpha_importance_test(
                     while alpha > 0:
                         alpha -= 1
                         lora.importance_alpha = alpha / 10
-                        val_metrics = trainer.test(pl_model, dataloaders=dataloader, verbose=False)[0]
+                        val_metrics = trainer.test(
+                            pl_model, dataloaders=dataloader, verbose=False
+                        )[0]
                         if check_exceed_threshold(val_metrics):
                             alpha_res = alpha + 1
                             break

@@ -16,14 +16,16 @@ def rank_spearman(filename1, filename2):
     alpha_list_1 = np.concatenate(
         [
             [v for proj_name, v in d.items()]
-            for layer_name, d in alpha_dict_1.items() if "layer" in layer_name
+            for layer_name, d in alpha_dict_1.items()
+            if "layer" in layer_name
         ],
         axis=0,
     )
     alpha_list_2 = np.concatenate(
         [
             [v for proj_name, v in d.items()]
-            for layer_name, d in alpha_dict_2.items() if "layer" in layer_name
+            for layer_name, d in alpha_dict_2.items()
+            if "layer" in layer_name
         ],
         axis=0,
     )
@@ -56,8 +58,12 @@ def reallocation_interleave(filename1, filename2):
 
     alpha_list_1 = np.concatenate(
         [
-            [(int(layer_name.split("_")[-1]), LORA_NAME_HASH[proj_name], v) for proj_name, v in d.items()]
-            for layer_name, d in alpha_dict_1.items() if "layer" in layer_name
+            [
+                (int(layer_name.split("_")[-1]), LORA_NAME_HASH[proj_name], v)
+                for proj_name, v in d.items()
+            ]
+            for layer_name, d in alpha_dict_1.items()
+            if "layer" in layer_name
         ],
         axis=0,
     )
@@ -70,8 +76,12 @@ def reallocation_interleave(filename1, filename2):
 
     alpha_list_2 = np.concatenate(
         [
-            [(int(layer_name.split("_")[-1]), LORA_NAME_HASH[proj_name], v) for proj_name, v in d.items()]
-            for layer_name, d in alpha_dict_2.items() if "layer" in layer_name
+            [
+                (int(layer_name.split("_")[-1]), LORA_NAME_HASH[proj_name], v)
+                for proj_name, v in d.items()
+            ]
+            for layer_name, d in alpha_dict_2.items()
+            if "layer" in layer_name
         ],
         axis=0,
     )

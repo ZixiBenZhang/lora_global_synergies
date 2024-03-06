@@ -177,6 +177,7 @@ class TextEntailmentDatasetRTE(TextEntailmentDatasetBase):
             dataset_dict = datasets.load_dataset("glue", "rte")
         return dataset_dict
 
+
 @add_dataset_info(
     name="qqp",
     dataset_source="hf_datasets",
@@ -197,6 +198,7 @@ class TextEntailmentDatasetQQP(TextEntailmentDatasetBase):
         else:
             dataset_dict = datasets.load_dataset("glue", "qqp")
         return dataset_dict
+
 
 @add_dataset_info(
     name="mrpc",
@@ -219,6 +221,7 @@ class TextEntailmentDatasetMRPC(TextEntailmentDatasetBase):
             dataset_dict = datasets.load_dataset("glue", "mrpc")
         return dataset_dict
 
+
 @add_dataset_info(
     name="stsb",
     dataset_source="hf_datasets",
@@ -239,6 +242,7 @@ class TextEntailmentDatasetSTSB(TextEntailmentDatasetBase):
         else:
             dataset_dict = datasets.load_dataset("glue", "stsb")
         return dataset_dict
+
 
 @add_dataset_info(
     name="boolq",

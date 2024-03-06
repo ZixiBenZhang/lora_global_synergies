@@ -44,8 +44,12 @@ def reallocate_lora_rank(filename):
 
     alpha_list = np.concatenate(
         [
-            [(int(layer_name.split("_")[-1]), LORA_NAME_HASH[proj_name], v) for proj_name, v in d.items()]
-            for layer_name, d in alpha_dict.items() if "layer" in layer_name
+            [
+                (int(layer_name.split("_")[-1]), LORA_NAME_HASH[proj_name], v)
+                for proj_name, v in d.items()
+            ]
+            for layer_name, d in alpha_dict.items()
+            if "layer" in layer_name
         ],
         axis=0,
     )
@@ -64,7 +68,9 @@ def reallocate_lora_rank(filename):
     threshold = alpha_list[idx[0]]
     print(f"Alpha threshold: {threshold}")
 
-    lora_new_config: dict[str, str | dict[str, int | float | str | dict[str, int | float | str]]] = {
+    lora_new_config: dict[
+        str, str | dict[str, int | float | str | dict[str, int | float | str]]
+    ] = {
         "granularity": "layer",
         "default": {
             "r": 0,
@@ -80,7 +86,9 @@ def reallocate_lora_rank(filename):
     for layer_id, proj_hash in turn_on:
         if f"model_layer_{layer_id}" not in lora_new_config:
             lora_new_config[f"model_layer_{layer_id}"] = {}
-        lora_new_config[f"model_layer_{layer_id}"][LORA_NAME_MAP[list(LORA_NAME_HASH.keys())[proj_hash]]] = {
+        lora_new_config[f"model_layer_{layer_id}"][
+            LORA_NAME_MAP[list(LORA_NAME_HASH.keys())[proj_hash]]
+        ] = {
             "r": new_r,
             "lora_alpha": 16,
             "lora_dropout": 0.0,
@@ -100,4 +108,6 @@ def reallocate_lora_rank(filename):
 
 
 if __name__ == "__main__":
-    reallocate_lora_rank("../ags_output/opt_lora_classification_sst2_2024-03-02/alpha_ckpts/alpha-importance_17-34.toml")
+    reallocate_lora_rank(
+        "../ags_output/opt_lora_classification_sst2_2024-03-02/alpha_ckpts/alpha-importance_17-34.toml"
+    )

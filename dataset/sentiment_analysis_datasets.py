@@ -85,6 +85,7 @@ class SentimentAnalysisDatasetBase(Dataset):
             labels=torch.tensor([labels]),
         )
 
+
 @add_dataset_info(
     name="sst2",
     dataset_source="hf_datasets",

@@ -21,7 +21,6 @@ NLP_DATASET_MAPPING = {
     "boolq": TextEntailmentDatasetBoolQ,
     # TODO: CB, COPA, WiC
     # TODO: Lambada
-
     # LM dataset
     "alpaca": LanguageModelingDatasetAlpaca,
     "alpaca-cleaned": LanguageModelingDatasetAlpacaCleaned,

@@ -106,9 +106,7 @@ class LoraLinear(nn.Linear, LoRALayer):
             init_lora_weights,
         )
         self.active_adapter = adapter_name
-        self.importance_alpha = torch.tensor(
-            importance_alpha, requires_grad=False
-        )
+        self.importance_alpha = torch.tensor(importance_alpha, requires_grad=False)
 
     def get_delta_w(self, adapter_name):
         # Linear's tensor is out_features rows * in_features columns as default
@@ -167,9 +165,14 @@ class LoraLinear(nn.Linear, LoRALayer):
             )
         else:
             # LoRA dropout unused
-            res = F.linear(
-                x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
-            ) * self.importance_alpha
+            res = (
+                F.linear(
+                    x,
+                    self.weight if not self.fan_in_fan_out else self.weight.T,
+                    self.bias,
+                )
+                * self.importance_alpha
+            )
         # res = res.to(input_dtype)
         return res
 

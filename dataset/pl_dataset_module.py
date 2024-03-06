@@ -3,7 +3,12 @@ import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizer
 
-from dataset import get_nlp_dataset_split, get_config_names, get_split_names, get_dataset_info
+from dataset import (
+    get_nlp_dataset_split,
+    get_config_names,
+    get_split_names,
+    get_dataset_info,
+)
 
 # Only using the task names
 task_to_keys = {
