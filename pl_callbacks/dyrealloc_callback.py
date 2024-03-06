@@ -83,30 +83,38 @@ class DynamicLoraReallocationCallback(pl.Callback):
             self.rng = torch.random.manual_seed(torch.seed())
         self.rng_state = self.rng.get_state()
 
-    def setup(self, trainer: "pl.Trainer", pl_module: PlWrapperBase, stage: str) -> None:
-        self.train_set_len = math.ceil(len(self._get_train_dataloader()) / trainer.num_devices)
-        self.val_set_len = math.ceil(len(self._get_val_dataloader()) / trainer.num_devices)
+    def setup(
+        self, trainer: "pl.Trainer", pl_module: PlWrapperBase, stage: str
+    ) -> None:
+        self.train_set_len = math.ceil(
+            len(self._get_train_dataloader()) / trainer.num_devices
+        )
+        self.val_set_len = math.ceil(
+            len(self._get_val_dataloader()) / trainer.num_devices
+        )
         if type(self.N) is int:
             # Num of batches between two reallocation
             self.N: int
         elif type(self.N) is float:
             # Percentage of training steps per epoch between two reallocation
             assert 0.0 < self.N <= 1.0, "N should be 0.0 < N <= 1.0"
-            self.N: int = round(self.train_set_len * self.N)
+            self.N: int = math.ceil(self.train_set_len * self.N)
         else:
             raise TypeError("N should be int or float between 0.0 and 1.0")
 
         if self.limit_test_batches is None:
             # Default: single-shot per epoch on the validation set
             self.limit_test_batches: int = math.ceil(
-                round(self.val_set_len / (self.N//2))
+                round(self.val_set_len / self.N * 2)
             )
         elif type(self.limit_test_batches) is int:
             # Number of alpha test batches
             self.limit_test_batches: int
         elif type(self.limit_test_batches) is float:
             # Percentage of validation set
-            self.limit_test_batches: int = round(self.val_set_len * self.limit_test_batches) * 2
+            self.limit_test_batches: int = (
+                math.ceil(self.val_set_len * self.limit_test_batches) * 2
+            )
         else:
             raise TypeError(
                 "limit_test_batches should be None (assumed single-shot) or int or float between 0.0 and 1.0"
@@ -139,17 +147,23 @@ class DynamicLoraReallocationCallback(pl.Callback):
             raise RuntimeError("The validation dataset is not available.")
 
         # self.rng.set_state(self.rng_state)
-        train_idx = torch.randperm(len(self.data_module.training_dataset), generator=rng)
-        validation_idx = torch.randperm(len(self.data_module.val_dataloader()), generator=rng)
+        train_idx = torch.randperm(
+            len(self.data_module.training_dataset), generator=rng
+        )
+        validation_idx = torch.randperm(
+            len(self.data_module.val_dataloader()), generator=rng
+        )
         # self.rng_state = self.rng.get_state()
         if len(train_idx) >= len(validation_idx):
-            train_idx = train_idx[:len(validation_idx)]
+            train_idx = train_idx[: len(validation_idx)]
             interleave_idx = torch.stack([train_idx, validation_idx], dim=1).view(-1)
         else:
             interleave_idx = torch.cat(
                 [
-                    torch.stack([train_idx, validation_idx[:len(train_idx)]], dim=1).view(-1),
-                    validation_idx[len(train_idx):],
+                    torch.stack(
+                        [train_idx, validation_idx[: len(train_idx)]], dim=1
+                    ).view(-1),
+                    validation_idx[len(train_idx) :],
                 ]
             )
         interleave_idx = interleave_idx.tolist()
@@ -163,7 +177,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
         return DataLoader(
             torch.utils.data.Subset(
                 torch.utils.data.ConcatDataset(
-                    [self.data_module.training_dataset, self.data_module.validation_dataset]
+                    [
+                        self.data_module.training_dataset,
+                        self.data_module.validation_dataset,
+                    ]
                 ),
                 indices=interleave_idx,
             ),
@@ -192,12 +209,16 @@ class DynamicLoraReallocationCallback(pl.Callback):
         batch_idx: int,
     ) -> None:
         if torch.cuda.current_device() == 0:
-            logger.warning(f"\n\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
+            logger.warning(
+                f"\n\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n"
+            )
 
         with torch.no_grad():
             # Get alpha importance of lora modules
             # format: {layer_idx: {proj: alpha}}
-            res_val: dict[int, dict[str, float]] = self._alpha_importance_test(pl_module)
+            res_val: dict[int, dict[str, float]] = self._alpha_importance_test(
+                pl_module
+            )
 
             # Decide which modules to keep
             alpha_list = np.concatenate(
@@ -219,7 +240,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 greater = alpha_list[alpha_list[:, 2] > alpha_threshold, :2]
                 tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
                 self.rng.set_state(self.rng_state)
-                tie_idx = torch.randperm(len(tie), generator=self.rng)[:(budget - len(greater))]
+                tie_idx = torch.randperm(len(tie), generator=self.rng)[
+                    : (budget - len(greater))
+                ]
                 self.rng_state = self.rng.get_state()
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
             else:
@@ -230,7 +253,12 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
             reallocation: list[list[int]] = alpha_list.tolist()
             reallocation = [
-                [layer_id, list(LORA_NAME_HASH.keys())[proj_hash], alpha, ([layer_id, proj_hash] in turn_on)]
+                [
+                    layer_id,
+                    list(LORA_NAME_HASH.keys())[proj_hash],
+                    alpha,
+                    ([layer_id, proj_hash] in turn_on),
+                ]
                 for layer_id, proj_hash, alpha in reallocation
             ]
             self.reallocation_history.append(
@@ -244,9 +272,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
             # Turn on/off lora modules
             model = self.alpha_pl_module.model
             assert (
-                    type(model) is OPTLoraForCausalLM
-                    or type(model) is OPTLoraForSequenceClassification
-                    or type(model) is OPTLoraForQuestionAnswering
+                type(model) is OPTLoraForCausalLM
+                or type(model) is OPTLoraForSequenceClassification
+                or type(model) is OPTLoraForQuestionAnswering
             )
             model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
             for decoder_layer in reversed(model.model.decoder.layers):
@@ -273,9 +301,13 @@ class DynamicLoraReallocationCallback(pl.Callback):
             self.save_reallocation_history()
 
         if torch.cuda.current_device() == 0:
-            logger.warning(f"\n>>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
+            logger.warning(
+                f"\n>>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n"
+            )
 
-    def _alpha_importance_test(self, pl_module: PlWrapperBase) -> dict[int, dict[str, float]]:
+    def _alpha_importance_test(
+        self, pl_module: PlWrapperBase
+    ) -> dict[int, dict[str, float]]:
         device = pl_module.model.device
 
         with torch.no_grad():
@@ -304,20 +336,20 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     case "classification":
                         # Accuracy
                         return (
-                                original_metric
-                                - original_metric * self.metric_reduction_tolerance
+                            original_metric
+                            - original_metric * self.metric_reduction_tolerance
                         )
                     case "summarization":
                         # Rouge score
                         return (
-                                original_metric
-                                - original_metric * self.metric_reduction_tolerance
+                            original_metric
+                            - original_metric * self.metric_reduction_tolerance
                         )
                     case "causal_language_modeling":
                         # Perplexity
                         return (
-                                original_metric
-                                + original_metric * self.metric_reduction_tolerance
+                            original_metric
+                            + original_metric * self.metric_reduction_tolerance
                         )
                     case _:
                         raise ValueError(f"Unsupported task: {self.task}")
@@ -340,9 +372,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
             model = self.alpha_pl_module.model
             assert (
-                    type(model) is OPTLoraForCausalLM
-                    or type(model) is OPTLoraForSequenceClassification
-                    or type(model) is OPTLoraForQuestionAnswering
+                type(model) is OPTLoraForCausalLM
+                or type(model) is OPTLoraForSequenceClassification
+                or type(model) is OPTLoraForQuestionAnswering
             )
             model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
 
@@ -361,8 +393,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
                 for proj_name, lora in lora_modules.items():
                     if (
-                            lora.active_adapter not in lora.lora_A.keys()
-                            or lora.r[lora.active_adapter] == 0
+                        lora.active_adapter not in lora.lora_A.keys()
+                        or lora.r[lora.active_adapter] == 0
                     ):
                         continue
 
@@ -390,10 +422,20 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     res_val[layer_id][proj_name] = alpha_res
 
                     if torch.cuda.current_device() == 0:
-                        logger.warning(f">>> Layer {layer_id} Projection {proj_name} Alpha {alpha_res}")
+                        logger.warning(
+                            f">>> Layer {layer_id} Projection {proj_name} Alpha {alpha_res}"
+                        )
 
         pl_module.model.to(device)
         return res_val
+
+    def _alpha_gradient_test(
+        self, pl_module: PlWrapperBase
+    ) -> dict[int, dict[str, float]]:
+        device = pl_module.model.device
+        # TODO: evaluate module importance based on gradient of alpha
+        pl_module.model.to(device)
+        raise NotImplementedError
 
     def save_reallocation_history(self):
         if torch.cuda.current_device() != 0:
