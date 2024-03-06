@@ -80,7 +80,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.history_save_path = f"{save_path}/reallocation_history_{t}.toml"
         self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
 
-        self.rng = torch.random.manual_seed(torch.seed())
+        with torch.random.fork_rng():
+            self.rng = torch.random.manual_seed(torch.seed())
         self.rng_state = self.rng.get_state()
 
     def setup(self, trainer: "pl.Trainer", pl_module: PlWrapperBase, stage: str) -> None:
@@ -336,7 +337,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 self.rng_state = self.rng.get_state()
                 # tie_idx = np.random.choice(len(tie), size=budget-len(greater), replace=False)
                 print(f"TIE idx: {tie_idx}")
-                # todo: debug: why tie_idx always the same?
+                # todo: make rng generate same results across devices
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
             else:
                 idx = idx[-budget:]
