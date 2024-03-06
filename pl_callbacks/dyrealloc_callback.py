@@ -77,6 +77,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.history_save_path = f"{save_path}/reallocation_history_{t}.toml"
         self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
 
+        self.rng = torch.random.manual_seed(torch.random.seed())
+
     def setup(self, trainer: "pl.Trainer", pl_module: PlWrapperBase, stage: str) -> None:
         if type(self.N) is int:
             # Num of batches between two reallocation
@@ -130,8 +132,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
         if self.data_module.validation_dataset is None:
             raise RuntimeError("The validation dataset is not available.")
 
-        train_idx = torch.randperm(len(self.data_module.training_dataset))
-        validation_idx = torch.randperm(len(self.data_module.val_dataloader()))
+        train_idx = torch.randperm(len(self.data_module.training_dataset), generator=self.rng)
+        validation_idx = torch.randperm(len(self.data_module.val_dataloader()), generator=self.rng)
         if len(train_idx) >= len(validation_idx):
             train_idx = train_idx[:len(validation_idx)]
             interleave_idx = torch.stack([train_idx, validation_idx], dim=1).view(-1)
@@ -185,8 +187,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
         logger.warning(f"\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
 
         device = pl_module.model.device
-
-        np.random.seed()
 
         with torch.no_grad():
             dataloader = self._get_alpha_testing_dataloader()
@@ -319,7 +319,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 # Uniformly break tie
                 greater = alpha_list[alpha_list[:, 2] > alpha_threshold, :2]
                 tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
-                tie_idx = torch.randperm(len(tie))[:(budget - len(greater))]
+                tie_idx = torch.randperm(len(tie), generator=self.rng)[:(budget - len(greater))]
                 # tie_idx = np.random.choice(len(tie), size=budget-len(greater), replace=False)
                 print(f"TIE idx: {tie_idx}")
                 # todo: debug: why tie_idx always the same?
