@@ -80,7 +80,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.history_save_path = f"{save_path}/reallocation_history_{t}.toml"
         self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
 
-        with torch.random.fork_rng():
+        with torch.random.fork_rng(devices=range(torch.cuda.device_count())):
             self.rng = torch.random.manual_seed(torch.seed())
         self.rng_state = self.rng.get_state()
 
@@ -201,7 +201,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         with torch.no_grad():
             self.rng.set_state(self.rng_state)
             dataloader = self._get_alpha_testing_dataloader(self.rng)
-            barrier()
+            # barrier()
             self.rng_state = self.rng.get_state()
 
             print(f"Testing on {torch.cuda.current_device()}")
@@ -334,7 +334,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
                 self.rng.set_state(self.rng_state)
                 tie_idx = torch.randperm(len(tie), generator=self.rng)[:(budget - len(greater))]
-                barrier()
+                # barrier()
                 self.rng_state = self.rng.get_state()
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
             else:
