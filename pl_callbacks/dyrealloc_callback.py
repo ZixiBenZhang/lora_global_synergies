@@ -153,7 +153,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     validation_idx[len(train_idx):],
                 ]
             )
-        print(f"DataLoader idx: {interleave_idx[:10]}")
         interleave_idx = interleave_idx.tolist()
 
         data_collator = None
@@ -286,11 +285,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     ):
                         continue
 
-                    logger.warning(
-                        f"Alpha testing layer {layer_id} projection {proj_name}",
-                        # end="\r",
-                    )
-                    # msg_len = len(f">>> Alpha testing layer {layer_id} projection {proj_name}")
+                    # logger.warning(
+                    #     f"Alpha testing layer {layer_id} projection {proj_name}",
+                    #     # end="\r",
+                    # )
 
                     lb, rb = (0, ALPHA_UB)
                     while lb < rb:
@@ -335,9 +333,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 tie_idx = torch.randperm(len(tie), generator=self.rng)[:(budget - len(greater))]
                 barrier()
                 self.rng_state = self.rng.get_state()
-                # tie_idx = np.random.choice(len(tie), size=budget-len(greater), replace=False)
-                print(f"TIE idx: {tie_idx}")
-                # todo: make rng generate same results across devices
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
             else:
                 idx = idx[-budget:]
