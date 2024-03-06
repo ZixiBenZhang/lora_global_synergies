@@ -192,17 +192,15 @@ class DynamicLoraReallocationCallback(pl.Callback):
         batch_idx: int,
     ) -> None:
         if torch.cuda.current_device() == 0:
-            logger.warning(f"\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
+            logger.warning(f"\n\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
 
         device = pl_module.model.device
 
         with torch.no_grad():
             self.rng.set_state(self.rng_state)
             dataloader = self._get_alpha_testing_dataloader(self.rng)
-            # barrier()
             self.rng_state = self.rng.get_state()
 
-            print(f"Testing on {torch.cuda.current_device()}")
             original_val_metrics = self.alpha_trainer.test(
                 self.alpha_pl_module, dataloaders=dataloader, verbose=False
             )[0]
@@ -333,7 +331,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
                 self.rng.set_state(self.rng_state)
                 tie_idx = torch.randperm(len(tie), generator=self.rng)[:(budget - len(greater))]
-                # barrier()
                 self.rng_state = self.rng.get_state()
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
             else:
@@ -386,7 +383,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
     def save_reallocation_history(self):
         if torch.cuda.current_device() != 0:
             return
-        print(f"Saving history on {torch.cuda.current_device()}")
+        logger.warning(f"Saving history on GPU {torch.cuda.current_device()}")
         # Calculate frequency each lora module has been turned on
         turned_on_freq: dict[str, int | dict[str, int]] = {
             "total_reallocation_number": len(self.reallocation_history)
