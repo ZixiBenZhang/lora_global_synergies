@@ -29,7 +29,7 @@ LORA_NAME_HASH = {
     "fc1": 4,
     "fc2": 5,
 }
-ALPHA_UB = 1
+ALPHA_UB = 10
 
 
 class DynamicLoraReallocationCallback(pl.Callback):
@@ -194,121 +194,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
         if torch.cuda.current_device() == 0:
             logger.warning(f"\n\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
 
-        device = pl_module.model.device
-
         with torch.no_grad():
-            self.rng.set_state(self.rng_state)
-            dataloader = self._get_alpha_testing_dataloader(self.rng)
-            self.rng_state = self.rng.get_state()
-
-            original_val_metrics = self.alpha_trainer.test(
-                self.alpha_pl_module, dataloaders=dataloader, verbose=False
-            )[0]
-
-            def get_metric_name():
-                match self.task:
-                    case "classification":
-                        return "test_acc_epoch"
-                    case "summarization":
-                        return "test_rouge_epoch"
-                    case "causal_language_modeling":
-                        return "test_perplexity_epoch"
-                    case _:
-                        raise ValueError(f"Unsupported task: {self.task}")
-
-            def get_metric_threshold():
-                original_metric = original_val_metrics[get_metric_name()]
-                match self.task:
-                    case "classification":
-                        # Accuracy
-                        return (
-                            original_metric
-                            - original_metric * self.metric_reduction_tolerance
-                        )
-                    case "summarization":
-                        # Rouge score
-                        return (
-                            original_metric
-                            - original_metric * self.metric_reduction_tolerance
-                        )
-                    case "causal_language_modeling":
-                        # Perplexity
-                        return (
-                            original_metric
-                            + original_metric * self.metric_reduction_tolerance
-                        )
-                    case _:
-                        raise ValueError(f"Unsupported task: {self.task}")
-
-            def check_exceed_threshold(val_metrics_dict):
-                val_metric = val_metrics_dict[get_metric_name()]
-                threshold = get_metric_threshold()
-                match self.task:
-                    case "classification":
-                        return val_metric < threshold
-                    case "summarization":
-                        return val_metric < threshold
-                    case "causal_language_modeling":
-                        return val_metric > threshold
-                    case _:
-                        raise ValueError(f"Unsupported task: {self.task}")
-
-            # Result format: {layer_idx: {proj: alpha}}
-            res_val: dict[int, dict[str, float]] = {}
-
-            model = self.alpha_pl_module.model
-            assert (
-                type(model) is OPTLoraForCausalLM
-                or type(model) is OPTLoraForSequenceClassification
-                or type(model) is OPTLoraForQuestionAnswering
-            )
-            model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
-
-            # Get alpha importance for each module
-            for decoder_layer in reversed(model.model.decoder.layers):
-                decoder_layer: OPTLoraDecoderLayer
-                layer_id = decoder_layer.layer_id
-                lora_modules: dict[str, LoraLinear] = {
-                    "q_proj": decoder_layer.self_attn.q_proj,
-                    "k_proj": decoder_layer.self_attn.k_proj,
-                    "v_proj": decoder_layer.self_attn.v_proj,
-                    "out_proj": decoder_layer.self_attn.out_proj,
-                    "fc1": decoder_layer.fc1,
-                    "fc2": decoder_layer.fc2,
-                }
-
-                for proj_name, lora in lora_modules.items():
-                    if (
-                        lora.active_adapter not in lora.lora_A.keys()
-                        or lora.r[lora.active_adapter] == 0
-                    ):
-                        continue
-
-                    # logger.warning(
-                    #     f"Alpha testing layer {layer_id} projection {proj_name}",
-                    #     # end="\r",
-                    # )
-
-                    lb, rb = (0, ALPHA_UB)
-                    while lb < rb:
-                        alpha = (lb + rb) // 2
-                        lora.importance_alpha = alpha / ALPHA_UB
-                        val_metrics = self.alpha_trainer.test(
-                            self.alpha_pl_module, dataloaders=dataloader, verbose=False
-                        )[0]
-                        if check_exceed_threshold(val_metrics):
-                            lb = alpha + 1
-                        else:
-                            rb = alpha
-                    alpha_res = rb
-
-                    lora.importance_alpha = 1.0
-                    if layer_id not in res_val:
-                        res_val[layer_id] = {}
-                    res_val[layer_id][proj_name] = alpha_res
-
-                    if torch.cuda.current_device() == 0:
-                        logger.warning(f">>> Layer {layer_id} Projection {proj_name} Alpha {alpha_res}")
+            # Get alpha importance of lora modules
+            # format: {layer_idx: {proj: alpha}}
+            res_val: dict[int, dict[str, float]] = self._alpha_importance_test(pl_module)
 
             # Decide which modules to keep
             alpha_list = np.concatenate(
@@ -353,6 +242,13 @@ class DynamicLoraReallocationCallback(pl.Callback):
             )
 
             # Turn on/off lora modules
+            model = self.alpha_pl_module.model
+            assert (
+                    type(model) is OPTLoraForCausalLM
+                    or type(model) is OPTLoraForSequenceClassification
+                    or type(model) is OPTLoraForQuestionAnswering
+            )
+            model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
             for decoder_layer in reversed(model.model.decoder.layers):
                 decoder_layer: OPTLoraDecoderLayer
                 layer_id = decoder_layer.layer_id
@@ -375,10 +271,129 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     lora.disable_adapters = [layer_id, proj_hash] not in turn_on
 
             self.save_reallocation_history()
-        pl_module.model.to(device)
 
         if torch.cuda.current_device() == 0:
             logger.warning(f"\n>>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
+
+    def _alpha_importance_test(self, pl_module: PlWrapperBase) -> dict[int, dict[str, float]]:
+        device = pl_module.model.device
+
+        with torch.no_grad():
+            self.rng.set_state(self.rng_state)
+            dataloader = self._get_alpha_testing_dataloader(self.rng)
+            self.rng_state = self.rng.get_state()
+
+            original_val_metrics = self.alpha_trainer.test(
+                self.alpha_pl_module, dataloaders=dataloader, verbose=False
+            )[0]
+
+            def get_metric_name():
+                match self.task:
+                    case "classification":
+                        return "test_acc_epoch"
+                    case "summarization":
+                        return "test_rouge_epoch"
+                    case "causal_language_modeling":
+                        return "test_perplexity_epoch"
+                    case _:
+                        raise ValueError(f"Unsupported task: {self.task}")
+
+            def get_metric_threshold():
+                original_metric = original_val_metrics[get_metric_name()]
+                match self.task:
+                    case "classification":
+                        # Accuracy
+                        return (
+                                original_metric
+                                - original_metric * self.metric_reduction_tolerance
+                        )
+                    case "summarization":
+                        # Rouge score
+                        return (
+                                original_metric
+                                - original_metric * self.metric_reduction_tolerance
+                        )
+                    case "causal_language_modeling":
+                        # Perplexity
+                        return (
+                                original_metric
+                                + original_metric * self.metric_reduction_tolerance
+                        )
+                    case _:
+                        raise ValueError(f"Unsupported task: {self.task}")
+
+            def check_exceed_threshold(val_metrics_dict):
+                val_metric = val_metrics_dict[get_metric_name()]
+                threshold = get_metric_threshold()
+                match self.task:
+                    case "classification":
+                        return val_metric < threshold
+                    case "summarization":
+                        return val_metric < threshold
+                    case "causal_language_modeling":
+                        return val_metric > threshold
+                    case _:
+                        raise ValueError(f"Unsupported task: {self.task}")
+
+            # Result format: {layer_idx: {proj: alpha}}
+            res_val: dict[int, dict[str, float]] = {}
+
+            model = self.alpha_pl_module.model
+            assert (
+                    type(model) is OPTLoraForCausalLM
+                    or type(model) is OPTLoraForSequenceClassification
+                    or type(model) is OPTLoraForQuestionAnswering
+            )
+            model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+
+            # Get alpha importance for each module
+            for decoder_layer in reversed(model.model.decoder.layers):
+                decoder_layer: OPTLoraDecoderLayer
+                layer_id = decoder_layer.layer_id
+                lora_modules: dict[str, LoraLinear] = {
+                    "q_proj": decoder_layer.self_attn.q_proj,
+                    "k_proj": decoder_layer.self_attn.k_proj,
+                    "v_proj": decoder_layer.self_attn.v_proj,
+                    "out_proj": decoder_layer.self_attn.out_proj,
+                    "fc1": decoder_layer.fc1,
+                    "fc2": decoder_layer.fc2,
+                }
+
+                for proj_name, lora in lora_modules.items():
+                    if (
+                            lora.active_adapter not in lora.lora_A.keys()
+                            or lora.r[lora.active_adapter] == 0
+                    ):
+                        continue
+
+                    # logger.warning(
+                    #     f"Alpha testing layer {layer_id} projection {proj_name}",
+                    #     # end="\r",
+                    # )
+
+                    lb, rb = (0, ALPHA_UB)
+                    while lb < rb:
+                        alpha = (lb + rb) // 2
+                        lora.importance_alpha = alpha / ALPHA_UB
+                        val_metrics = self.alpha_trainer.test(
+                            self.alpha_pl_module, dataloaders=dataloader, verbose=False
+                        )[0]
+                        if check_exceed_threshold(val_metrics):
+                            lb = alpha + 1
+                        else:
+                            rb = alpha
+                    alpha_res = rb
+
+                    lora.importance_alpha = 1.0
+                    if layer_id not in res_val:
+                        res_val[layer_id] = {}
+                    res_val[layer_id][proj_name] = alpha_res
+
+                    if torch.cuda.current_device() == 0:
+                        logger.warning(f">>> Layer {layer_id} Projection {proj_name} Alpha {alpha_res}")
+
+        pl_module.model.to(device)
+        return res_val
 
     def save_reallocation_history(self):
         if torch.cuda.current_device() != 0:
