@@ -62,6 +62,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.alpha_trainer_args = alpha_trainer_args
         self.alpha_trainer: pl.Trainer = None
         self.alpha_pl_module = alpha_pl_module
+        self.train_set_len = None
+        self.val_set_len = None
 
         assert task in ["classification", "summarization", "causal_language_modeling"]
         self.task = task
@@ -77,30 +79,30 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.history_save_path = f"{save_path}/reallocation_history_{t}.toml"
         self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
 
-        self.rng = torch.random.manual_seed(torch.random.seed())
-
     def setup(self, trainer: "pl.Trainer", pl_module: PlWrapperBase, stage: str) -> None:
+        self.train_set_len = math.ceil(len(self._get_train_dataloader()) / trainer.num_devices)
+        self.val_set_len = math.ceil(len(self._get_val_dataloader()) / trainer.num_devices)
         if type(self.N) is int:
             # Num of batches between two reallocation
             self.N: int
         elif type(self.N) is float:
             # Percentage of training steps per epoch between two reallocation
             assert 0.0 < self.N <= 1.0, "N should be 0.0 < N <= 1.0"
-            self.N: int = round(math.ceil(len(self._get_train_dataloader()) / trainer.num_devices) * self.N)
+            self.N: int = round(self.train_set_len * self.N)
         else:
             raise TypeError("N should be int or float between 0.0 and 1.0")
 
         if self.limit_test_batches is None:
             # Default: single-shot per epoch on the validation set
             self.limit_test_batches: int = math.ceil(
-                round(math.ceil(len(self._get_val_dataloader()) / trainer.num_devices) / (self.N//2))
+                round(self.val_set_len / (self.N//2))
             )
         elif type(self.limit_test_batches) is int:
             # Number of alpha test batches
             self.limit_test_batches: int
         elif type(self.limit_test_batches) is float:
             # Percentage of validation set
-            self.limit_test_batches: int = round(len(self._get_val_dataloader()) * self.limit_test_batches) * 2
+            self.limit_test_batches: int = round(self.val_set_len * self.limit_test_batches) * 2
         else:
             raise TypeError(
                 "limit_test_batches should be None (assumed single-shot) or int or float between 0.0 and 1.0"
@@ -114,8 +116,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
             enable_checkpointing=False,
         )
 
-    def _get_alpha_testing_dataloader(self):
-        return self._get_mixed_dataloader()
+    def _get_alpha_testing_dataloader(self, rng):
+        return self._get_mixed_dataloader(rng)
 
     def _get_train_dataloader(self) -> DataLoader:
         return self.data_module.train_dataloader()
@@ -123,7 +125,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
     def _get_val_dataloader(self) -> DataLoader:
         return self.data_module.val_dataloader()
 
-    def _get_mixed_dataloader(self) -> DataLoader:
+    def _get_mixed_dataloader(self, rng) -> DataLoader:
         # 1:1 mixed training set & validation set
         assert type(self.data_module) is AgsDataModule
         self.data_module: AgsDataModule
@@ -132,8 +134,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
         if self.data_module.validation_dataset is None:
             raise RuntimeError("The validation dataset is not available.")
 
-        train_idx = torch.randperm(len(self.data_module.training_dataset), generator=self.rng)
-        validation_idx = torch.randperm(len(self.data_module.val_dataloader()), generator=self.rng)
+        train_idx = torch.randperm(len(self.data_module.training_dataset), generator=rng)
+        validation_idx = torch.randperm(len(self.data_module.val_dataloader()), generator=rng)
         if len(train_idx) >= len(validation_idx):
             train_idx = train_idx[:len(validation_idx)]
             interleave_idx = torch.stack([train_idx, validation_idx], dim=1).view(-1)
@@ -189,7 +191,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
         device = pl_module.model.device
 
         with torch.no_grad():
-            dataloader = self._get_alpha_testing_dataloader()
+            rng = torch.random.manual_seed(pl_module.current_epoch * self.train_set_len + batch_idx)
+
+            dataloader = self._get_alpha_testing_dataloader(rng)
 
             original_val_metrics = self.alpha_trainer.test(
                 self.alpha_pl_module, dataloaders=dataloader, verbose=False
@@ -319,7 +323,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 # Uniformly break tie
                 greater = alpha_list[alpha_list[:, 2] > alpha_threshold, :2]
                 tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
-                tie_idx = torch.randperm(len(tie), generator=self.rng)[:(budget - len(greater))]
+                tie_idx = torch.randperm(len(tie), generator=rng)[:(budget - len(greater))]
                 # tie_idx = np.random.choice(len(tie), size=budget-len(greater), replace=False)
                 print(f"TIE idx: {tie_idx}")
                 # todo: debug: why tie_idx always the same?
