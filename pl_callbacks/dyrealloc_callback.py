@@ -192,8 +192,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         batch: Any,
         batch_idx: int,
     ) -> None:
-        if torch.cuda.current_device() == 0:
-            logger.warning(f"\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
+        logger.warning(f"\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
 
         device = pl_module.model.device
 
@@ -203,7 +202,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             barrier()
             self.rng_state = self.rng.get_state()
 
-            print(f"Testig on {torch.cuda.current_device()}")
+            print(f"Testing on {torch.cuda.current_device()}")
             original_val_metrics = self.alpha_trainer.test(
                 self.alpha_pl_module, dataloaders=dataloader, verbose=False
             )[0]
@@ -310,8 +309,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         res_val[layer_id] = {}
                     res_val[layer_id][proj_name] = alpha_res
 
-                    if torch.cuda.current_device() == 0:
-                        logger.warning(f">>> Layer {layer_id} Projection {proj_name} Alpha {alpha_res}")
+                    logger.warning(f">>> Layer {layer_id} Projection {proj_name} Alpha {alpha_res}")
 
             # Decide which modules to keep
             alpha_list = np.concatenate(
@@ -381,8 +379,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             self.save_reallocation_history()
         pl_module.model.to(device)
 
-        if torch.cuda.current_device() == 0:
-            logger.warning(f"\n>>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
+        logger.warning(f"\n>>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
 
     def save_reallocation_history(self):
         # Calculate frequency each lora module has been turned on
