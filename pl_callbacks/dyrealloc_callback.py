@@ -120,6 +120,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             enable_model_summary=False,
             enable_checkpointing=False,
         )
+        print(f"Alpha trainer built on {torch.cuda.current_device()}")
 
     def _get_alpha_testing_dataloader(self, rng):
         return self._get_mixed_dataloader(rng)
@@ -183,7 +184,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
     ) -> None:
         if batch_idx % self.N > 0:
             return
-        self._reallocation(trainer, pl_module, batch, batch_idx)
+        if torch.cuda.current_device() == 0:
+            self._reallocation(trainer, pl_module, batch, batch_idx)
 
     def _reallocation(
         self,
@@ -382,6 +384,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         logger.warning(f"\n>>>>> Finish reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n")
 
     def save_reallocation_history(self):
+        print(f"Saving history on {torch.cuda.current_device()}")
         # Calculate frequency each lora module has been turned on
         turned_on_freq: dict[str, int | dict[str, int]] = {
             "total_reallocation_number": len(self.reallocation_history)

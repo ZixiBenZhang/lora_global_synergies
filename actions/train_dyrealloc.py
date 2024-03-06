@@ -200,7 +200,6 @@ def train_dynamic_reallocation(
         )
 
         trainer = pl.Trainer(**pl_trainer_args)
-        print("Trainer built on", torch.cuda.current_device())
         trainer.fit(pl_model, datamodule=data_module)
 
     dynamic_reallocation_callback.save_reallocation_history()
