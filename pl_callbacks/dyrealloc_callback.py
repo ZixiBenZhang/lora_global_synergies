@@ -79,6 +79,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.history_save_path = f"{save_path}/reallocation_history_{t}.toml"
         self.frequency_save_path = f"{save_path}/reallocation_frequency_{t}.toml"
 
+        self.rng = torch.random.manual_seed(torch.seed())
+        self.rng_state = self.rng.get_state()
+
     def setup(self, trainer: "pl.Trainer", pl_module: PlWrapperBase, stage: str) -> None:
         self.train_set_len = math.ceil(len(self._get_train_dataloader()) / trainer.num_devices)
         self.val_set_len = math.ceil(len(self._get_val_dataloader()) / trainer.num_devices)
@@ -116,8 +119,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
             enable_checkpointing=False,
         )
 
-    def _get_alpha_testing_dataloader(self, rng):
-        return self._get_mixed_dataloader(rng)
+    def _get_alpha_testing_dataloader(self):
+        return self._get_mixed_dataloader()
 
     def _get_train_dataloader(self) -> DataLoader:
         return self.data_module.train_dataloader()
@@ -125,7 +128,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
     def _get_val_dataloader(self) -> DataLoader:
         return self.data_module.val_dataloader()
 
-    def _get_mixed_dataloader(self, rng) -> DataLoader:
+    def _get_mixed_dataloader(self) -> DataLoader:
         # 1:1 mixed training set & validation set
         assert type(self.data_module) is AgsDataModule
         self.data_module: AgsDataModule
@@ -134,8 +137,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
         if self.data_module.validation_dataset is None:
             raise RuntimeError("The validation dataset is not available.")
 
-        train_idx = torch.randperm(len(self.data_module.training_dataset), generator=rng)
-        validation_idx = torch.randperm(len(self.data_module.val_dataloader()), generator=rng)
+        self.rng.set_state(self.rng_state)
+        train_idx = torch.randperm(len(self.data_module.training_dataset), generator=self.rng)
+        validation_idx = torch.randperm(len(self.data_module.val_dataloader()), generator=self.rng)
+        self.rng_state = self.rng.get_state()
         if len(train_idx) >= len(validation_idx):
             train_idx = train_idx[:len(validation_idx)]
             interleave_idx = torch.stack([train_idx, validation_idx], dim=1).view(-1)
@@ -191,9 +196,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         device = pl_module.model.device
 
         with torch.no_grad():
-            rng = torch.random.manual_seed(pl_module.current_epoch * self.train_set_len + batch_idx)
-
-            dataloader = self._get_alpha_testing_dataloader(rng)
+            dataloader = self._get_alpha_testing_dataloader()
 
             original_val_metrics = self.alpha_trainer.test(
                 self.alpha_pl_module, dataloaders=dataloader, verbose=False
@@ -323,7 +326,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 # Uniformly break tie
                 greater = alpha_list[alpha_list[:, 2] > alpha_threshold, :2]
                 tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
-                tie_idx = torch.randperm(len(tie), generator=rng)[:(budget - len(greater))]
+                self.rng.set_state(self.rng_state)
+                tie_idx = torch.randperm(len(tie), generator=self.rng)[:(budget - len(greater))]
+                self.rng_state = self.rng.get_state()
                 # tie_idx = np.random.choice(len(tie), size=budget-len(greater), replace=False)
                 print(f"TIE idx: {tie_idx}")
                 # todo: debug: why tie_idx always the same?
