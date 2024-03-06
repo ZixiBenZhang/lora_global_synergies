@@ -8,6 +8,7 @@ import toml
 import torch
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
+from torch.distributed import barrier
 
 from dataset.pl_dataset_module import AgsDataModule
 from lora.lora_modules import LoraLinear
@@ -198,6 +199,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         with torch.no_grad():
             self.rng.set_state(self.rng_state)
             dataloader = self._get_alpha_testing_dataloader(self.rng)
+            barrier()
             self.rng_state = self.rng.get_state()
 
             original_val_metrics = self.alpha_trainer.test(
@@ -330,6 +332,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
                 self.rng.set_state(self.rng_state)
                 tie_idx = torch.randperm(len(tie), generator=self.rng)[:(budget - len(greater))]
+                barrier()
                 self.rng_state = self.rng.get_state()
                 # tie_idx = np.random.choice(len(tie), size=budget-len(greater), replace=False)
                 print(f"TIE idx: {tie_idx}")
