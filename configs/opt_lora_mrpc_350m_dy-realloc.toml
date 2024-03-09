@@ -1,0 +1,26 @@
+# Finetune LoRA modules with config reallocated based on alpha importance result
+# basics
+model = "opt_lora"
+dataset = "mrpc"
+load_name = "facebook/opt-350m"
+load_type = "hf"
+metric_red_tolerance = 0.005
+alpha_test_batch_num = 32
+realloc_N = 0.2
+turn_on_percentile = 0.25
+# training
+training_optimizer = "adamw"
+learning_rate = 3e-4
+weight_decay = 0.01
+max_epochs = 20
+batch_size = 4
+log_every_n_steps = 10
+# torch lightning
+task = "classification"
+#num_workers = 0
+num_devices = 2
+#accelerator = "cpu"
+# language model options
+is_pretrained = true
+project_dir = "./ags_output"
+lora_config = "./configs/lora/lora_networkwise.toml"
