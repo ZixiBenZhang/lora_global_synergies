@@ -263,7 +263,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             ]
             self.reallocation_history.append(
                 {
-                    "epoch": self.alpha_pl_module.current_epoch,
+                    "epoch": pl_module.current_epoch,
                     "step": batch_idx,
                     "turn_on": reallocation,
                 }
