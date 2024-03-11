@@ -28,7 +28,7 @@ from tools.trainable_param_printer import print_trainable_parameters
 logger = logging.getLogger(__name__)
 
 
-ZERO_PROXY_TRAIN_BATCH = 0.01
+ZERO_PROXY_TRAIN_BATCH = 0.05
 TEST_BATCH = 32
 
 

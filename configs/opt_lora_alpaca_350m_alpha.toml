@@ -9,7 +9,7 @@ metric_red_tolerance = 0.0005
 training_optimizer = "adamw"
 learning_rate = 2e-4
 weight_decay = 0.01
-max_epochs = 1
+max_epochs = 20
 batch_size = 4
 log_every_n_steps = 20
 # torch lightning
