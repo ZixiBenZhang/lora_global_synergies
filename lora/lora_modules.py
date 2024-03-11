@@ -67,7 +67,6 @@ class LoRALayer:
 
 class LoraLinear(nn.Linear, LoRALayer):
     # nn.Linear with LoRA
-    # TODO: load head-wise lora config
     def __init__(
         self, in_features: int, out_features: int, config: dict = None, **kwargs
     ):
@@ -136,10 +135,10 @@ class LoraLinear(nn.Linear, LoRALayer):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # input_dtype = x.dtype
         if self.active_adapter not in self.lora_A.keys():
-            return F.linear(
+            res = F.linear(
                 x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
-        if self.disable_adapters:
+        elif self.disable_adapters:
             if self.r[self.active_adapter] > 0 and self.merged:
                 self.unmerge()
             res = F.linear(
@@ -161,7 +160,6 @@ class LoraLinear(nn.Linear, LoRALayer):
                     )
                 )
                 * self.scaling[self.active_adapter]
-                * self.importance_alpha
             )
         else:
             # LoRA dropout unused
@@ -171,9 +169,10 @@ class LoraLinear(nn.Linear, LoRALayer):
                     self.weight if not self.fan_in_fan_out else self.weight.T,
                     self.bias,
                 )
-                * self.importance_alpha
             )
         # res = res.to(input_dtype)
+        # Only effective during alpha importance testing
+        res = res * self.importance_alpha
         return res
 
 
