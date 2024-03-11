@@ -54,7 +54,7 @@ class LowRankProjectorLayer:
             nn.init.zeros_(self.proj_B[projector_name].weight)
 
 
-class ShortcutFromIdentity(nn.Linear, LowRankProjectorLayer):
+class ShortcutBase(nn.Linear, LowRankProjectorLayer):
     def __init__(self, in_out_features: int, config: dict = None, **kwargs):
         nn.Linear.__init__(self, in_out_features, in_out_features, bias=False, **kwargs)
         LowRankProjectorLayer.__init__(self, in_out_features, in_out_features)
@@ -74,12 +74,14 @@ class ShortcutFromIdentity(nn.Linear, LowRankProjectorLayer):
         if self.fan_in_fan_out:
             self.weight.data = self.weight.data.T
 
-        # Identity layer
-        nn.init.eye_(self.weight)
         self.set_projector(projector_name, r, proj_dropout_p, init_proj_weights)
         self.active_projector = projector_name
 
         self.importance_beta = torch.tensor(importance_beta, requires_grad=False)
+
+    def set_importance_beta(self, beta: float):
+        assert type(beta) is float
+        self.importance_beta = torch.tensor(beta, requires_grad=self.importance_beta.requires_grad)
 
     def get_delta_w(self, projector_name):
         # Linear's tensor is out_features rows * in_features columns as default
@@ -105,6 +107,47 @@ class ShortcutFromIdentity(nn.Linear, LowRankProjectorLayer):
         if self.r[self.active_projector] > 0:
             self.weight.data -= self.get_delta_w(self.active_projector)
             self.merged = False
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # input_dtype = x.dtype
+        if (
+            self.active_projector not in self.proj_A.keys()
+        ):  # active_projector wouldn't be in proj_A.keys() if r==0
+            res = F.linear(
+                x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+            )
+        elif self.disable_projectors:
+            res = F.linear(
+                x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+            )
+        elif self.r[self.active_projector] > 0 and not self.merged:
+            # Projector dropout used
+            res = F.linear(
+                x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+            )
+            # x = x.to(self.proj_A[self.active_projector].weight.dtype)
+            res = res + self.proj_B[self.active_projector](
+                self.proj_A[self.active_projector](
+                    self.proj_dropout[self.active_projector](x)
+                )
+            )
+        else:
+            # Projector dropout unused
+            res = F.linear(
+                x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+            )
+        # res = res.to(input_dtype)
+        # Only effective during beta importance testing
+        res = res * self.importance_beta
+        return res
+
+
+class ShortcutFromIdentity(ShortcutBase):
+    def __init__(self, in_out_features: int, config: dict = None, **kwargs):
+        super().__init__(in_out_features, config, **kwargs)
+
+        # Identity layer
+        nn.init.eye_(self.weight)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # input_dtype = x.dtype
@@ -134,52 +177,12 @@ class ShortcutFromIdentity(nn.Linear, LowRankProjectorLayer):
         return res
 
 
-class ShortcutFromZeros(nn.Linear, LowRankProjectorLayer):
+class ShortcutFromZeros(ShortcutBase):
     def __init__(self, in_out_features: int, config: dict = None, **kwargs):
-        nn.Linear.__init__(self, in_out_features, in_out_features, bias=False, **kwargs)
-        LowRankProjectorLayer.__init__(self, in_out_features, in_out_features)
-        self.weight.requires_grad = False
+        super().__init__(in_out_features, config, **kwargs)
 
-        self.config = config
-        r, proj_dropout_p, projector_name, disable_projector = (
-            config["r"],
-            float(config["proj_dropout"]),
-            config["projector_name"],
-            config["disable_projector"],
-        )
-        init_proj_weights = config.get("init_proj_weights", True)
-        self.disable_projectors = disable_projector
-        self.fan_in_fan_out = config.get("fan_in_fan_out", False)
-
-        # Identity layer
+        # Zeros layer
         nn.init.zeros_(self.weight)
-        self.set_projector(projector_name, r, proj_dropout_p, init_proj_weights)
-        self.active_projector = projector_name
-
-    def get_delta_w(self, projector_name):
-        # Linear's tensor is out_features rows * in_features columns as default
-        prod = self.proj_B[projector_name].weight @ self.proj_A[projector_name].weight
-        if self.fan_in_fan_out:
-            prod = prod.T
-        return prod * self.scaling[projector_name]
-
-    def merge(self):
-        if self.active_projector not in self.proj_A.keys():
-            return
-        if self.merged:
-            return
-        if self.r[self.active_projector] > 0:
-            self.weight.data += self.get_delta_w(self.active_projector)
-            self.merged = True
-
-    def unmerge(self):
-        if self.active_projector not in self.proj_A.keys():
-            return
-        if not self.merged:
-            return
-        if self.r[self.active_projector] > 0:
-            self.weight.data -= self.get_delta_w(self.active_projector)
-            self.merged = False
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # input_dtype = x.dtype
@@ -203,6 +206,8 @@ class ShortcutFromZeros(nn.Linear, LowRankProjectorLayer):
                 x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
         # res = res.to(input_dtype)
+        # Only effective during beta importance testing
+        res = res * self.importance_beta
         return res
 
 
