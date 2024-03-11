@@ -221,6 +221,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             )
 
             # Decide which modules to keep
+            # Todo: budget scheduling? warm up & final finetune?
             alpha_list = np.concatenate(
                 [
                     [
@@ -347,9 +348,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         )
                     case "causal_language_modeling":
                         # Perplexity
+                        # larger impact to perplexity should be required as perplexity reduced
                         return (
                             original_metric
-                            + original_metric * self.metric_reduction_tolerance
+                            + 1 / original_metric * self.metric_reduction_tolerance
                         )
                     case _:
                         raise ValueError(f"Unsupported task: {self.task}")
