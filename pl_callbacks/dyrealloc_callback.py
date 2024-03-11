@@ -408,7 +408,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     lb, rb = (0, ALPHA_UB)
                     while lb < rb:
                         alpha = (lb + rb) // 2
-                        lora.importance_alpha = alpha / ALPHA_UB
+                        lora.set_importance_alpha(alpha / ALPHA_UB)
                         val_metrics = self.alpha_trainer.test(
                             self.alpha_pl_module, dataloaders=dataloader, verbose=False
                         )[0]
@@ -418,7 +418,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                             rb = alpha
                     alpha_res = rb
 
-                    lora.importance_alpha = 1.0
+                    lora.set_importance_alpha(1.0)
                     if layer_id not in res_val:
                         res_val[layer_id] = {}
                     res_val[layer_id][proj_name] = alpha_res
