@@ -37,7 +37,7 @@ from transformers.utils import (
 )
 
 from lora.lora_modules import LoraLinear
-from projectors.shortcut_modules import ShortcutFromIdentity
+from projectors.shortcut_modules import ShortcutFromIdentity, ShortcutFromZeros
 from .configuration_opt_lora_layer_residual_shortcuts import OPTLoraAgsLayerResConfig
 
 logger = logging.get_logger(__name__)
@@ -141,7 +141,7 @@ class OPTLearnedPositionalEmbedding(nn.Embedding):
 
 
 # Q, K, V, O in here
-class OPTLoraAgsLayerResAttention(nn.Module):
+class OPTLoraAgsAttention(nn.Module):
     """Multi-headed attention from 'Attention Is All You Need' paper"""
 
     def __init__(
@@ -350,12 +350,12 @@ class OPTLoraAgsLayerResAttention(nn.Module):
 
 # W1, W2 in here
 # Residual shortcut projections in here
-class OPTLoraAgsLayerResDecoderLayer(nn.Module):
+class OPTLoraAgsDecoderLayer(nn.Module):
     def __init__(self, config: OPTLoraAgsLayerResConfig, layer_id: int = 0):
         super().__init__()
         self.embed_dim = config.hidden_size
         self.layer_id = layer_id
-        self.self_attn = OPTLoraAgsLayerResAttention(
+        self.self_attn = OPTLoraAgsAttention(
             config=config,
             embed_dim=self.embed_dim,
             num_heads=config.num_attention_heads,
@@ -389,9 +389,7 @@ class OPTLoraAgsLayerResDecoderLayer(nn.Module):
             self.embed_dim, elementwise_affine=config.layer_norm_elementwise_affine
         )
 
-        layer_shortcut_config = config.shortcut_config["layer_residual"][
-            f"model_layer_{layer_id}"
-        ]
+        layer_shortcut_config = config.shortcut_config[f"model_layer_{layer_id}"]
         self.residual1 = ShortcutFromIdentity(
             in_out_features=self.embed_dim,
             config=layer_shortcut_config["residual1"],
@@ -400,6 +398,17 @@ class OPTLoraAgsLayerResDecoderLayer(nn.Module):
             in_out_features=self.embed_dim,
             config=layer_shortcut_config["residual2"],
         )
+        self.shortcut1 = ShortcutFromZeros(
+            in_out_features=self.embed_dim,
+            config=layer_shortcut_config["shortcut1"],
+        )
+        self.shortcut2 = ShortcutFromZeros(
+            in_out_features=self.embed_dim,
+            config=layer_shortcut_config["shortcut2"],
+        )
+        if self.layer_id == 0:
+            self.shortcut1 = None
+            self.shortcut2 = None
 
     def forward(
         self,
@@ -409,6 +418,8 @@ class OPTLoraAgsLayerResDecoderLayer(nn.Module):
         past_key_value: Optional[Tuple[torch.Tensor]] = None,
         output_attentions: Optional[bool] = False,
         use_cache: Optional[bool] = False,
+        residual_sa: Optional[torch.Tensor] = None,
+        residual_ffn: Optional[torch.Tensor] = None,
     ) -> Tuple[
         torch.FloatTensor, Optional[Tuple[torch.FloatTensor, torch.FloatTensor]]
     ]:
@@ -426,9 +437,13 @@ class OPTLoraAgsLayerResDecoderLayer(nn.Module):
                 If set to `True`, `past_key_values` key value states are returned and can be used to speed up decoding
                 (see `past_key_values`).
             past_key_value (`Tuple(torch.FloatTensor)`, *optional*): cached past key and value projection states
+            residual_sa (`torch.FloatTensor`, *optional*): cross-layer shortcut from previous self_attn input,
+                before transformation.
+            residual_ffn (`torch.FloatTensor`, *optional*): cross-layer shortcut from previous FFN input,
+                before transformation.
         """
 
-        # Residual shortcut projection 1
+        # In-layer residual transformation 1
         residual = self.residual1(hidden_states)
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE attention
@@ -453,6 +468,9 @@ class OPTLoraAgsLayerResDecoderLayer(nn.Module):
             hidden_states, p=self.dropout, training=self.training
         )
         hidden_states = residual + hidden_states
+        if residual_sa is not None and self.shortcut1 is not None:
+            residual = self.shortcut1(residual_sa)
+            hidden_states = residual + hidden_states
 
         # 350m applies layer norm AFTER attention
         if not self.do_layer_norm_before:
@@ -462,7 +480,7 @@ class OPTLoraAgsLayerResDecoderLayer(nn.Module):
         hidden_states_shape = hidden_states.shape
         hidden_states = hidden_states.reshape(-1, hidden_states.size(-1))
 
-        # Residual shortcut projection 2
+        # In-layer residual transformation 2
         residual = self.residual2(hidden_states)
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE ffn
@@ -477,7 +495,11 @@ class OPTLoraAgsLayerResDecoderLayer(nn.Module):
             hidden_states, p=self.dropout, training=self.training
         )
 
-        hidden_states = (residual + hidden_states).view(hidden_states_shape)
+        hidden_states = residual + hidden_states
+        if residual_ffn is not None and self.shortcut2 is not None:
+            residual = self.shortcut2(residual_ffn)
+            hidden_states = residual + hidden_states
+        hidden_states = hidden_states.view(hidden_states_shape)
 
         # 350m applies layer norm AFTER ffn
         if not self.do_layer_norm_before:
@@ -515,7 +537,7 @@ OPT_START_DOCSTRING = r"""
     "The bare OPT Model outputting raw hidden-states without any specific head on top.",
     OPT_START_DOCSTRING,
 )
-class OPTLoraAgsLayerResPreTrainedModel(PreTrainedModel):
+class OPTLoraAgsPreTrainedModel(PreTrainedModel):
     config_class = OPTLoraAgsLayerResConfig
     base_model_prefix = "model"
     supports_gradient_checkpointing = True
@@ -533,7 +555,7 @@ class OPTLoraAgsLayerResPreTrainedModel(PreTrainedModel):
                 module.weight.data[module.padding_idx].zero_()
 
     def _set_gradient_checkpointing(self, module, value=False):
-        if isinstance(module, (OPTLoraAgsLayerResDecoder)):
+        if isinstance(module, (OPTLoraAgsDecoder)):
             module.gradient_checkpointing = value
 
 
@@ -599,7 +621,7 @@ OPT_INPUTS_DOCSTRING = r"""
 """
 
 
-class OPTLoraAgsLayerResDecoder(OPTLoraAgsLayerResPreTrainedModel):
+class OPTLoraAgsDecoder(OPTLoraAgsPreTrainedModel):
     """
     Transformer decoder consisting of *config.num_hidden_layers* layers. Each layer is a [`OPTDecoderLayer`]
 
@@ -649,7 +671,7 @@ class OPTLoraAgsLayerResDecoder(OPTLoraAgsLayerResPreTrainedModel):
 
         self.layers = nn.ModuleList(
             [
-                OPTLoraAgsLayerResDecoderLayer(config, i)
+                OPTLoraAgsDecoderLayer(config, i)
                 for i in range(config.num_hidden_layers)
             ]
         )
@@ -912,10 +934,10 @@ class OPTLoraAgsLayerResDecoder(OPTLoraAgsLayerResPreTrainedModel):
     "The bare OPT Model outputting raw hidden-states without any specific head on top.",
     OPT_START_DOCSTRING,
 )
-class OPTLoraAgsLayerResModel(OPTLoraAgsLayerResPreTrainedModel):
+class OPTLoraAgsModel(OPTLoraAgsPreTrainedModel):
     def __init__(self, config: OPTLoraAgsLayerResConfig):
         super().__init__(config)
-        self.decoder = OPTLoraAgsLayerResDecoder(config)
+        self.decoder = OPTLoraAgsDecoder(config)
         # Initialize weights and apply final processing
         self.post_init()
 
@@ -986,12 +1008,12 @@ class OPTLoraAgsLayerResModel(OPTLoraAgsLayerResPreTrainedModel):
         )
 
 
-class OPTLoraAgsLayerResForCausalLM(OPTLoraAgsLayerResPreTrainedModel):
+class OPTLoraAgsForCausalLM(OPTLoraAgsPreTrainedModel):
     _tied_weights_keys = ["lm_head.weight"]
 
     def __init__(self, config: OPTLoraAgsLayerResConfig):
         super().__init__(config)
-        self.model = OPTLoraAgsLayerResModel(config)
+        self.model = OPTLoraAgsModel(config)
 
         # the lm_head weight is automatically tied to the embed tokens weight
         self.lm_head = nn.Linear(
@@ -1217,11 +1239,11 @@ class OPTLoraAgsLayerResForCausalLM(OPTLoraAgsLayerResPreTrainedModel):
     """,
     OPT_START_DOCSTRING,
 )
-class OPTLoraAgsLayerResForSequenceClassification(OPTLoraAgsLayerResPreTrainedModel):
+class OPTLoraAgsForSequenceClassification(OPTLoraAgsPreTrainedModel):
     def __init__(self, config: OPTLoraAgsLayerResConfig):
         super().__init__(config)
         self.num_labels = config.num_labels
-        self.model = OPTLoraAgsLayerResModel(config)
+        self.model = OPTLoraAgsModel(config)
         self.score = nn.Linear(config.word_embed_proj_dim, self.num_labels, bias=False)
 
         # Initialize weights and apply final processing
@@ -1347,10 +1369,10 @@ class OPTLoraAgsLayerResForSequenceClassification(OPTLoraAgsLayerResPreTrainedMo
     """,
     OPT_START_DOCSTRING,
 )
-class OPTLoraAgsLayerResForQuestionAnswering(OPTLoraAgsLayerResPreTrainedModel):
+class OPTLoraAgsForQuestionAnswering(OPTLoraAgsPreTrainedModel):
     def __init__(self, config: OPTLoraAgsLayerResConfig):
         super().__init__(config)
-        self.model = OPTLoraAgsLayerResModel(config)
+        self.model = OPTLoraAgsModel(config)
         self.qa_outputs = nn.Linear(config.word_embed_proj_dim, 2)
 
         # Initialize weights and apply final processing

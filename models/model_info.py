@@ -23,9 +23,9 @@ from models.modeling_opt_lora import (
     OPTLoraForSequenceClassification,
     OPTLoraForCausalLM,
 )
-from models.modeling_opt_lora_layer_residual_shortcuts import (
-    OPTLoraAgsLayerResForSequenceClassification,
-    OPTLoraAgsLayerResForCausalLM,
+from models.modeling_opt_lora_ags import (
+    OPTLoraAgsForSequenceClassification,
+    OPTLoraAgsForCausalLM,
 )
 from models.modeling_roberta_lora import (
     RobertaLoraForSequenceClassification,
@@ -253,8 +253,8 @@ MANUAL_MODELS = {
             is_lora=True,
             is_ags=True,
         ),
-        "sequence_classification": OPTLoraAgsLayerResForSequenceClassification,
-        "causal_LM": OPTLoraAgsLayerResForCausalLM,
+        "sequence_classification": OPTLoraAgsForSequenceClassification,
+        "causal_LM": OPTLoraAgsForCausalLM,
     },
     # TODO: more LoRA model info
 }
