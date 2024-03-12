@@ -128,7 +128,7 @@ def snip_test(
 
     # SNIP
     assert (
-            limit_test_num % dataloader.batch_size == 0
+        limit_test_num % dataloader.batch_size == 0
     ), f"Test number limit must be dividable by batch size. Got test number limit {limit_test_num}, batch size {dataloader.batch_size}."
     assert (
         type(model) is OPTLoraForCausalLM
@@ -238,8 +238,9 @@ def snip_test(
             ):
                 continue
 
-            grad_lora = torch.sum(torch.abs(lora.weight_mask_A.grad)) + torch.sum(
-                torch.abs(lora.weight_mask_B)
+            grad_lora = (
+                torch.sum(torch.abs(lora.weight_mask_A.grad))
+                + torch.sum(torch.abs(lora.weight_mask_B))
             ).item()
 
             if f"layer_{layer_id}" not in grads_abs:
@@ -251,4 +252,4 @@ def snip_test(
         toml.dump(grads_abs, fout)
     logger.info("Result saved as toml")
 
-    print("SNIP test done")
+    logger.warning("SNIP test done")
