@@ -209,11 +209,11 @@ def snip_test(
         if i >= limit_batch_num:
             break
         print(" " * len(msg), end="\r")
-        msg = f"Testing on training batch {i} / {limit_batch_num}"
+        msg = f"Testing on training batch {i+1} / {limit_batch_num}"
         print(msg, end="\r")
         loss = pl_model.training_step(batch=batch, batch_idx=i)
         loss.backward()
-    print(" " * len(msg), end="\r")
+    print()
 
     # calculate score of every lora module
     grads_abs = {
@@ -240,7 +240,7 @@ def snip_test(
 
             grad_lora = torch.sum(torch.abs(lora.weight_mask_A.grad)) + torch.sum(
                 torch.abs(lora.weight_mask_B)
-            )
+            ).item()
 
             if f"layer_{layer_id}" not in grads_abs:
                 grads_abs[f"layer{layer_id}"] = {}
