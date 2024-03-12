@@ -198,6 +198,8 @@ def snip_test(
             lora.forward = types.MethodType(lora_forward, lora)
 
     # compute gradients
+    print("Testing on training batches")
+    pl_model.automatic_optimization = False
     pl_model.zero_grad()
     for i, batch in enumerate(dataloader):
         loss = pl_model.training_step(batch=batch, batch_idx=i)
@@ -234,3 +236,5 @@ def snip_test(
     with open(log_path, "w+") as fout:
         toml.dump(grads_abs, fout)
     logger.info("Result saved as toml")
+
+    print("SNIP test done")
