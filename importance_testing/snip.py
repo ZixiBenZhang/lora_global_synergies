@@ -149,23 +149,6 @@ def snip_test(
             res = F.linear(
                 x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
-        elif self.r[self.active_adapter] > 0 and not self.merged:
-            res = F.linear(
-                x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
-            )
-            res = (
-                res
-                + (
-                    F.linear(
-                        F.linear(
-                            self.lora_dropout[self.active_adapter](x),
-                            self.lora_A[self.active_adapter] * self.weight_mask_A,
-                        ),
-                        self.lora_B[self.active_adapter] * self.weight_mask_B,
-                    )
-                )
-                * self.scaling[self.active_adapter]
-            )
         else:
             self.unmerge()
             res = F.linear(
@@ -177,9 +160,9 @@ def snip_test(
                         F.linear(
                             F.linear(
                                 self.lora_dropout[self.active_adapter](x),
-                                self.lora_A[self.active_adapter] * self.weight_mask_A,
+                                self.lora_A[self.active_adapter].weight * self.weight_mask_A,
                             ),
-                            self.lora_B[self.active_adapter] * self.weight_mask_B,
+                            self.lora_B[self.active_adapter].weight * self.weight_mask_B,
                         )
                     )
                     * self.scaling[self.active_adapter]
