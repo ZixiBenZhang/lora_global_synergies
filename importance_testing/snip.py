@@ -198,12 +198,15 @@ def snip_test(
             lora.forward = types.MethodType(lora_forward, lora)
 
     # compute gradients
-    print("Testing on training batches")
-    pl_model.automatic_optimization = False
     pl_model.zero_grad()
+    msg = ""
     for i, batch in enumerate(dataloader):
+        print(" " * len(msg), end="\r")
+        msg = f"Testing on training batch {i}"
+        print(msg, end="\r")
         loss = pl_model.training_step(batch=batch, batch_idx=i)
-        pl_model.manual_backward(loss)
+        loss.backward()
+    print(" " * len(msg), end="\r")
 
     # calculate score of every lora module
     grads_abs = {}
