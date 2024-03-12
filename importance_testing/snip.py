@@ -1,5 +1,6 @@
 import copy
 import logging
+import math
 import os
 import pickle
 import time
@@ -128,7 +129,8 @@ def snip_test(
 
     # SNIP
     assert (
-        limit_test_num % dataloader.batch_size == 0
+        type(limit_test_num) is float
+        or limit_test_num % dataloader.batch_size == 0
     ), f"Test number limit must be dividable by batch size. Got test number limit {limit_test_num}, batch size {dataloader.batch_size}."
     assert (
         type(model) is OPTLoraForCausalLM
@@ -204,7 +206,12 @@ def snip_test(
     # compute gradients
     pl_model.zero_grad()
     msg = ""
-    limit_batch_num = limit_test_num // dataloader.batch_size
+    if type(limit_test_num) is float:
+        limit_batch_num = math.ceil(len(dataloader) * limit_test_num / dataloader.batch_size)
+        if limit_batch_num * dataloader.batch_size != len(dataloader) * limit_test_num:
+            logger.warning("More data rows than the provided test ratio limit are used")
+    else:
+        limit_batch_num = limit_test_num // dataloader.batch_size
     for i, batch in enumerate(dataloader):
         if i >= limit_batch_num:
             break
