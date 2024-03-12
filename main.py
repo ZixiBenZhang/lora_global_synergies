@@ -292,7 +292,7 @@ def main():
                 "load_name": load_name,
                 "load_type": args.load_type,
                 "resume_training": args.resume_training,
-                "metric_reduction_tolerance": args.metric_red_tolerance,
+                "limit_test_num": args.alpha_test_batch_num,
             }
 
             importance_testing.snip_test(**test_params)

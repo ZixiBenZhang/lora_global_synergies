@@ -205,8 +205,9 @@ def get_arg_parser():
         dest="alpha_test_batch_num",
         default=None,
         help="""
-            for dynamic lora reallocation training, 
-            number of batches / ratio of validation batches to use for each alpha testing
+            for dynamic lora reallocation training zero-proxy NAS tests;
+            number of batches / ratio of validation batches to use for each alpha testing;
+            number of data rows of training set to use for zero-proxy NAS tests
         """,
         type=_positive_int_or_percentage,
         metavar="NUM",

@@ -52,7 +52,7 @@ def snip_test(
     load_name,  # path to the saved checkpoint
     load_type,  # model checkpoint's type: ['pt', 'pl']
     resume_training,  # whether resume zero-proxy trained model from the checkpoint
-    metric_reduction_tolerance,  # for calculating alpha threshold
+    limit_test_num,  # number of data row limit for the zero-proxy test
 ):
     t = time.strftime("%H-%M")
 
@@ -128,9 +128,12 @@ def snip_test(
 
     # SNIP
     assert (
-            type(model) is OPTLoraForCausalLM
-            or type(model) is OPTLoraForSequenceClassification
-            or type(model) is OPTLoraForQuestionAnswering
+            limit_test_num % dataloader.batch_size == 0
+    ), f"Test number limit must be dividable by batch size. Got test number limit {limit_test_num}, batch size {dataloader.batch_size}."
+    assert (
+        type(model) is OPTLoraForCausalLM
+        or type(model) is OPTLoraForSequenceClassification
+        or type(model) is OPTLoraForQuestionAnswering
     )
     model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
 
@@ -155,17 +158,18 @@ def snip_test(
                 x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
             res = (
-                    res
-                    + (
+                res
+                + (
+                    F.linear(
                         F.linear(
-                            F.linear(
-                                self.lora_dropout[self.active_adapter](x),
-                                self.lora_A[self.active_adapter].weight * self.weight_mask_A,
-                            ),
-                            self.lora_B[self.active_adapter].weight * self.weight_mask_B,
-                        )
+                            self.lora_dropout[self.active_adapter](x),
+                            self.lora_A[self.active_adapter].weight
+                            * self.weight_mask_A,
+                        ),
+                        self.lora_B[self.active_adapter].weight * self.weight_mask_B,
                     )
-                    * self.scaling[self.active_adapter]
+                )
+                * self.scaling[self.active_adapter]
             )
         # res = res.to(input_dtype)
         return res
@@ -182,9 +186,9 @@ def snip_test(
         }
         for proj_name, lora in lora_modules.items():
             if (
-                    lora.active_adapter not in lora.lora_A.keys()
-                    or lora.disable_adapters
-                    or lora.r[lora.active_adapter] == 0
+                lora.active_adapter not in lora.lora_A.keys()
+                or lora.disable_adapters
+                or lora.r[lora.active_adapter] == 0
             ):
                 continue
 
@@ -200,16 +204,21 @@ def snip_test(
     # compute gradients
     pl_model.zero_grad()
     msg = ""
+    limit_batch_num = limit_test_num // dataloader.batch_size
     for i, batch in enumerate(dataloader):
+        if i >= limit_batch_num:
+            break
         print(" " * len(msg), end="\r")
-        msg = f"Testing on training batch {i}"
+        msg = f"Testing on training batch {i} / {limit_batch_num}"
         print(msg, end="\r")
         loss = pl_model.training_step(batch=batch, batch_idx=i)
         loss.backward()
     print(" " * len(msg), end="\r")
 
     # calculate score of every lora module
-    grads_abs = {}
+    grads_abs = {
+        "limit_test_num": limit_test_num,
+    }
     for decoder_layer in reversed(model.model.decoder.layers):
         decoder_layer: OPTLoraDecoderLayer
         layer_id = decoder_layer.layer_id
@@ -223,13 +232,15 @@ def snip_test(
         }
         for proj_name, lora in lora_modules.items():
             if (
-                    lora.active_adapter not in lora.lora_A.keys()
-                    or lora.disable_adapters
-                    or lora.r[lora.active_adapter] == 0
+                lora.active_adapter not in lora.lora_A.keys()
+                or lora.disable_adapters
+                or lora.r[lora.active_adapter] == 0
             ):
                 continue
 
-            grad_lora = torch.sum(torch.abs(lora.weight_mask_A.grad)) + torch.sum(torch.abs(lora.weight_mask_B))
+            grad_lora = torch.sum(torch.abs(lora.weight_mask_A.grad)) + torch.sum(
+                torch.abs(lora.weight_mask_B)
+            )
 
             if f"layer_{layer_id}" not in grads_abs:
                 grads_abs[f"layer{layer_id}"] = {}
