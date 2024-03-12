@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Union
 
 ROOT = Path(__file__).parent.parent.absolute()
-ACTIONS = ["train", "test", "alpha-test", "train-dyrealloc"]
+ACTIONS = ["train", "test", "alpha-test", "train-dyrealloc", "snip-test"]
 TASKS = ["classification", "causal_language_modeling", "summarization"]
 LOAD_TYPE = [
     "pt",  # PyTorch module state dictionary
