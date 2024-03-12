@@ -58,20 +58,13 @@ def snip_test(
 
     logger.warning("Running SNIP importance test")
 
-    # if save_path is not None:  # if save_path is None, model won't be saved
-    #     # setup callbacks
-    #     if not os.path.isdir(save_path):
-    #         os.makedirs(save_path)
-    #     # TensorBoard logger
-    #     tb_logger = pl.loggers.TensorBoardLogger(save_dir=save_path, name="logs")
-    #     pl_trainer_args["callbacks"] = []
-    #     pl_trainer_args["logger"] = [tb_logger]
-    #
-    # if auto_requeue is not None:
-    #     plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
-    # else:
-    #     plugins = None
-    # pl_trainer_args["plugins"] = plugins
+    if save_path is not None:  # if save_path is None, model won't be saved
+        # setup callbacks
+        if not os.path.isdir(save_path):
+            os.makedirs(save_path)
+        # TensorBoard logger
+        tb_logger = pl.loggers.TensorBoardLogger(save_dir=save_path, name="logs")
+        pl_trainer_args["logger"] = [tb_logger]
 
     wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
         model_info, task
@@ -129,6 +122,8 @@ def snip_test(
             collate_fn=data_collator,
         )
 
+    data_module.prepare_data()
+    data_module.setup()
     dataloader = get_alpha_test_dataloader(data_module)
 
     # SNIP
@@ -225,6 +220,7 @@ def snip_test(
         loss = pl_model.training_step(batch=batch, batch_idx=i)
         pl_model.manual_backward(loss)
 
+    # calculate score of every lora module
     grads_abs = {}
     for decoder_layer in reversed(model.model.decoder.layers):
         decoder_layer: OPTLoraDecoderLayer
