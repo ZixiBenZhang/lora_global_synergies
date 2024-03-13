@@ -204,21 +204,20 @@ def snip_test(
             lora.forward = types.MethodType(lora_forward, lora)
 
     # compute gradients
-    pl_model.to("cuda")
-    pl_model.zero_grad()
-    msg = ""
     if type(limit_test_num) is float:
-        limit_batch_num = math.ceil(len(dataloader) * limit_test_num / dataloader.batch_size)
-        if limit_batch_num * dataloader.batch_size != len(dataloader) * limit_test_num:
+        limit_batch_num = math.ceil(len(dataloader) * limit_test_num)
+        if limit_batch_num != len(dataloader) * limit_test_num:
             logger.warning("More data rows than the provided test ratio limit are used")
     else:
         limit_batch_num = limit_test_num // dataloader.batch_size
-
+    pl_model.to("cuda")
+    pl_model.zero_grad()
+    msg = ""
     for i, batch in enumerate(dataloader):
         if i >= limit_batch_num:
             break
         print(" " * len(msg), end="\r")
-        msg = f"Testing on training batch {i+1} / {limit_batch_num}"
+        msg = f">>> Testing on training batch {i+1} / {limit_batch_num}"
         print(msg, end="\r")
         batch = data_module.transfer_batch_to_device(batch, torch.device("cuda"), 0)
         loss = pl_model.training_step(batch=batch, batch_idx=i)
