@@ -116,7 +116,7 @@ def snip_test(
                 tokenizer=datamodule.tokenizer
             )
         return DataLoader(
-            datamodule.training_dataset.to("cuda"),
+            datamodule.training_dataset,
             batch_size=datamodule.batch_size,
             shuffle=False,
             num_workers=datamodule.num_workers,
@@ -220,6 +220,7 @@ def snip_test(
         print(" " * len(msg), end="\r")
         msg = f"Testing on training batch {i+1} / {limit_batch_num}"
         print(msg, end="\r")
+        batch = data_module.transfer_batch_to_device(batch, torch.device("cuda"), 0)
         loss = pl_model.training_step(batch=batch, batch_idx=i)
         loss.backward()
     print()
