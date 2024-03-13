@@ -213,12 +213,14 @@ def snip_test(
             logger.warning("More data rows than the provided test ratio limit are used")
     else:
         limit_batch_num = limit_test_num // dataloader.batch_size
+
     for i, batch in enumerate(dataloader):
         if i >= limit_batch_num:
             break
         print(" " * len(msg), end="\r")
         msg = f"Testing on training batch {i+1} / {limit_batch_num}"
         print(msg, end="\r")
+        batch.to("cuda")
         loss = pl_model.training_step(batch=batch, batch_idx=i)
         loss.backward()
     print()
