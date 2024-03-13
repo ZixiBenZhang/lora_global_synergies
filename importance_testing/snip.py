@@ -204,6 +204,7 @@ def snip_test(
             lora.forward = types.MethodType(lora_forward, lora)
 
     # compute gradients
+    pl_model.to("cuda")
     pl_model.zero_grad()
     msg = ""
     if type(limit_test_num) is float:
