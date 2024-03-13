@@ -1,0 +1,73 @@
+limit_test_num = 1
+
+[layer23]
+v_proj = 8192.1064453125
+
+[layer22]
+v_proj = 8192.0615234375
+
+[layer21]
+v_proj = 8192.048828125
+
+[layer20]
+v_proj = 8192.0576171875
+
+[layer19]
+v_proj = 8192.0458984375
+
+[layer18]
+v_proj = 8192.0439453125
+
+[layer17]
+v_proj = 8192.0458984375
+
+[layer16]
+v_proj = 8192.04296875
+
+[layer15]
+v_proj = 8192.0400390625
+
+[layer14]
+v_proj = 8192.041015625
+
+[layer13]
+v_proj = 8192.0439453125
+
+[layer12]
+v_proj = 8192.0361328125
+
+[layer11]
+v_proj = 8192.0380859375
+
+[layer10]
+v_proj = 8192.0576171875
+
+[layer9]
+v_proj = 8192.0458984375
+
+[layer8]
+v_proj = 8192.0478515625
+
+[layer7]
+v_proj = 8192.0400390625
+
+[layer6]
+v_proj = 8192.0400390625
+
+[layer5]
+v_proj = 8192.0380859375
+
+[layer4]
+v_proj = 8192.0361328125
+
+[layer3]
+v_proj = 8192.0341796875
+
+[layer2]
+v_proj = 8192.033203125
+
+[layer1]
+v_proj = 8192.044921875
+
+[layer0]
+v_proj = 8192.0263671875
