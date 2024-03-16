@@ -9,6 +9,6 @@
 #SBATCH --time=24:00:00
 #SBATCH --account=su114-gpu
 
-source ~/torch_lora/bin/activate
+source ~/anaconda/bin/activate
 
 srun python -m main train --config configs/opt_lora_qqp_350m.toml
