@@ -118,7 +118,7 @@ def grad_norm_test(
 
     # calculate score of every lora module
     grads_norm = {
-        "limit_test_num": limit_test_batches * dataloader.batch_size,
+        "limit_test_num": limit_batch_num * dataloader.batch_size,
     }
     for decoder_layer in model.model.decoder.layers:
         decoder_layer: OPTLoraDecoderLayer
