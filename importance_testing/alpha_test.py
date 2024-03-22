@@ -187,7 +187,7 @@ def alpha_importance_test(
             )
 
         def save_toml(res: dict):
-            log_path = f"{save_path}/alpha-importance_{save_time}.toml"
+            log_path = f"{save_path}/alpha-imp_{save_time}.toml"
             with open(log_path, "w+") as fout:
                 toml.dump(res, fout)
             logger.info("Result saved as toml")

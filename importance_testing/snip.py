@@ -48,23 +48,23 @@ def snip_test(
 
     model = pl_model.model
 
-    trainable_params = []
-    if model_info.is_lora:
-        trainable_params.append("lora_")
-    if model_info.is_ags:
-        trainable_params.append("proj_")
-    if len(trainable_params) > 0:
-        for name, param in model.named_parameters():
-            if name.startswith("model") or name.startswith("roberta"):
-                param.requires_grad = False
-                for trainable_param in trainable_params:
-                    if trainable_param in name:
-                        param.requires_grad = True
-                        break
-            else:
-                param.requires_grad = True
-    update_lora_importance_alpha_require_grad(model, require_grad=False)
-    print_trainable_parameters(model)
+    # trainable_params = []
+    # if model_info.is_lora:
+    #     trainable_params.append("lora_")
+    # if model_info.is_ags:
+    #     trainable_params.append("proj_")
+    # if len(trainable_params) > 0:
+    #     for name, param in model.named_parameters():
+    #         if name.startswith("model") or name.startswith("roberta"):
+    #             param.requires_grad = False
+    #             for trainable_param in trainable_params:
+    #                 if trainable_param in name:
+    #                     param.requires_grad = True
+    #                     break
+    #         else:
+    #             param.requires_grad = True
+    # update_lora_importance_alpha_require_grad(model, require_grad=False)
+    # print_trainable_parameters(model)
 
     def get_unshuffled_train_dataloader(datamodule: AgsDataModule):
         if datamodule.training_dataset is None:
@@ -183,7 +183,7 @@ def snip_test(
     grads_abs = {
         "limit_test_num": limit_test_batches * dataloader.batch_size,
     }
-    for decoder_layer in reversed(model.model.decoder.layers):
+    for decoder_layer in model.model.decoder.layers:
         decoder_layer: OPTLoraDecoderLayer
         layer_id = decoder_layer.layer_id
         lora_modules: dict[str, LoraLinear] = {

@@ -6,7 +6,7 @@ load_name = "facebook/opt-350m"
 load_type = "hf"
 # reallocation
 importance_test_name = "snip"
-imp_limit_test_batches = 8
+imp_limit_test_batches = 1
 # training
 training_optimizer = "adamw"
 learning_rate = 1e-4

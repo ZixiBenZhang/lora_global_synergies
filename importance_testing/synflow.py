@@ -155,7 +155,7 @@ def synflow_test(
                 grads_abs[f"layer{layer_id}"] = {}
             grads_abs[f"layer{layer_id}"][proj_name] = grad_lora
 
-    log_path = f"{save_path}/snip_{save_time}.toml"
+    log_path = f"{save_path}/synflow_{save_time}.toml"
     with open(log_path, "w+") as fout:
         toml.dump(grads_abs, fout)
     logger.info("Result saved as toml")
