@@ -116,7 +116,7 @@ def synflow_test(
     # compute gradients with input of ones
     pl_model.to("cuda")
     pl_model.zero_grad()
-    example_input = next(iter(dataloader))
+    example_input = next(iter(dataloader))["input_ids"]
     input_dim = list(example_input.shape)
     inputs = torch.ones([1] + input_dim).double().to("cuda")
     output = pl_model.forward(inputs)
