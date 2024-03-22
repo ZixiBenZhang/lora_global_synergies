@@ -221,7 +221,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
             )
 
             # Decide which modules to keep
-            # Todo: budget scheduling? warm up & final finetune?
             alpha_list = np.concatenate(
                 [
                     [
@@ -245,6 +244,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     : (budget - len(greater))
                 ]
                 self.rng_state = self.rng.get_state()
+                # todo: debug
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
             else:
                 idx = idx[-budget:]
@@ -438,6 +438,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
         # TODO: evaluate module importance based on gradient of alpha
         pl_module.model.to(device)
         raise NotImplementedError
+
+    # TODO: add zero-proxy test for dyrealloc?? (if before-training zero-proxy is worse than dynamic alpha)
 
     def save_reallocation_history(self):
         if torch.cuda.current_device() != 0:
