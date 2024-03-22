@@ -1,5 +1,6 @@
 import copy
 import logging
+import math
 import os
 
 import torch
@@ -24,7 +25,7 @@ def train_dynamic_reallocation(
     model: torch.nn.Module | torch.fx.GraphModule,
     tokenizer,
     model_info: AgsModelInfo,  # dataclass of model's task type and name
-    data_module: pl.LightningDataModule,  # for preparing and loading datasets for pl trainer
+    data_module: AgsDataModule,  # for preparing and loading datasets for pl trainer
     dataset_info,  # dataclass including e.g. number of classes for the pl model wrapper
     task,  # to decide the pl model wrapper of which type should be used
     optimizer,  # optimizer for pl trainer
@@ -38,11 +39,18 @@ def train_dynamic_reallocation(
     load_name,  # path to the saved checkpoint
     load_type,  # model checkpoint's type: ['pt', 'pl']
     resume_training,  # whether resume full training from the checkpoint
-    metric_reduction_tolerance,  # for calculating alpha threshold
-    limit_alpha_test_batches,  # number of batches used for alpha testing
-    realloc_N,  # frequency to perform rank reallocation
-    turn_on_percentile,  # for reallocating lora ranks
+    dynamic_reallocation_args,
+    importance_test_name,
+    importance_test_args,
+    # realloc_N,  # frequency to perform rank reallocation
+    # turn_on_percentile,  # for reallocating lora ranks
 ):
+    metric_reduction_tolerance = importance_test_args["metric_reduction_tolerance"]
+    limit_test_batches = importance_test_args["limit_test_batches"]
+    realloc_N = dynamic_reallocation_args["realloc_N"]
+    turn_on_percentile = dynamic_reallocation_args["turn_on_percentile"]
+    # TODO: accommodate zero-proxy metrics dy-realloc
+
     alpha_pl_trainer_args = copy.deepcopy(pl_trainer_args)
 
     if save_path is not None:  # if save_path is None, model won't be saved
@@ -95,10 +103,12 @@ def train_dynamic_reallocation(
         model_info, task
     )
 
+    # Dynamic reallocation callback
     assert (
         type(data_module) is AgsDataModule
     ), "Only AgsDataModule supported for dynamic-lora-reallocation training"
     data_module: AgsDataModule
+
     if resume_training:
         alpha_pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
     else:
@@ -112,6 +122,7 @@ def train_dynamic_reallocation(
             epochs=pl_trainer_args["max_epochs"],
             optimizer=optimizer,
         )
+
     dynamic_reallocation_callback = DynamicLoraReallocationCallback(
         N=realloc_N,
         data_module=data_module,
@@ -120,12 +131,13 @@ def train_dynamic_reallocation(
         task=task,
         metric_reduction_tolerance=metric_reduction_tolerance,
         turn_on_percentile=turn_on_percentile,
-        limit_test_batches=limit_alpha_test_batches,
+        limit_test_batches=limit_test_batches,
         save_path=save_path,
     )
     pl_trainer_args["callbacks"].append(dynamic_reallocation_callback)
     logger.warning("Running dynamic LoRA reallocation training")
 
+    # Training
     if resume_training:
         # resume full training from pl checkpoint
         if load_name is None:
