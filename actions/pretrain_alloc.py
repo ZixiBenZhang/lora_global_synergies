@@ -30,6 +30,7 @@ def pretrain_alloc(
     lr_scheduler,  # for building lr scheduler
     eta_min,  # for building lr scheduler
     pl_trainer_args,  # args for pl trainer; include e.g. "max_epochs" for setting up lr_scheduler
+    auto_requeue,  # for setting up SLURMEnvironment, environment for distributed launch
     save_path,  # path for saving checkpoints
     load_name,  # path to the saved checkpoint
     load_type,  # model checkpoint's type: ['pt', 'pl']
@@ -78,6 +79,7 @@ def pretrain_alloc(
         lr_scheduler,
         eta_min,
         pl_trainer_args,
+        auto_requeue,
         save_path,
         t,
         load_name,
