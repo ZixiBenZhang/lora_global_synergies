@@ -206,8 +206,9 @@ def get_arg_parser():
         metavar="TOML",
     )
     # Reallocation options
-    general_group.add_argument(
-        "--imp-test-name",
+    reallocation_group = parser.add_argument_group("reallocation options")
+    reallocation_group.add_argument(
+        "--importance-test-name",
         dest="importance_test_name",
         choices=IMP_TEST_NAMES,
         help=f"""
@@ -217,7 +218,7 @@ def get_arg_parser():
         """,
         metavar="",
     )
-    general_group.add_argument(
+    reallocation_group.add_argument(
         "--alpha",
         dest="alpha",
         default=None,
@@ -225,18 +226,7 @@ def get_arg_parser():
         type=float,
         metavar="NUM",
     )
-    general_group.add_argument(
-        "--metric-red-tolerance",
-        dest="metric_red_tolerance",
-        default=0.01,
-        help="""
-            for alpha importance test and dynamic lora reallocation training, 
-            metric reduction tolerance rate for calculating metric threshold
-        """,
-        type=float,
-        metavar="NUM",
-    )
-    general_group.add_argument(
+    reallocation_group.add_argument(
         "--imp-limit-test-batches",
         dest="imp_limit_test_batches",
         default=32,
@@ -247,7 +237,18 @@ def get_arg_parser():
         type=_positive_int_or_percentage,
         metavar="NUM",
     )
-    general_group.add_argument(
+    reallocation_group.add_argument(
+        "--metric-red-tolerance",
+        dest="metric_red_tolerance",
+        default=0.01,
+        help="""
+            for alpha importance test and dynamic lora reallocation training, 
+            metric reduction tolerance rate for calculating metric threshold
+        """,
+        type=float,
+        metavar="NUM",
+    )
+    reallocation_group.add_argument(
         "--alpha-limit-zptrain-batches",
         dest="alpha_limit_zptrain_batches",
         default=0.05,
@@ -258,7 +259,7 @@ def get_arg_parser():
         type=_positive_int_or_percentage,
         metavar="NUM",
     )
-    general_group.add_argument(
+    reallocation_group.add_argument(
         "--realloc-N",
         dest="realloc_N",
         default=0.1,
@@ -269,7 +270,7 @@ def get_arg_parser():
         type=_positive_int_or_percentage,
         metavar="NUM",
     )
-    general_group.add_argument(
+    reallocation_group.add_argument(
         "--turn-on-percentile",
         dest="turn_on_percentile",
         default=0.25,

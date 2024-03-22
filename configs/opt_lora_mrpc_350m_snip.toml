@@ -4,7 +4,9 @@ model = "opt_lora"
 dataset = "mrpc"
 load_name = "facebook/opt-350m"
 load_type = "hf"
-alpha_test_batch_num = 8
+# reallocation
+importance_test_name = "snip"
+imp_limit_test_batches = 8
 # training
 training_optimizer = "adamw"
 learning_rate = 1e-4
