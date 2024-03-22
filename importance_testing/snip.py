@@ -1,18 +1,11 @@
-import copy
 import logging
 import math
-import os
-import pickle
-import time
 import types
 
 import toml
 import torch
 from torch import nn
 import torch.nn.functional as F
-import pytorch_lightning as pl
-from lightning_fabric.plugins.environments import SLURMEnvironment
-from pytorch_lightning.loggers import TensorBoardLogger, CSVLogger
 from torch.utils.data import DataLoader
 
 from dataset import AgsDatasetInfo
@@ -25,19 +18,14 @@ from models.modeling_opt_lora import (
     OPTLoraForSequenceClassification,
     OPTLoraDecoderLayer,
 )
-from tools.checkpoint_load import load_model_chkpt
-import pl_model_wrapper
+from pl_model_wrapper.base import PlWrapperBase
 from tools.trainable_param_printer import print_trainable_parameters
 
 logger = logging.getLogger(__name__)
 
 
-TEST_BATCH = 32
-
-
 def snip_test(
-    model: torch.nn.Module | torch.fx.GraphModule,
-    tokenizer,
+    pl_model: PlWrapperBase,
     model_info: AgsModelInfo,  # dataclass of model's task type and name
     data_module: AgsDataModule,  # for preparing and loading datasets for pl trainer
     dataset_info: AgsDatasetInfo,  # dataclass including e.g. number of classes for the pl model wrapper
@@ -50,44 +38,15 @@ def snip_test(
     pl_trainer_args,  # args for pl trainer; include e.g. "max_epochs" for setting up lr_scheduler
     auto_requeue,  # for setting up SLURMEnvironment, environment for distributed launch
     save_path,  # path for saving checkpoints
+    save_time,  # for result toml filename
     load_name,  # path to the saved checkpoint
     load_type,  # model checkpoint's type: ['pt', 'pl']
     resume_training,  # whether resume zero-proxy trained model from the checkpoint
-    limit_test_num,  # number of data row limit for the zero-proxy test
+    limit_test_batches,  # number of test batches limit for the zero-proxy test
 ):
-    t = time.strftime("%H-%M")
+    logger.warning("Running SNIP test")
 
-    logger.warning("Running SNIP importance test")
-
-    if save_path is not None:  # if save_path is None, model won't be saved
-        # setup callbacks
-        if not os.path.isdir(save_path):
-            os.makedirs(save_path)
-        # TensorBoard logger
-        tb_logger = pl.loggers.TensorBoardLogger(save_dir=save_path, name="logs")
-        pl_trainer_args["logger"] = [tb_logger]
-
-    wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
-        model_info, task
-    )
-
-    # load model state from checkpoint
-    if load_name is not None:
-        model = load_model_chkpt(load_name, load_type=load_type, model=model)
-        logger.warning(
-            f"Restore model state from pl checkpoint {load_name}. Entered model hyperparameter configuration ignored."
-        )
-
-    pl_model: pl.LightningModule = wrapper_pl_model(
-        model,
-        dataset_info=dataset_info,
-        learning_rate=learning_rate,
-        weight_decay=weight_decay,
-        lr_scheduler=lr_scheduler,  # for building lr scheduler
-        eta_min=eta_min,  # for building lr scheduler
-        epochs=pl_trainer_args["max_epochs"],
-        optimizer=optimizer,
-    )
+    model = pl_model.model
 
     trainable_params = []
     if model_info.is_lora:
@@ -107,7 +66,7 @@ def snip_test(
     update_lora_importance_alpha_require_grad(model, require_grad=False)
     print_trainable_parameters(model)
 
-    def get_alpha_test_dataloader(datamodule: AgsDataModule):
+    def get_unshuffled_train_dataloader(datamodule: AgsDataModule):
         if datamodule.training_dataset is None:
             raise RuntimeError("The training dataset is not available.")
         data_collator = None
@@ -125,13 +84,9 @@ def snip_test(
 
     data_module.prepare_data()
     data_module.setup()
-    dataloader = get_alpha_test_dataloader(data_module)
+    dataloader = get_unshuffled_train_dataloader(data_module)
 
     # SNIP
-    assert (
-        type(limit_test_num) is float
-        or limit_test_num % dataloader.batch_size == 0
-    ), f"Test number limit must be dividable by batch size. Got test number limit {limit_test_num}, batch size {dataloader.batch_size}."
     assert (
         type(model) is OPTLoraForCausalLM
         or type(model) is OPTLoraForSequenceClassification
@@ -204,12 +159,12 @@ def snip_test(
             lora.forward = types.MethodType(lora_forward, lora)
 
     # compute gradients
-    if type(limit_test_num) is float:
-        limit_batch_num = math.ceil(len(dataloader) * limit_test_num)
-        if limit_batch_num != len(dataloader) * limit_test_num:
-            logger.warning("More data rows than the provided test ratio limit are used")
+    if type(limit_test_batches) is float:
+        limit_batch_num = math.ceil(len(dataloader) * limit_test_batches)
+        if limit_batch_num != len(dataloader) * limit_test_batches:
+            logger.warning("More data batches than the provided test ratio limit are used")
     else:
-        limit_batch_num = limit_test_num // dataloader.batch_size
+        limit_batch_num = limit_test_batches
     pl_model.to("cuda")
     pl_model.zero_grad()
     msg = ""
@@ -226,7 +181,7 @@ def snip_test(
 
     # calculate score of every lora module
     grads_abs = {
-        "limit_test_num": limit_test_num,
+        "limit_test_num": limit_test_batches * dataloader.batch_size,
     }
     for decoder_layer in reversed(model.model.decoder.layers):
         decoder_layer: OPTLoraDecoderLayer
@@ -256,7 +211,7 @@ def snip_test(
                 grads_abs[f"layer{layer_id}"] = {}
             grads_abs[f"layer{layer_id}"][proj_name] = grad_lora
 
-    log_path = f"{save_path}/snip_{t}.toml"
+    log_path = f"{save_path}/snip_{save_time}.toml"
     with open(log_path, "w+") as fout:
         toml.dump(grads_abs, fout)
     logger.info("Result saved as toml")

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Union
 
 ROOT = Path(__file__).parent.parent.absolute()
-ACTIONS = ["train", "test", "alpha-test", "train-dyrealloc", "snip-test"]
+ACTIONS = ["train", "test", "imp-test", "train-dyrealloc"]
 TASKS = ["classification", "causal_language_modeling", "summarization"]
 LOAD_TYPE = [
     "pt",  # PyTorch module state dictionary
@@ -24,6 +24,7 @@ STRATEGIES = [
     # "deepspeed_stage_3_offload",
 ]
 ACCELERATORS = ["auto", "cpu", "gpu"]
+IMP_TEST_NAMES = ["constant", "grad_norm", "snip", "synflow", "fisher", "jacob_cov", "alpha_test"]
 
 CLI_DEFAULTS = {
     # Main program arguments
@@ -41,13 +42,16 @@ CLI_DEFAULTS = {
     "log_level": LOG_LEVELS[1],
     "seed": 0,
     "backbone_model": None,
-    "alpha": None,
-    "metric_red_tolerance": 0.01,
-    "alpha_test_batch_num": None,
-    "realloc_N": 0.1,
-    "turn_on_percentile": 0.25,
     "lora_config": None,
     "shortcut_config": None,
+    # Reallocation options
+    "imp_test_name": IMP_TEST_NAMES[0],
+    "alpha": None,
+    "metric_red_tolerance": 0.01,
+    "imp_limit_test_batches": 32,
+    "alpha_limit_zptrain_batches:": 0.05,
+    "realloc_N": 0.1,
+    "turn_on_percentile": 0.25,
     # Trainer options
     "training_optimizer": OPTIMIZERS[0],
     # "trainer_precision": TRAINER_PRECISION[1],
@@ -182,6 +186,38 @@ def get_arg_parser():
         metavar="MODEL_NAME",
     )
     general_group.add_argument(
+        "--lora-config",
+        dest="lora_config",
+        type=_valid_filepath,
+        help="""
+                path to a configuration file in the TOML format. Manual CLI overrides
+                for arguments have a higher precedence. (default: %(default)s)
+            """,
+        metavar="TOML",
+    )
+    general_group.add_argument(
+        "--shortcut-config",
+        dest="shortcut_config",
+        type=_valid_filepath,
+        help="""
+                path to a configuration file in the TOML format. Manual CLI overrides
+                for arguments have a higher precedence. (default: %(default)s)
+            """,
+        metavar="TOML",
+    )
+    # Reallocation options
+    general_group.add_argument(
+        "--imp-test-name",
+        dest="importance_test_name",
+        choices=IMP_TEST_NAMES,
+        help=f"""
+            Name (metric) of the importance test method,
+            One of {'(' + '|'.join(LOG_LEVELS) + ')'}.
+            (default: %(default)s)
+        """,
+        metavar="",
+    )
+    general_group.add_argument(
         "--alpha",
         dest="alpha",
         default=None,
@@ -201,14 +237,24 @@ def get_arg_parser():
         metavar="NUM",
     )
     general_group.add_argument(
-        "--alpha-test-batch-num",
-        dest="alpha_test_batch_num",
-        default=None,
+        "--imp-limit-test-batches",
+        dest="imp_limit_test_batches",
+        default=32,
         help="""
-            for dynamic lora reallocation training zero-proxy NAS tests;
-            number of batches / ratio of validation batches to use for each alpha testing;
-            number of data rows /ratio of training set to use for zero-proxy NAS tests
+            for importance tests in before-training test and dynamic reallocation training,
+            number of data batches / ratio of training set to use for the importance tests
         """,
+        type=_positive_int_or_percentage,
+        metavar="NUM",
+    )
+    general_group.add_argument(
+        "--alpha-limit-zptrain-batches",
+        dest="alpha_limit_zptrain_batches",
+        default=0.05,
+        help="""
+                for zero-cost proxy training in before-training alpha importance testing,
+                number of data batches / ratio of training set to use for the training
+            """,
         type=_positive_int_or_percentage,
         metavar="NUM",
     )
@@ -233,26 +279,6 @@ def get_arg_parser():
         """,
         type=float,
         metavar="NUM",
-    )
-    general_group.add_argument(
-        "--lora-config",
-        dest="lora_config",
-        type=_valid_filepath,
-        help="""
-            path to a configuration file in the TOML format. Manual CLI overrides
-            for arguments have a higher precedence. (default: %(default)s)
-        """,
-        metavar="TOML",
-    )
-    general_group.add_argument(
-        "--shortcut-config",
-        dest="shortcut_config",
-        type=_valid_filepath,
-        help="""
-            path to a configuration file in the TOML format. Manual CLI overrides
-            for arguments have a higher precedence. (default: %(default)s)
-        """,
-        metavar="TOML",
     )
 
     # Trainer options

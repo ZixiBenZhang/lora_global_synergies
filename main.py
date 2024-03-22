@@ -158,8 +158,8 @@ def main():
             actions.test(**test_params)
             logger.info("Testing is completed")
 
-        case "alpha-test":
-            logger.info(f"Conducting alpha importance test on model {args.model!r}...")
+        case "imp-test":
+            logger.info(f"Conducting importance test on model {args.model!r}...")
 
             pl_trainer_args = {
                 "max_epochs": args.max_epochs,
@@ -179,6 +179,13 @@ def main():
             if args.load_name is not None and args.load_type in load_types:
                 load_name = args.load_name
 
+            importance_test_args = {
+                "limit_test_batches": args.imp_limit_test_batches,
+                "metric_reduction_tolerance": args.metric_red_tolerance,
+                "limit_zero_proxy_train_batches": args.alpha_limit_zptrain_batches,
+                "alpha": args.alpha,
+            }
+
             test_params = {
                 "model": model,
                 "tokenizer": tokenizer,
@@ -197,11 +204,12 @@ def main():
                 "load_name": load_name,
                 "load_type": args.load_type,
                 "resume_training": args.resume_training,
-                "metric_reduction_tolerance": args.metric_red_tolerance,
+                "importance_test_name": args.importance_test_name,
+                "importance_test_args": importance_test_args,
             }
 
-            actions.alpha_importance_test(**test_params)
-            logger.info("Alpha importance test is completed")
+            actions.pretrain_alloc(**test_params)
+            logger.info("Importance test is completed")
 
         case "train-dyrealloc":
             logger.info(f"Dynamic-LoRA-reallocation training model {args.model!r}...")
@@ -224,6 +232,18 @@ def main():
             if args.load_name is not None and args.load_type in load_types:
                 load_name = args.load_name
 
+            importance_test_args = {
+                "limit_test_batches": args.imp_limit_test_batches,
+                "metric_reduction_tolerance": args.metric_red_tolerance,
+                "limit_zero_proxy_train_batches": args.alpha_limit_zptrain_batches,
+                "alpha": args.alpha,
+            }
+
+            dyrealloc_args = {
+                "realloc_N": args.realloc_N,
+                "turn_on_percentile": args.turn_on_percentile,
+            }
+
             train_dyrealloc_params = {
                 "model": model,
                 "tokenizer": tokenizer,
@@ -242,10 +262,9 @@ def main():
                 "load_name": load_name,
                 "load_type": args.load_type,
                 "resume_training": args.resume_training,
-                "metric_reduction_tolerance": args.metric_red_tolerance,
-                "limit_alpha_test_batches": args.alpha_test_batch_num,
-                "realloc_N": args.realloc_N,
-                "turn_on_percentile": args.turn_on_percentile,
+                "dynamic_reallocation_args": dyrealloc_args,
+                "importance_test_name": args.importance_test_name,
+                "importance_test_args": importance_test_args,
             }
 
             logger.info(f"##### WEIGHT DECAY ##### {args.weight_decay}")
@@ -253,50 +272,50 @@ def main():
             actions.train_dynamic_reallocation(**train_dyrealloc_params)
             logger.info("Dynamic-LoRA-reallocation training is completed")
 
-        case "snip-test":
-            logger.info(f"Conducting SNIP importance test on model {args.model!r}...")
-
-            pl_trainer_args = {
-                "max_epochs": args.max_epochs,
-                "max_steps": args.max_steps,
-                "devices": args.num_devices,
-                "num_nodes": args.num_nodes,
-                "accelerator": args.accelerator,
-                "strategy": args.strategy,
-                "fast_dev_run": args.to_debug,
-                "accumulate_grad_batches": args.accumulate_grad_batches,
-                "log_every_n_steps": args.log_every_n_steps,
-            }
-
-            # Load from a checkpoint!
-            load_name = None
-            load_types = ["pt", "pl"]
-            if args.load_name is not None and args.load_type in load_types:
-                load_name = args.load_name
-
-            test_params = {
-                "model": model,
-                "tokenizer": tokenizer,
-                "model_info": model_info,
-                "data_module": data_module,
-                "dataset_info": dataset_info,
-                "task": args.task,
-                "optimizer": args.training_optimizer,
-                "learning_rate": args.learning_rate,
-                "weight_decay": args.weight_decay,
-                "lr_scheduler": args.lr_scheduler,
-                "eta_min": args.eta_min,
-                "pl_trainer_args": pl_trainer_args,
-                "auto_requeue": args.is_to_auto_requeue,
-                "save_path": os.path.join(output_dir, "snip_ckpts"),
-                "load_name": load_name,
-                "load_type": args.load_type,
-                "resume_training": args.resume_training,
-                "limit_test_num": args.alpha_test_batch_num,
-            }
-
-            importance_testing.snip_test(**test_params)
-            logger.info("SNIP importance test is completed")
+        # case "snip-test":
+        #     logger.info(f"Conducting SNIP importance test on model {args.model!r}...")
+        #
+        #     pl_trainer_args = {
+        #         "max_epochs": args.max_epochs,
+        #         "max_steps": args.max_steps,
+        #         "devices": args.num_devices,
+        #         "num_nodes": args.num_nodes,
+        #         "accelerator": args.accelerator,
+        #         "strategy": args.strategy,
+        #         "fast_dev_run": args.to_debug,
+        #         "accumulate_grad_batches": args.accumulate_grad_batches,
+        #         "log_every_n_steps": args.log_every_n_steps,
+        #     }
+        #
+        #     # Load from a checkpoint!
+        #     load_name = None
+        #     load_types = ["pt", "pl"]
+        #     if args.load_name is not None and args.load_type in load_types:
+        #         load_name = args.load_name
+        #
+        #     test_params = {
+        #         "model": model,
+        #         "tokenizer": tokenizer,
+        #         "model_info": model_info,
+        #         "data_module": data_module,
+        #         "dataset_info": dataset_info,
+        #         "task": args.task,
+        #         "optimizer": args.training_optimizer,
+        #         "learning_rate": args.learning_rate,
+        #         "weight_decay": args.weight_decay,
+        #         "lr_scheduler": args.lr_scheduler,
+        #         "eta_min": args.eta_min,
+        #         "pl_trainer_args": pl_trainer_args,
+        #         "auto_requeue": args.is_to_auto_requeue,
+        #         "save_path": os.path.join(output_dir, "snip_ckpts"),
+        #         "load_name": load_name,
+        #         "load_type": args.load_type,
+        #         "resume_training": args.resume_training,
+        #         "limit_test_num": args.alpha_test_batch_num,
+        #     }
+        #
+        #     importance_testing.snip_test(**test_params)
+        #     logger.info("SNIP importance test is completed")
 
 
 def t():
