@@ -249,7 +249,7 @@ def snip_test(
 
             grad_lora = (
                 torch.sum(torch.abs(lora.weight_mask_A.grad))
-                + torch.sum(torch.abs(lora.weight_mask_B))
+                + torch.sum(torch.abs(lora.weight_mask_B.grad))
             ).item()
 
             if f"layer_{layer_id}" not in grads_abs:
