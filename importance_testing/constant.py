@@ -35,6 +35,7 @@ def constant_test(
     load_name,  # path to the saved checkpoint
     load_type,  # model checkpoint's type: ['pt', 'pl']
     resume_training,  # whether resume zero-proxy trained model from the checkpoint
+    **kwargs,
 ):
     logger.warning("Running CONSTANT test")
 

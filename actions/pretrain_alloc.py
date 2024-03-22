@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 
 import torch
@@ -41,6 +42,10 @@ def pretrain_alloc(
     t = time.strftime("%H-%M")
 
     logger.info(f"Running importance test")
+
+    if save_path is not None:  # if save_path is None, model won't be saved
+        if not os.path.isdir(save_path):
+            os.makedirs(save_path)
 
     wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
         model_info, task

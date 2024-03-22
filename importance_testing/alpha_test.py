@@ -47,6 +47,7 @@ def alpha_importance_test(
     limit_test_batches,  # number of test batches limit for the zero-proxy test
     metric_reduction_tolerance,  # for calculating alpha threshold
     limit_zero_proxy_train_batches,  # number of batches used for zero-cost proxy training
+    **kwargs,
 ):
     pl_validator_args = copy.deepcopy(pl_trainer_args)
 
