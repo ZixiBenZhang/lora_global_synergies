@@ -45,7 +45,7 @@ CLI_DEFAULTS = {
     "lora_config": None,
     "shortcut_config": None,
     # Reallocation options
-    "imp_test_name": IMP_TEST_NAMES[0],
+    "importance_test_name": IMP_TEST_NAMES[0],
     "alpha": None,
     "metric_red_tolerance": 0.01,
     "imp_limit_test_batches": 32,
