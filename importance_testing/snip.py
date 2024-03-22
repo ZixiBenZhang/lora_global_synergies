@@ -43,6 +43,7 @@ def snip_test(
     load_type,  # model checkpoint's type: ['pt', 'pl']
     resume_training,  # whether resume zero-proxy trained model from the checkpoint
     limit_test_batches,  # number of test batches limit for the zero-proxy test
+    **kwargs,
 ):
     logger.warning("Running SNIP test")
 
