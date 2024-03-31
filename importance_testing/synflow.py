@@ -118,7 +118,7 @@ def synflow_test(
     model.zero_grad()
     example_input = next(iter(dataloader))
     input_dim = list(example_input["input_ids"].shape) + [model.model.decoder.layers[0].embed_dim]
-    inputs = torch.ones(input_dim).to(torch.get_default_dtype()).to("cuda")
+    inputs = torch.ones(input_dim).float().to("cuda")
     attention_mask = example_input["attention_mask"]
     token_type_ids = example_input.get("token_type_ids", None)
     labels = example_input["labels"]
@@ -130,6 +130,10 @@ def synflow_test(
         token_type_ids = torch.stack(token_type_ids)
     if isinstance(labels, list):
         labels = torch.stack(labels)
+    inputs = inputs.to("cuda")
+    attention_mask = attention_mask.to("cuda")
+    token_type_ids = token_type_ids.to("cuda")
+    labels = labels.to("cuda")
 
     if token_type_ids is not None:
         output = model.forward(
