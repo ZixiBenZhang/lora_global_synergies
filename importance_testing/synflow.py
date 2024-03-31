@@ -114,17 +114,25 @@ def synflow_test(
     signs = linearize(model)
 
     # compute gradients with input of ones
-    pl_model.to("cuda")
-    pl_model.zero_grad()
+    model.to("cuda")
+    model.zero_grad()
     example_input = next(iter(dataloader))
     input_dim = list(example_input["input_ids"].shape)
     inputs = torch.ones([1] + input_dim).double().to("cuda")
-    output = pl_model.forward(
-        inputs_embeds=inputs,
-        attention_mask=example_input["attention_mask"],
-        labels=example_input["labels"],
-    )
-    torch.sum(output).backward()
+    if example_input.get("token_type_ids", None) is not None:
+        output = model.forward(
+            inputs_embeds=inputs,
+            attention_mask=example_input["attention_mask"],
+            token_type_ids=example_input.get("token_type_ids", None),
+            labels=example_input["labels"],
+        )
+    else:
+        output = model.forward(
+            inputs_embeds=inputs,
+            attention_mask=example_input["attention_mask"],
+            labels=example_input["labels"],
+        )
+    torch.sum(output["loss"]).backward()
 
     # calculate score of every lora module
     grads_abs = {}
