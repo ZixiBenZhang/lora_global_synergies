@@ -117,7 +117,7 @@ def synflow_test(
     model.to("cuda")
     model.zero_grad()
     example_input = next(iter(dataloader))
-    input_dim = list(example_input["input_ids"].shape)
+    input_dim = list(example_input["input_ids"].shape) + [model.model.decoder.layers[0].embed_dim]
     inputs = torch.ones([1] + input_dim).double().to("cuda")
     if example_input.get("token_type_ids", None) is not None:
         output = model.forward(
