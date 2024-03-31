@@ -117,7 +117,7 @@ def synflow_test(
     model.to("cuda")
     model.zero_grad()
     example_input = next(iter(dataloader))
-    input_dim = list(example_input["input_ids"].shape) + [model.model.decoder.layers[0].embed_dim]
+    input_dim = list(example_input["input_ids"].shape) + [model.model.decoder.embed_tokens.weight.shape[1]]
     inputs = torch.ones(input_dim).float().to("cuda")
     attention_mask = example_input["attention_mask"]
     token_type_ids = example_input.get("token_type_ids", None)
