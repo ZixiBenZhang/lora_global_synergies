@@ -130,23 +130,19 @@ def synflow_test(
         token_type_ids = torch.stack(token_type_ids)
     if isinstance(labels, list):
         labels = torch.stack(labels)
-    inputs = inputs.to("cuda")
-    attention_mask = attention_mask.to("cuda")
-    token_type_ids = token_type_ids.to("cuda")
-    labels = labels.to("cuda")
 
     if token_type_ids is not None:
         output = model.forward(
-            inputs_embeds=inputs,
-            attention_mask=attention_mask,
-            token_type_ids=token_type_ids,
-            labels=labels,
+            inputs_embeds=inputs.to("cuda"),
+            attention_mask=attention_mask.to("cuda"),
+            token_type_ids=token_type_ids.to("cuda"),
+            labels=labels.to("cuda"),
         )
     else:
         output = model.forward(
-            inputs_embeds=inputs,
-            attention_mask=attention_mask,
-            labels=labels,
+            inputs_embeds=inputs.to("cuda"),
+            attention_mask=attention_mask.to("cuda"),
+            labels=labels.to("cuda"),
         )
     torch.sum(output["loss"]).backward()
 
