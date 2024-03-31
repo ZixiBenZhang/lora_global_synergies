@@ -120,10 +120,9 @@ def synflow_test(
     input_dim = list(example_input["input_ids"].shape)
     inputs = torch.ones([1] + input_dim).double().to("cuda")
     output = pl_model.forward(
-        inputs,
-        example_input["attention_mask"],
-        example_input.get("token_type_ids", None),
-        example_input["labels"],
+        inputs_embeds=inputs,
+        attention_mask=example_input["attention_mask"],
+        labels=example_input["labels"],
     )
     torch.sum(output).backward()
 
