@@ -119,18 +119,30 @@ def synflow_test(
     example_input = next(iter(dataloader))
     input_dim = list(example_input["input_ids"].shape) + [model.model.decoder.layers[0].embed_dim]
     inputs = torch.ones([1] + input_dim).double().to("cuda")
-    if example_input.get("token_type_ids", None) is not None:
+    attention_mask = example_input["attention_mask"]
+    token_type_ids = example_input.get("token_type_ids", None)
+    labels = example_input["labels"]
+    if isinstance(inputs, list):
+        inputs = torch.stack(inputs)
+    if isinstance(attention_mask, list):
+        attention_mask = torch.stack(attention_mask)
+    if isinstance(token_type_ids, list):
+        token_type_ids = torch.stack(token_type_ids)
+    if isinstance(labels, list):
+        labels = torch.stack(labels)
+
+    if token_type_ids is not None:
         output = model.forward(
             inputs_embeds=inputs,
-            attention_mask=example_input["attention_mask"],
-            token_type_ids=example_input.get("token_type_ids", None),
-            labels=example_input["labels"],
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+            labels=labels,
         )
     else:
         output = model.forward(
             inputs_embeds=inputs,
-            attention_mask=example_input["attention_mask"],
-            labels=example_input["labels"],
+            attention_mask=attention_mask,
+            labels=labels,
         )
     torch.sum(output["loss"]).backward()
 
