@@ -93,6 +93,7 @@ def synflow_test(
         or type(model) is OPTLoraForQuestionAnswering
     )
     model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+    model.to("cuda")
 
     # convert params to their abs, keep sign for converting it back
     @torch.no_grad()
@@ -114,7 +115,6 @@ def synflow_test(
     signs = linearize(model)
 
     # compute gradients with input of ones
-    model.to("cuda")
     model.zero_grad()
     example_input = next(iter(dataloader))
     input_dim = list(example_input["input_ids"].shape) + [model.model.decoder.embed_tokens.weight.shape[1]]
