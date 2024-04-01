@@ -25,6 +25,8 @@ from tools.trainable_param_printer import print_trainable_parameters
 
 logger = logging.getLogger(__name__)
 
+ALPHA_UB = 10
+
 
 def alpha_importance_test(
     pl_model: PlWrapperBase,
@@ -49,6 +51,8 @@ def alpha_importance_test(
     limit_zero_proxy_train_batches,  # number of batches used for zero-cost proxy training
     **kwargs,
 ):
+    logger.warning("Running ALPHA test")
+
     pl_validator_args = copy.deepcopy(pl_trainer_args)
 
     if resume_training:
@@ -222,34 +226,18 @@ def alpha_importance_test(
                     f">>> Testing layer {layer_id} projection {proj_name} <<<"
                 )
 
-                alpha = 5
-                lora.importance_alpha = alpha / 10
-                val_metrics = trainer.test(
-                    pl_model, dataloaders=dataloader, verbose=False
-                )[0]
-
-                if check_exceed_threshold(val_metrics):
-                    alpha_res = 10
-                    while alpha < 9:
-                        alpha += 1
-                        lora.importance_alpha = alpha / 10
-                        val_metrics = trainer.test(
-                            pl_model, dataloaders=dataloader, verbose=False
-                        )[0]
-                        if not check_exceed_threshold(val_metrics):
-                            alpha_res = alpha
-                            break
-                else:
-                    alpha_res = 0
-                    while alpha > 0:
-                        alpha -= 1
-                        lora.importance_alpha = alpha / 10
-                        val_metrics = trainer.test(
-                            pl_model, dataloaders=dataloader, verbose=False
-                        )[0]
-                        if check_exceed_threshold(val_metrics):
-                            alpha_res = alpha + 1
-                            break
+                lb, rb = (0, ALPHA_UB)
+                while lb < rb:
+                    alpha = (lb + rb) // 2
+                    lora.set_importance_alpha(alpha / ALPHA_UB)
+                    val_metrics = trainer.test(
+                        pl_model, dataloaders=dataloader, verbose=False
+                    )[0]
+                    if check_exceed_threshold(val_metrics):
+                        lb = alpha + 1
+                    else:
+                        rb = alpha
+                alpha_res = rb
 
                 print(
                     f"Layer {layer_id}, Projection {proj_name}\n"
@@ -264,6 +252,8 @@ def alpha_importance_test(
                 save_toml(res_val)
 
         save_toml(res_val)
+
+    logger.warning("ALPHA test done")
 
 
 def zero_proxy_train_lora(
