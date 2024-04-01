@@ -1,0 +1,100 @@
+task = "classification"
+dataset = "mrpc"
+metric_name = "test_acc_epoch"
+zero-proxy_metric = 0.6328125
+
+[layer_23]
+q_proj = 2
+v_proj = 0
+
+[layer_22]
+q_proj = 4
+v_proj = 0
+
+[layer_21]
+q_proj = 10
+v_proj = 0
+
+[layer_20]
+q_proj = 0
+v_proj = 0
+
+[layer_19]
+q_proj = 10
+v_proj = 0
+
+[layer_18]
+q_proj = 10
+v_proj = 0
+
+[layer_17]
+q_proj = 0
+v_proj = 0
+
+[layer_16]
+q_proj = 10
+v_proj = 0
+
+[layer_15]
+q_proj = 9
+v_proj = 9
+
+[layer_14]
+q_proj = 10
+v_proj = 0
+
+[layer_13]
+q_proj = 1
+v_proj = 6
+
+[layer_12]
+q_proj = 4
+v_proj = 10
+
+[layer_11]
+q_proj = 9
+v_proj = 9
+
+[layer_10]
+q_proj = 6
+v_proj = 0
+
+[layer_9]
+q_proj = 10
+v_proj = 8
+
+[layer_8]
+q_proj = 9
+v_proj = 9
+
+[layer_7]
+q_proj = 10
+v_proj = 5
+
+[layer_6]
+q_proj = 3
+v_proj = 6
+
+[layer_5]
+q_proj = 5
+v_proj = 6
+
+[layer_4]
+q_proj = 2
+v_proj = 8
+
+[layer_3]
+q_proj = 8
+v_proj = 9
+
+[layer_2]
+q_proj = 7
+v_proj = 8
+
+[layer_1]
+q_proj = 9
+v_proj = 3
+
+[layer_0]
+q_proj = 6
+v_proj = 7
