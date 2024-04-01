@@ -71,8 +71,8 @@ def constant_test(
                 continue
 
             if f"layer_{layer_id}" not in score:
-                score[f"layer{layer_id}"] = {}
-            score[f"layer{layer_id}"][proj_name] = 1
+                score[f"layer_{layer_id}"] = {}
+            score[f"layer_{layer_id}"][proj_name] = 1
 
     log_path = f"{save_path}/const_{save_time}.toml"
     with open(log_path, "w+") as fout:

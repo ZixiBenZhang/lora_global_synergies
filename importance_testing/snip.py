@@ -209,8 +209,8 @@ def snip_test(
             ).item()
 
             if f"layer_{layer_id}" not in grads_abs:
-                grads_abs[f"layer{layer_id}"] = {}
-            grads_abs[f"layer{layer_id}"][proj_name] = grad_lora
+                grads_abs[f"layer_{layer_id}"] = {}
+            grads_abs[f"layer_{layer_id}"][proj_name] = grad_lora
 
     log_path = f"{save_path}/snip_{save_time}.toml"
     with open(log_path, "w+") as fout:
