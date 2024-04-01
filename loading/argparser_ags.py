@@ -49,7 +49,7 @@ CLI_DEFAULTS = {
     "alpha": None,
     "metric_red_tolerance": 0.01,
     "imp_limit_test_batches": 32,
-    "alpha_limit_zptrain_batches:": 0.05,
+    "alpha_limit_zptrain_batches:": 32,
     "realloc_N": 0.1,
     "turn_on_percentile": 0.25,
     # Trainer options
@@ -251,7 +251,7 @@ def get_arg_parser():
     reallocation_group.add_argument(
         "--alpha-limit-zptrain-batches",
         dest="alpha_limit_zptrain_batches",
-        default=0.05,
+        default=32,
         help="""
                 for zero-cost proxy training in before-training alpha importance testing,
                 number of data batches / ratio of training set to use for the training
