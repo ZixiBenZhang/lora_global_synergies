@@ -1,0 +1,94 @@
+granularity = "layer"
+
+[default]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-imp-mrpc"
+init_lora_weghts = true
+fan_in_fan_out = false
+disable_adapter = true
+
+[model_layer_8.q_proj]
+r = 8
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-importance-mrpc"
+disable_adapter = false
+
+[model_layer_15.q_proj]
+r = 8
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-importance-mrpc"
+disable_adapter = false
+
+[model_layer_1.q_proj]
+r = 8
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-importance-mrpc"
+disable_adapter = false
+
+[model_layer_11.v_proj]
+r = 8
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-importance-mrpc"
+disable_adapter = false
+
+[model_layer_21.q_proj]
+r = 8
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-importance-mrpc"
+disable_adapter = false
+
+[model_layer_19.q_proj]
+r = 8
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-importance-mrpc"
+disable_adapter = false
+
+[model_layer_18.q_proj]
+r = 8
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-importance-mrpc"
+disable_adapter = false
+
+[model_layer_16.q_proj]
+r = 8
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-importance-mrpc"
+disable_adapter = false
+
+[model_layer_14.q_proj]
+r = 8
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-importance-mrpc"
+disable_adapter = false
+
+[model_layer_12.v_proj]
+r = 8
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-importance-mrpc"
+disable_adapter = false
+
+[model_layer_9.q_proj]
+r = 8
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-importance-mrpc"
+disable_adapter = false
+
+[model_layer_7.q_proj]
+r = 8
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-layer-importance-mrpc"
+disable_adapter = false

@@ -32,15 +32,16 @@ LORA_NAME_HASH = {
 
 PERCENTILE = 0.25
 ORIGINAL_R = 8
+NEW_R = 8
 
 
-def reallocate_lora_rank(filename):
+def reallocate_lora_rank(filename, metric_name=None, metric_attr=None):
     t = time.strftime("%m-%d")
 
     with open(filename, "r") as f:
         alpha_dict = toml.load(f)
 
-    dataset_name = alpha_dict["dataset"]
+    dataset_name = alpha_dict.get("dataset", "mrpc")
 
     alpha_list = np.concatenate(
         [
@@ -53,20 +54,25 @@ def reallocate_lora_rank(filename):
         ],
         axis=0,
     )
-    alpha_list = alpha_list[alpha_list[:, 0].argsort(kind="stable")]
-
-    # Constant new rank
-    new_r = round(ORIGINAL_R / PERCENTILE)
 
     original_lora_module_num = len(alpha_list)
-
     budget = math.floor(PERCENTILE * original_lora_module_num)
-    # prioritise later layers
-    idx = alpha_list[:, 2].argsort(kind="stable")[-budget:]
-    print(alpha_list[idx])
-    turn_on = alpha_list[idx, :2]
-    threshold = alpha_list[idx[0]]
-    print(f"Alpha threshold: {threshold}")
+    new_r = NEW_R
+    idx = alpha_list[:, 2].argsort()
+    alpha_threshold = alpha_list[idx[-budget], 2]
+    if sum(alpha_list[:, 2] == alpha_threshold) > 1:
+        # Uniformly break tie
+        greater = alpha_list[alpha_list[:, 2] > alpha_threshold, :2]
+        tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
+        tie_idx = torch.randperm(len(tie))[: (budget - len(greater))]
+        turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
+    else:
+        idx = idx[-budget:]
+        turn_on = alpha_list[idx, :2]
+    turn_on = turn_on.astype(int).tolist()
+    assert len(turn_on) == budget
+
+    print(f"{metric_name if metric_name is not None else 'Metric'} threshold: {alpha_threshold}")
 
     lora_new_config: dict[
         str, str | dict[str, int | float | str | dict[str, int | float | str]]
@@ -76,7 +82,7 @@ def reallocate_lora_rank(filename):
             "r": 0,
             "lora_alpha": 16,
             "lora_dropout": 0.0,
-            "adapter_name": f"ags-layer-importance-{dataset_name}",
+            "adapter_name": f"ags-imp-{dataset_name}",
             "init_lora_weghts": True,
             "fan_in_fan_out": False,
             "disable_adapter": True,
@@ -98,16 +104,39 @@ def reallocate_lora_rank(filename):
 
     if not os.path.isdir("../realloc-alpha"):
         os.mkdir("../realloc-alpha")
+
     i = 0
-    while os.path.isfile(f"../realloc-alpha/{dataset_name}-{t}-version_{i}.toml"):
+    if metric_name is None:
+        prefix = f"../realloc-alpha/{dataset_name}-{t}"
+    else:
+        if metric_attr is None:
+            prefix = f"../realloc-alpha/{dataset_name}-{metric_name}-{t}"
+        else:
+            prefix = f"../realloc-alpha/{dataset_name}-{metric_name}-{metric_attr}-{t}"
+    while os.path.isfile(f"{prefix}-version_{i}.toml"):
         i += 1
-    config_path = os.path.join(f"../realloc-alpha/{dataset_name}-{t}-version_{i}.toml")
+
+    config_path = os.path.join(f"{prefix}-version_{i}.toml")
     with open(config_path, "w+") as fout:
         toml.dump(lora_new_config, fout)
     logger.info(f"New lora config saved to {config_path}")
 
 
 if __name__ == "__main__":
-    reallocate_lora_rank(
-        "../ags_output/opt_lora_classification_sst2_2024-03-02/alpha_ckpts/alpha-importance_17-34.toml"
-    )
+    pl.seed_everything(0)
+    directory = "../ags_output/opt_lora_classification_mrpc_2024-04-01/importance_ckpts/"
+    for filename in os.listdir(directory):
+        if filename.endswith(".toml"):
+            metric = filename.split("_")[0]
+            batches = filename.split("_")[-1]
+            if batches.startswith("b") or batches.startswith("all"):
+                batches = batches.split(".")[0]
+            else:
+                batches = None
+
+            reallocate_lora_rank(os.path.join(directory, filename), metric, batches)
+        else:
+            continue
+    # reallocate_lora_rank(
+    #     "../ags_output/opt_lora_classification_mrpc_2024-04-01/importance_ckpts/grad-norm_12-48_b8.toml"
+    # )
