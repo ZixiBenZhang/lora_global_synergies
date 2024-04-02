@@ -42,14 +42,11 @@ def train_dynamic_reallocation(
     dynamic_reallocation_args,
     importance_test_name,
     importance_test_args,
-    # realloc_N,  # frequency to perform rank reallocation
-    # turn_on_percentile,  # for reallocating lora ranks
 ):
     metric_reduction_tolerance = importance_test_args["metric_reduction_tolerance"]
     limit_test_batches = importance_test_args["limit_test_batches"]
-    realloc_N = dynamic_reallocation_args["realloc_N"]
-    turn_on_percentile = dynamic_reallocation_args["turn_on_percentile"]
-    # TODO: accommodate zero-proxy metrics dy-realloc
+    realloc_N = dynamic_reallocation_args["realloc_N"]  # frequency to perform rank reallocation
+    turn_on_percentile = dynamic_reallocation_args["turn_on_percentile"]  # for reallocating lora ranks
 
     alpha_pl_trainer_args = copy.deepcopy(pl_trainer_args)
 
@@ -124,6 +121,7 @@ def train_dynamic_reallocation(
         )
 
     dynamic_reallocation_callback = DynamicLoraReallocationCallback(
+        importance_test_name=importance_test_name,
         N=realloc_N,
         data_module=data_module,
         alpha_trainer_args=alpha_pl_trainer_args,

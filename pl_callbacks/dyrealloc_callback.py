@@ -1,13 +1,16 @@
 import logging
 import math
 import time
-from typing import Any, Optional
+import types
+from typing import Any, Optional, Callable
 
 import numpy as np
 import toml
 import torch
-import pytorch_lightning as pl
+from torch import nn
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
+import pytorch_lightning as pl
 
 from dataset.pl_dataset_module import AgsDataModule
 from lora.lora_modules import LoraLinear
@@ -35,6 +38,7 @@ ALPHA_UB = 10
 class DynamicLoraReallocationCallback(pl.Callback):
     def __init__(
         self,
+        importance_test_name: str,
         N: int | float,
         data_module: AgsDataModule,
         alpha_trainer_args: pl.Trainer,
@@ -46,6 +50,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         save_path: str = None,
     ):
         """
+        :param importance_test_name: importance test name (metric) to be used
         :param N: every N steps conduct alpha testing and reallocate lora ranks
         :param data_module: for loading batches for alpha testing
         :param alpha_trainer_args: for building the pl trainer to conduct alpha testing
@@ -67,6 +72,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         assert task in ["classification", "summarization", "causal_language_modeling"]
         self.task = task
+
+        assert importance_test_name in ["constant", "grad_norm", "snip", "synflow", "fisher", "jacob_cov", "alpha_test"]
+        self.importance_test_name = importance_test_name
+        self.importance_test = self._get_importance_test()
 
         self.N = N
         self.limit_test_batches = limit_test_batches
@@ -127,6 +136,25 @@ class DynamicLoraReallocationCallback(pl.Callback):
             enable_model_summary=False,
             enable_checkpointing=False,
         )
+
+    def _get_importance_test(self) -> Callable:
+        match self.importance_test_name:
+            case "alpha_test":
+                return self._alpha_importance_test
+            case "constant":
+                pass
+            case "grad_norm":
+                pass
+            case "snip":
+                return self._snip_test
+            case "synflow":
+                pass
+            case "fisher":
+                raise NotImplementedError
+            case "jacob_cov":
+                raise NotImplementedError
+            case _:
+                raise ValueError(f"Unsupported importance test {self.importance_test_name}")
 
     def _get_alpha_testing_dataloader(self, rng):
         return self._get_mixed_dataloader(rng)
@@ -199,9 +227,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
     ) -> None:
         if batch_idx % self.N > 0:
             return
-        self._reallocation(trainer, pl_module, batch, batch_idx)
+        self.reallocation(trainer, pl_module, batch, batch_idx)
 
-    def _reallocation(
+    def reallocation(
         self,
         trainer: pl.Trainer,
         pl_module: PlWrapperBase,
@@ -216,7 +244,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         with torch.no_grad():
             # Get alpha importance of lora modules
             # format: {layer_idx: {proj: alpha}}
-            res_val: dict[int, dict[str, float]] = self._alpha_importance_test(
+            res_val: dict[int, dict[str, float]] = self.importance_test(
                 pl_module
             )
 
@@ -438,6 +466,171 @@ class DynamicLoraReallocationCallback(pl.Callback):
         # TODO: evaluate module importance based on gradient of alpha
         pl_module.model.to(device)
         raise NotImplementedError
+
+    def _snip_test(
+        self, pl_module: PlWrapperBase
+    ) -> dict[int, dict[str, float]]:
+
+        def get_unshuffled_train_dataloader(datamodule: AgsDataModule):
+            if datamodule.training_dataset is None:
+                raise RuntimeError("The training dataset is not available.")
+            data_collator = None
+            if datamodule.dataset_info.data_collator_cls is not None:
+                data_collator = datamodule.dataset_info.data_collator_cls(
+                    tokenizer=datamodule.tokenizer
+                )
+            return DataLoader(
+                datamodule.training_dataset,
+                batch_size=datamodule.batch_size,
+                shuffle=False,
+                num_workers=datamodule.num_workers,
+                collate_fn=data_collator,
+            )
+
+        dataloader = get_unshuffled_train_dataloader(self.data_module)
+
+        # SNIP
+        model = self.alpha_pl_module.model
+        assert (
+                type(model) is OPTLoraForCausalLM
+                or type(model) is OPTLoraForSequenceClassification
+                or type(model) is OPTLoraForQuestionAnswering
+        )
+        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+
+        @torch.no_grad()
+        def get_require_grad(net: nn.Module):
+            require_grad = {}
+            for name, param in net.named_parameters():
+                require_grad[name] = param.requires_grad
+            return require_grad
+
+        @torch.no_grad()
+        def set_require_grad(net: nn.Module, require_grad: dict[str, bool]):
+            for name, param in net.named_parameters():
+                if name in require_grad:
+                    param.requires_grad_(require_grad[name])
+                else:
+                    param.requires_grad_(False)
+
+        # keep requires_grad of all params
+        original_require_grad = get_require_grad(model)
+
+        for name, param in model.named_parameters():
+            param.requires_grad = False
+
+        # add weight masks
+        def lora_forward(self, x):
+            if self.active_adapter not in self.lora_A.keys():
+                res = F.linear(
+                    x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+                )
+            elif self.disable_adapters:
+                if self.r[self.active_adapter] > 0 and self.merged:
+                    self.unmerge()
+                res = F.linear(
+                    x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+                )
+            else:
+                # weight mask activated
+                self.unmerge()
+                res = F.linear(
+                    x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+                )
+                res = (
+                        res
+                        + (
+                            F.linear(
+                                F.linear(
+                                    self.lora_dropout[self.active_adapter](x),
+                                    self.lora_A[self.active_adapter].weight
+                                    * self.weight_mask_A,
+                                ),
+                                self.lora_B[self.active_adapter].weight * self.weight_mask_B,
+                            )
+                        )
+                        * self.scaling[self.active_adapter]
+                )
+            # res = res.to(input_dtype)
+            return res
+
+        for decoder_layer in reversed(model.model.decoder.layers):
+            decoder_layer: OPTLoraDecoderLayer
+            lora_modules: dict[str, LoraLinear] = {
+                "q_proj": decoder_layer.self_attn.q_proj,
+                "k_proj": decoder_layer.self_attn.k_proj,
+                "v_proj": decoder_layer.self_attn.v_proj,
+                "out_proj": decoder_layer.self_attn.out_proj,
+                "fc1": decoder_layer.fc1,
+                "fc2": decoder_layer.fc2,
+            }
+            for proj_name, lora in lora_modules.items():
+                if (
+                        lora.active_adapter not in lora.lora_A.keys()
+                        or lora.disable_adapters
+                        or lora.r[lora.active_adapter] == 0
+                ):
+                    continue
+
+                lora_A: nn.Linear = lora.lora_A[lora.active_adapter]
+                lora_A.weight.requires_grad = False
+                lora.weight_mask_A = nn.Parameter(torch.ones_like(lora_A.weight))
+                lora_B: nn.Linear = lora.lora_B[lora.active_adapter]
+                lora_B.weight.requires_grad = False
+                lora.weight_mask_B = nn.Parameter(torch.ones_like(lora_B.weight))
+
+                lora.forward = types.MethodType(lora_forward, lora)
+
+        # compute gradients
+        self.alpha_pl_module.to("cuda")
+        self.alpha_pl_module.zero_grad()
+        msg = ""
+        for i, batch in enumerate(dataloader):
+            if i >= self.limit_test_batches:
+                break
+            print(" " * len(msg), end="\r")
+            msg = f">>> Testing on training batch {i + 1} / {self.limit_test_batches}"
+            print(msg, end="\r")
+            batch = self.data_module.transfer_batch_to_device(batch, torch.device("cuda"), 0)
+            loss = self.alpha_pl_module.training_step(batch=batch, batch_idx=i)
+            loss.backward()
+        print()
+
+        # calculate score of every lora module
+        grads_abs = {}
+        for decoder_layer in model.model.decoder.layers:
+            decoder_layer: OPTLoraDecoderLayer
+            layer_id = decoder_layer.layer_id
+            lora_modules: dict[str, LoraLinear] = {
+                "q_proj": decoder_layer.self_attn.q_proj,
+                "k_proj": decoder_layer.self_attn.k_proj,
+                "v_proj": decoder_layer.self_attn.v_proj,
+                "out_proj": decoder_layer.self_attn.out_proj,
+                "fc1": decoder_layer.fc1,
+                "fc2": decoder_layer.fc2,
+            }
+            for proj_name, lora in lora_modules.items():
+                if (
+                        lora.active_adapter not in lora.lora_A.keys()
+                        or lora.disable_adapters
+                        or lora.r[lora.active_adapter] == 0
+                ):
+                    continue
+
+                grad_lora = (
+                        torch.sum(torch.abs(lora.weight_mask_A.grad))
+                        + torch.sum(torch.abs(lora.weight_mask_B.grad))
+                ).item()
+
+                if layer_id not in grads_abs:
+                    grads_abs[layer_id] = {}
+                grads_abs[layer_id][proj_name] = grad_lora
+
+        # reset grads and recover requires_grad
+        self.alpha_pl_module.zero_grad()
+        set_require_grad(model, original_require_grad)
+
+        return grads_abs
 
     # TODO: add zero-proxy test for dyrealloc?? (if before-training zero-proxy is worse than dynamic alpha)
 
