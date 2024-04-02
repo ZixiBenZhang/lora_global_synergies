@@ -108,8 +108,7 @@ def synflow_test(
     @torch.no_grad()
     def nonlinearize(net, signs):
         for name, param in net.state_dict().items():
-            if 'weight_mask' not in name:
-                param.mul_(signs[name])
+            param.mul_(signs[name])
 
     # keep signs of all params
     signs = linearize(model)
