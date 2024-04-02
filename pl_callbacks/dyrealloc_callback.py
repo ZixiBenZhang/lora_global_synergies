@@ -245,7 +245,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
             # Get alpha importance of lora modules
             # format: {layer_idx: {proj: alpha}}
             res_val: dict[int, dict[str, float]] = self.importance_test(
-                pl_module
+                trainer,
+                pl_module,
+                batch,
+                batch_idx,
             )
 
             # Decide which modules to keep
@@ -335,7 +338,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
             )
 
     def _alpha_importance_test(
-        self, pl_module: PlWrapperBase
+        self,
+        trainer: pl.Trainer,
+        pl_module: PlWrapperBase,
+        batch: Any,
+        batch_idx: int,
     ) -> dict[int, dict[str, float]]:
         device = pl_module.model.device
 
@@ -460,7 +467,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
         return res_val
 
     def _alpha_gradient_test(
-        self, pl_module: PlWrapperBase
+        self,
+        trainer: pl.Trainer,
+        pl_module: PlWrapperBase,
+        batch: Any,
+        batch_idx: int,
     ) -> dict[int, dict[str, float]]:
         device = pl_module.model.device
         # TODO: evaluate module importance based on gradient of alpha
@@ -468,8 +479,13 @@ class DynamicLoraReallocationCallback(pl.Callback):
         raise NotImplementedError
 
     def _snip_test(
-        self, pl_module: PlWrapperBase
+        self,
+        trainer: pl.Trainer,
+        pl_module: PlWrapperBase,
+        batch: Any,
+        batch_idx: int,
     ) -> dict[int, dict[str, float]]:
+        device = pl_module.model.device
 
         def get_unshuffled_train_dataloader(datamodule: AgsDataModule):
             if datamodule.training_dataset is None:
@@ -598,6 +614,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             print(msg, end="\r")
             batch = self.data_module.transfer_batch_to_device(batch, torch.device("cuda"), 0)
             loss = self.alpha_pl_module.training_step(batch=batch, batch_idx=i)
+            print(loss.device, loss)
             loss.backward()
         print()
 
@@ -631,8 +648,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     grads_abs[layer_id] = {}
                 grads_abs[layer_id][proj_name] = grad_lora
 
-        # reset grads and recover requires_grad and forward
-        self.alpha_pl_module.zero_grad()
+        # recover requires_grad and forward, reset grads
         set_require_grad(model, original_require_grad)
         for decoder_layer in reversed(model.model.decoder.layers):
             decoder_layer: OPTLoraDecoderLayer
@@ -653,6 +669,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     continue
                 lora.forward = original_forward[decoder_layer.layer_id][proj_name]
 
+        self.alpha_pl_module.zero_grad()
+
+        pl_module.model.to(device)
         return grads_abs
 
     # TODO: add zero-proxy test for dyrealloc?? (if before-training zero-proxy is worse than dynamic alpha)
