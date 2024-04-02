@@ -554,6 +554,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
             # res = res.to(input_dtype)
             return res
 
+        # keep original forward of all lora
+        original_forward = {}
+
         for decoder_layer in reversed(model.model.decoder.layers):
             decoder_layer: OPTLoraDecoderLayer
             lora_modules: dict[str, LoraLinear] = {
@@ -564,6 +567,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 "fc1": decoder_layer.fc1,
                 "fc2": decoder_layer.fc2,
             }
+            original_forward[decoder_layer.layer_id] = {}
             for proj_name, lora in lora_modules.items():
                 if (
                         lora.active_adapter not in lora.lora_A.keys()
@@ -579,6 +583,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 lora_B.weight.requires_grad = False
                 lora.weight_mask_B = nn.Parameter(torch.ones_like(lora_B.weight))
 
+                original_forward[decoder_layer.layer_id][proj_name] = lora.forward
                 lora.forward = types.MethodType(lora_forward, lora)
 
         # compute gradients
@@ -626,9 +631,27 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     grads_abs[layer_id] = {}
                 grads_abs[layer_id][proj_name] = grad_lora
 
-        # reset grads and recover requires_grad
+        # reset grads and recover requires_grad and forward
         self.alpha_pl_module.zero_grad()
         set_require_grad(model, original_require_grad)
+        for decoder_layer in reversed(model.model.decoder.layers):
+            decoder_layer: OPTLoraDecoderLayer
+            lora_modules: dict[str, LoraLinear] = {
+                "q_proj": decoder_layer.self_attn.q_proj,
+                "k_proj": decoder_layer.self_attn.k_proj,
+                "v_proj": decoder_layer.self_attn.v_proj,
+                "out_proj": decoder_layer.self_attn.out_proj,
+                "fc1": decoder_layer.fc1,
+                "fc2": decoder_layer.fc2,
+            }
+            for proj_name, lora in lora_modules.items():
+                if (
+                        lora.active_adapter not in lora.lora_A.keys()
+                        or lora.disable_adapters
+                        or lora.r[lora.active_adapter] == 0
+                ):
+                    continue
+                lora.forward = original_forward[decoder_layer.layer_id][proj_name]
 
         return grads_abs
 
