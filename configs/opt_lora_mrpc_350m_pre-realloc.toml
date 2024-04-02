@@ -1,0 +1,22 @@
+# Finetune LoRA modules with config reallocated based on before-training importance testing result
+# basics
+model = "opt_lora"
+dataset = "mrpc"
+load_name = "facebook/opt-350m"
+load_type = "hf"
+# training
+training_optimizer = "adamw"
+learning_rate = 3e-4
+weight_decay = 0.01
+max_epochs = 20
+batch_size = 8
+log_every_n_steps = 10
+# torch lightning
+task = "classification"
+#num_workers = 0
+num_devices = 1
+#accelerator = "cpu"
+# language model options
+is_pretrained = true
+project_dir = "./ags_output"
+lora_config = "./realloc-alpha/mrpc-alpha-imp-04-01-version_0.toml"
