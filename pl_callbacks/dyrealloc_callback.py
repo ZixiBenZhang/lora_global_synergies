@@ -276,7 +276,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 ]
                 self.rng_state = self.rng.get_state()
                 print(tie_idx.device, tie_idx)
-                # todo: debug
+                # todo: debug (particularly for alpha testing)
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
             else:
                 idx = idx[-budget:]
@@ -287,8 +287,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
             reallocation: list[list[int]] = alpha_list.tolist()
             reallocation = [
                 [
-                    layer_id,
-                    list(LORA_NAME_HASH.keys())[proj_hash],
+                    int(layer_id),
+                    list(LORA_NAME_HASH.keys())[int(proj_hash)],
                     alpha,
                     ([layer_id, proj_hash] in turn_on),
                 ]
