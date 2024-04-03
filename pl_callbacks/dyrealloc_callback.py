@@ -241,16 +241,16 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 f"\n\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n"
             )
 
-        with torch.no_grad():
-            # Get alpha importance of lora modules
-            # format: {layer_idx: {proj: alpha}}
-            res_val: dict[int, dict[str, float]] = self.importance_test(
-                trainer,
-                pl_module,
-                batch,
-                batch_idx,
-            )
+        # Get alpha importance of lora modules
+        # format: {layer_idx: {proj: alpha}}
+        res_val: dict[int, dict[str, float]] = self.importance_test(
+            trainer,
+            pl_module,
+            batch,
+            batch_idx,
+        )
 
+        with torch.no_grad():
             # Decide which modules to keep
             alpha_list = np.concatenate(
                 [
