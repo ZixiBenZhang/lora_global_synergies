@@ -497,7 +497,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 )
             return DataLoader(
                 datamodule.training_dataset,
-                batch_size=datamodule.batch_size,
+                batch_size=datamodule.batch_size * trainer.num_devices,  # use effective batch size
                 shuffle=False,
                 num_workers=datamodule.num_workers,
                 collate_fn=data_collator,
