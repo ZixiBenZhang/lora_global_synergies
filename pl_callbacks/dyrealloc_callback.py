@@ -594,10 +594,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
                 lora_A: nn.Linear = lora.lora_A[lora.active_adapter]
                 lora_A.weight.requires_grad = False
-                lora.weight_mask_A = nn.Parameter(torch.ones_like(lora_A.weight))
+                lora.weight_mask_A = nn.Parameter(torch.ones_like(lora_A.weight), requires_grad=True)
                 lora_B: nn.Linear = lora.lora_B[lora.active_adapter]
                 lora_B.weight.requires_grad = False
-                lora.weight_mask_B = nn.Parameter(torch.ones_like(lora_B.weight))
+                lora.weight_mask_B = nn.Parameter(torch.ones_like(lora_B.weight), requires_grad=True)
 
                 original_forward[decoder_layer.layer_id][proj_name] = lora.forward
                 lora.forward = types.MethodType(lora_forward, lora)
