@@ -275,6 +275,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     : (budget - len(greater))
                 ]
                 self.rng_state = self.rng.get_state()
+                print(tie_idx.device, tie_idx)
                 # todo: debug
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
             else:
@@ -614,7 +615,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             print(msg, end="\r")
             batch = self.data_module.transfer_batch_to_device(batch, torch.device("cuda"), 0)
             loss = self.alpha_pl_module.training_step(batch=batch, batch_idx=i)
-            print(loss.device, loss)
+            # print(loss.device, loss)
             loss.backward()
         print()
 
