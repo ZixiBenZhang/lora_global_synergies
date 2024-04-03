@@ -588,7 +588,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
             for proj_name, lora in lora_modules.items():
                 if (
                         lora.active_adapter not in lora.lora_A.keys()
-                        or lora.disable_adapters
                         or lora.r[lora.active_adapter] == 0
                 ):
                     continue
@@ -635,7 +634,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
             for proj_name, lora in lora_modules.items():
                 if (
                         lora.active_adapter not in lora.lora_A.keys()
-                        or lora.disable_adapters
                         or lora.r[lora.active_adapter] == 0
                 ):
                     continue
