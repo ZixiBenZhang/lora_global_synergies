@@ -281,7 +281,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             else:
                 idx = idx[-budget:]
                 turn_on = alpha_list[idx, :2]
-            turn_on = turn_on.tolist()
+            turn_on = turn_on.astype(int).tolist()
             assert len(turn_on) == budget
 
             reallocation: list[list[int]] = alpha_list.tolist()
