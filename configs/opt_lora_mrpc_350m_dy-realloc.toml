@@ -22,6 +22,7 @@ task = "classification"
 #num_workers = 0
 num_devices = 2
 #accelerator = "cpu"
+strategy = "ddp_find_unused_parameters_true"
 # language model options
 is_pretrained = true
 project_dir = "./ags_output"
