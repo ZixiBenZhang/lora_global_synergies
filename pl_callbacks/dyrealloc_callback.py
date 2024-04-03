@@ -668,6 +668,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         or lora.r[lora.active_adapter] == 0
                 ):
                     continue
+
+                del lora.weight_mask_A
+                del lora.weight_mask_B
                 lora.forward = original_forward[decoder_layer.layer_id][proj_name]
 
         self.alpha_pl_module.zero_grad()
