@@ -241,6 +241,33 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 f"\n\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n"
             )
 
+        # Turn on all lora modules
+        with torch.no_grad():
+            model = self.alpha_pl_module.model
+            assert (
+                    type(model) is OPTLoraForCausalLM
+                    or type(model) is OPTLoraForSequenceClassification
+                    or type(model) is OPTLoraForQuestionAnswering
+            )
+            model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+            for decoder_layer in reversed(model.model.decoder.layers):
+                decoder_layer: OPTLoraDecoderLayer
+                lora_modules: dict[str, LoraLinear] = {
+                    "q_proj": decoder_layer.self_attn.q_proj,
+                    "k_proj": decoder_layer.self_attn.k_proj,
+                    "v_proj": decoder_layer.self_attn.v_proj,
+                    "out_proj": decoder_layer.self_attn.out_proj,
+                    "fc1": decoder_layer.fc1,
+                    "fc2": decoder_layer.fc2,
+                }
+                for proj_name, lora in lora_modules.items():
+                    if (
+                            lora.active_adapter not in lora.lora_A.keys()
+                            or lora.r[lora.active_adapter] == 0
+                    ):
+                        continue
+                    lora.disable_adapters = False
+
         # Get alpha importance of lora modules
         # format: {layer_idx: {proj: alpha}}
         res_val: dict[int, dict[str, float]] = self.importance_test(
@@ -594,10 +621,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
                 lora_A: nn.Linear = lora.lora_A[lora.active_adapter]
                 lora_A.weight.requires_grad = False
-                lora.weight_mask_A = nn.Parameter(torch.ones_like(lora_A.weight), requires_grad=True)
+                lora.weight_mask_A = nn.Parameter(torch.ones_like(lora_A.weight))
                 lora_B: nn.Linear = lora.lora_B[lora.active_adapter]
                 lora_B.weight.requires_grad = False
-                lora.weight_mask_B = nn.Parameter(torch.ones_like(lora_B.weight), requires_grad=True)
+                lora.weight_mask_B = nn.Parameter(torch.ones_like(lora_B.weight))
 
                 original_forward[decoder_layer.layer_id][proj_name] = lora.forward
                 lora.forward = types.MethodType(lora_forward, lora)
