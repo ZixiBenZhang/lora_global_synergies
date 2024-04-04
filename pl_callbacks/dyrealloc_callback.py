@@ -20,6 +20,8 @@ from models.modeling_opt_lora import (
     OPTLoraForQuestionAnswering,
     OPTLoraDecoderLayer,
 )
+from pl_model_wrapper import NLPClassificationModelWrapper, NLPSummarizationModelWrapper, \
+    NLPLanguageModelingModelWrapper
 from pl_model_wrapper.base import PlWrapperBase
 
 logger = logging.getLogger(__name__)
@@ -377,23 +379,68 @@ class DynamicLoraReallocationCallback(pl.Callback):
             dataloader = self._get_alpha_testing_dataloader(self.rng)
             self.rng_state = self.rng.get_state()
 
-            original_val_metrics = self.alpha_trainer.test(
-                self.alpha_pl_module, dataloaders=dataloader, verbose=False
-            )[0]
-
-            def get_metric_name():
+            def _test(module: PlWrapperBase, test_dataloader: DataLoader) -> float:
+                module.to("cuda")
+                # reset metrics
                 match self.task:
                     case "classification":
-                        return "test_acc_epoch"
+                        module: NLPClassificationModelWrapper
+                        module.acc_test.reset()
                     case "summarization":
-                        return "test_rouge_epoch"
+                        module: NLPSummarizationModelWrapper
+                        module.rouge_test.reset()
                     case "causal_language_modeling":
-                        return "test_perplexity_epoch"
+                        module: NLPLanguageModelingModelWrapper
+                        module.loss_test.reset()
                     case _:
                         raise ValueError(f"Unsupported task: {self.task}")
 
+                # run test
+                msg = ""
+                for i, test_batch in enumerate(test_dataloader):
+                    if i >= self.limit_test_batches:
+                        break
+                    print(" " * len(msg), end="\r")
+                    msg = f">>> Testing on batch {i + 1} / {self.limit_test_batches}"
+                    print(msg, end="\r")
+                    test_batch = self.data_module.transfer_batch_to_device(test_batch, torch.device("cuda"), 0)
+                    _ = module.test_step(batch=test_batch, batch_idx=i)
+                print()
+
+                # compute metrics
+                match self.task:
+                    case "classification":
+                        module: NLPClassificationModelWrapper
+                        res = module.acc_test.compute()
+                    case "summarization":
+                        module: NLPSummarizationModelWrapper
+                        res = module.rouge_test.compute()
+                    case "causal_language_modeling":
+                        module: NLPLanguageModelingModelWrapper
+                        res = torch.exp(module.loss_test.compute())
+                    case _:
+                        raise ValueError(f"Unsupported task: {self.task}")
+
+                return res
+
+            # original_val_metrics = self.alpha_trainer.test(
+            #     self.alpha_pl_module, dataloaders=dataloader, verbose=False
+            # )[0]
+            original_val_metrics = _test(self.alpha_pl_module, dataloader)
+
+            # def get_metric_name():
+            #     match self.task:
+            #         case "classification":
+            #             return "test_acc_epoch"
+            #         case "summarization":
+            #             return "test_rouge_epoch"
+            #         case "causal_language_modeling":
+            #             return "test_perplexity_epoch"
+            #         case _:
+            #             raise ValueError(f"Unsupported task: {self.task}")
+
             def get_metric_threshold():
-                original_metric = original_val_metrics[get_metric_name()]
+                original_metric = original_val_metrics
                 match self.task:
                     case "classification":
                         # Accuracy
@@ -418,7 +465,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         raise ValueError(f"Unsupported task: {self.task}")
 
             def check_exceed_threshold(val_metrics_dict):
-                val_metric = val_metrics_dict[get_metric_name()]
+                val_metric = val_metrics_dict
                 threshold = get_metric_threshold()
                 match self.task:
                     case "classification":
@@ -470,9 +517,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     while lb < rb:
                         alpha = (lb + rb) // 2
                         lora.set_importance_alpha(alpha / ALPHA_UB)
-                        val_metrics = self.alpha_trainer.test(
-                            self.alpha_pl_module, dataloaders=dataloader, verbose=False
-                        )[0]
+                        # val_metrics = self.alpha_trainer.test(
+                        #     self.alpha_pl_module, dataloaders=dataloader, verbose=False
+                        # )[0]
+                        val_metrics = _test(self.alpha_pl_module, dataloader)
                         if check_exceed_threshold(val_metrics):
                             lb = alpha + 1
                         else:
@@ -663,7 +711,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             if i >= self.limit_test_batches:
                 break
             print(" " * len(msg), end="\r")
-            msg = f">>> Testing on training batch {i + 1} / {self.limit_test_batches}"
+            msg = f">>> Testing on batch {i + 1} / {self.limit_test_batches}"
             print(msg, end="\r")
             batch = self.data_module.transfer_batch_to_device(batch, torch.device("cuda"), 0)
             loss = self.alpha_pl_module.training_step(batch=batch, batch_idx=i)
