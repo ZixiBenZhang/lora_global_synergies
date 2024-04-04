@@ -142,7 +142,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             case "alpha_test":
                 return self._alpha_importance_test
             case "constant":
-                pass
+                return self._const_test
             case "grad_norm":
                 pass
             case "snip":
@@ -505,6 +505,48 @@ class DynamicLoraReallocationCallback(pl.Callback):
         # TODO: evaluate module importance based on gradient of alpha
         pl_module.model.to(device)
         raise NotImplementedError
+
+    def _const_test(
+            self,
+            trainer: pl.Trainer,
+            pl_module: PlWrapperBase,
+            batch: Any,
+            batch_idx: int,
+    ) -> dict[int, dict[str, float]]:
+        model = self.alpha_pl_module.model
+        assert (
+                type(model) is OPTLoraForCausalLM
+                or type(model) is OPTLoraForSequenceClassification
+                or type(model) is OPTLoraForQuestionAnswering
+        )
+        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+
+        # calculate score of every lora module
+        with torch.no_grad():
+            res_val = {}
+            for decoder_layer in model.model.decoder.layers:
+                decoder_layer: OPTLoraDecoderLayer
+                layer_id = decoder_layer.layer_id
+                lora_modules: dict[str, LoraLinear] = {
+                    "q_proj": decoder_layer.self_attn.q_proj,
+                    "k_proj": decoder_layer.self_attn.k_proj,
+                    "v_proj": decoder_layer.self_attn.v_proj,
+                    "out_proj": decoder_layer.self_attn.out_proj,
+                    "fc1": decoder_layer.fc1,
+                    "fc2": decoder_layer.fc2,
+                }
+                for proj_name, lora in lora_modules.items():
+                    if (
+                            lora.active_adapter not in lora.lora_A.keys()
+                            or lora.r[lora.active_adapter] == 0
+                    ):
+                        continue
+
+                    if layer_id not in res_val:
+                        res_val[layer_id] = {}
+                    res_val[layer_id][proj_name] = 1.0
+
+        return res_val
 
     def _snip_test(
         self,
