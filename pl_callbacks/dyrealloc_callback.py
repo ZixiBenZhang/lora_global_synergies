@@ -146,7 +146,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             case "constant":
                 return self._const_test
             case "grad_norm":
-                pass
+                return self._grad_norm_test
             case "snip":
                 return self._snip_test
             case "synflow":
@@ -593,6 +593,93 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     res_val[layer_id][proj_name] = 1.0
 
         return res_val
+
+    def _grad_norm_test(
+        self,
+        trainer: pl.Trainer,
+        pl_module: PlWrapperBase,
+        batch: Any,
+        batch_idx: int,
+    ) -> dict[int, dict[str, float]]:
+        device = pl_module.model.device
+
+        def get_unshuffled_train_dataloader(datamodule: AgsDataModule):
+            if datamodule.training_dataset is None:
+                raise RuntimeError("The training dataset is not available.")
+            data_collator = None
+            if datamodule.dataset_info.data_collator_cls is not None:
+                data_collator = datamodule.dataset_info.data_collator_cls(
+                    tokenizer=datamodule.tokenizer
+                )
+            return DataLoader(
+                datamodule.training_dataset,
+                batch_size=datamodule.batch_size * trainer.num_devices,  # use effective batch size
+                shuffle=False,
+                num_workers=datamodule.num_workers,
+                collate_fn=data_collator,
+            )
+
+        dataloader = get_unshuffled_train_dataloader(self.data_module)
+
+        # GRAD NORM
+        model = self.alpha_pl_module.model
+        assert (
+                type(model) is OPTLoraForCausalLM
+                or type(model) is OPTLoraForSequenceClassification
+                or type(model) is OPTLoraForQuestionAnswering
+        )
+        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+
+        # compute gradients
+        self.alpha_pl_module.to("cuda")
+        self.alpha_pl_module.zero_grad()
+        msg = ""
+        for i, batch in enumerate(dataloader):
+            if i >= self.limit_test_batches:
+                break
+            print(" " * len(msg), end="\r")
+            msg = f">>> Testing on batch {i + 1} / {self.limit_test_batches}"
+            print(msg, end="\r")
+            batch = self.data_module.transfer_batch_to_device(batch, torch.device("cuda"), 0)
+            loss = self.alpha_pl_module.training_step(batch=batch, batch_idx=i)
+            # print(loss.device, loss)
+            loss.backward()
+        print()
+
+        # calculate score of every lora module
+        grads_norm = {}
+        for decoder_layer in model.model.decoder.layers:
+            decoder_layer: OPTLoraDecoderLayer
+            layer_id = decoder_layer.layer_id
+            lora_modules: dict[str, LoraLinear] = {
+                "q_proj": decoder_layer.self_attn.q_proj,
+                "k_proj": decoder_layer.self_attn.k_proj,
+                "v_proj": decoder_layer.self_attn.v_proj,
+                "out_proj": decoder_layer.self_attn.out_proj,
+                "fc1": decoder_layer.fc1,
+                "fc2": decoder_layer.fc2,
+            }
+            for proj_name, lora in lora_modules.items():
+                if (
+                        lora.active_adapter not in lora.lora_A.keys()
+                        or lora.r[lora.active_adapter] == 0
+                ):
+                    continue
+
+                grad_lora = (
+                        lora.lora_A[lora.active_adapter].weight.grad.norm()
+                        + lora.lora_B[lora.active_adapter].weight.grad.norm()
+                ).item()
+
+                if layer_id not in grads_norm:
+                    grads_norm[layer_id] = {}
+                grads_norm[layer_id][proj_name] = grad_lora
+
+        # reset grads
+        self.alpha_pl_module.zero_grad()
+
+        pl_module.model.to(device)
+        return grads_norm
 
     def _snip_test(
         self,
