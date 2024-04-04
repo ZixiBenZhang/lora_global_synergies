@@ -303,7 +303,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 ]
                 self.rng_state = self.rng.get_state()
                 print(tie_idx.device, tie_idx)
-                # todo: debug (particularly for alpha & const testing). At CPU???
+                # todo: debug (particularly for alpha & const testing) sometimes e.g. tie_idx = [1]
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
             else:
                 idx = idx[-budget:]
@@ -603,9 +603,23 @@ class DynamicLoraReallocationCallback(pl.Callback):
     ) -> dict[int, dict[str, float]]:
         device = pl_module.model.device
 
-        self.rng.set_state(self.rng_state)
-        dataloader = self._get_alpha_testing_dataloader(self.rng)
-        self.rng_state = self.rng.get_state()
+        def get_unshuffled_train_dataloader(datamodule: AgsDataModule):
+            if datamodule.training_dataset is None:
+                raise RuntimeError("The training dataset is not available.")
+            data_collator = None
+            if datamodule.dataset_info.data_collator_cls is not None:
+                data_collator = datamodule.dataset_info.data_collator_cls(
+                    tokenizer=datamodule.tokenizer
+                )
+            return DataLoader(
+                datamodule.training_dataset,
+                batch_size=datamodule.batch_size * trainer.num_devices,  # use effective batch size
+                shuffle=False,
+                num_workers=datamodule.num_workers,
+                collate_fn=data_collator,
+            )
+
+        dataloader = get_unshuffled_train_dataloader(self.data_module)
 
         # SNIP
         model = self.alpha_pl_module.model
@@ -786,9 +800,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
     ) -> dict[int, dict[str, float]]:
         device = pl_module.model.device
 
-        self.rng.set_state(self.rng_state)
-        dataloader = self._get_alpha_testing_dataloader(self.rng)
-        self.rng_state = self.rng.get_state()
+        dataloader = self._get_train_dataloader()
 
         # SYNFLOW
         model = self.alpha_pl_module.model
