@@ -148,7 +148,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             case "snip":
                 return self._snip_test
             case "synflow":
-                pass
+                return self._synflow_test
             case "fisher":
                 raise NotImplementedError
             case "jacob_cov":
@@ -303,7 +303,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 ]
                 self.rng_state = self.rng.get_state()
                 print(tie_idx.device, tie_idx)
-                # todo: debug (particularly for alpha testing)
+                # todo: debug (particularly for alpha & const testing). At CPU???
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
             else:
                 idx = idx[-budget:]
@@ -507,11 +507,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
         raise NotImplementedError
 
     def _const_test(
-            self,
-            trainer: pl.Trainer,
-            pl_module: PlWrapperBase,
-            batch: Any,
-            batch_idx: int,
+        self,
+        trainer: pl.Trainer,
+        pl_module: PlWrapperBase,
+        batch: Any,
+        batch_idx: int,
     ) -> dict[int, dict[str, float]]:
         model = self.alpha_pl_module.model
         assert (
@@ -521,7 +521,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         )
         model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
 
-        # calculate score of every lora module
+        # constant score of every lora module
         with torch.no_grad():
             res_val = {}
             for decoder_layer in model.model.decoder.layers:
@@ -740,6 +740,134 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 # del lora.weight_mask_B
                 lora.forward = original_forward[decoder_layer.layer_id][proj_name]
 
+        self.alpha_pl_module.zero_grad()
+
+        pl_module.model.to(device)
+        return grads_abs
+
+    def _synflow_test(
+        self,
+        trainer: pl.Trainer,
+        pl_module: PlWrapperBase,
+        batch: Any,
+        batch_idx: int,
+    ) -> dict[int, dict[str, float]]:
+        device = pl_module.model.device
+
+        def get_unshuffled_train_dataloader(datamodule: AgsDataModule):
+            if datamodule.training_dataset is None:
+                raise RuntimeError("The training dataset is not available.")
+            data_collator = None
+            if datamodule.dataset_info.data_collator_cls is not None:
+                data_collator = datamodule.dataset_info.data_collator_cls(
+                    tokenizer=datamodule.tokenizer
+                )
+            return DataLoader(
+                datamodule.training_dataset,
+                batch_size=datamodule.batch_size * trainer.num_devices,  # use effective batch size
+                shuffle=False,
+                num_workers=datamodule.num_workers,
+                collate_fn=data_collator,
+            )
+
+        dataloader = get_unshuffled_train_dataloader(self.data_module)
+
+        # SYNFLOW
+        model = self.alpha_pl_module.model
+        assert (
+                type(model) is OPTLoraForCausalLM
+                or type(model) is OPTLoraForSequenceClassification
+                or type(model) is OPTLoraForQuestionAnswering
+        )
+        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+
+        # convert params to their abs, keep sign for converting it back
+        @torch.no_grad()
+        def linearize(net):
+            signs = {}
+            for name, param in net.state_dict().items():
+                signs[name] = torch.sign(param)
+                param.abs_()
+            return signs
+
+        # convert to orig values
+        @torch.no_grad()
+        def nonlinearize(net, signs):
+            for name, param in net.state_dict().items():
+                param.mul_(signs[name])
+
+        # keep signs of all params
+        signs = linearize(model)
+
+        # compute gradients
+        self.alpha_pl_module.to("cuda")
+        self.alpha_pl_module.zero_grad()
+        example_input = next(iter(dataloader))
+        input_dim = list(example_input["input_ids"].shape) + [model.model.decoder.embed_tokens.weight.shape[1]]
+        inputs = torch.ones(input_dim).float().to("cuda")
+        attention_mask = example_input["attention_mask"]
+        token_type_ids = example_input.get("token_type_ids", None)
+        labels = example_input["labels"]
+        if isinstance(inputs, list):
+            inputs = torch.stack(inputs)
+        if isinstance(attention_mask, list):
+            attention_mask = torch.stack(attention_mask)
+        if isinstance(token_type_ids, list):
+            token_type_ids = torch.stack(token_type_ids)
+        if isinstance(labels, list):
+            labels = torch.stack(labels)
+        if token_type_ids is not None:
+            output = model.forward(
+                inputs_embeds=inputs.to("cuda"),
+                attention_mask=attention_mask.to("cuda"),
+                token_type_ids=token_type_ids.to("cuda"),
+                labels=labels.to("cuda"),
+            )
+        else:
+            output = model.forward(
+                inputs_embeds=inputs.to("cuda"),
+                attention_mask=attention_mask.to("cuda"),
+                labels=labels.to("cuda"),
+            )
+        torch.sum(output["loss"]).backward()
+
+        # calculate score of every lora module
+        grads_abs = {}
+        for decoder_layer in model.model.decoder.layers:
+            decoder_layer: OPTLoraDecoderLayer
+            layer_id = decoder_layer.layer_id
+            lora_modules: dict[str, LoraLinear] = {
+                "q_proj": decoder_layer.self_attn.q_proj,
+                "k_proj": decoder_layer.self_attn.k_proj,
+                "v_proj": decoder_layer.self_attn.v_proj,
+                "out_proj": decoder_layer.self_attn.out_proj,
+                "fc1": decoder_layer.fc1,
+                "fc2": decoder_layer.fc2,
+            }
+            for proj_name, lora in lora_modules.items():
+                if (
+                        lora.active_adapter not in lora.lora_A.keys()
+                        or lora.r[lora.active_adapter] == 0
+                ):
+                    continue
+
+                grad_lora = (
+                    torch.sum(torch.abs(
+                        lora.lora_A[lora.active_adapter].weight * lora.lora_A[lora.active_adapter].weight.grad
+                    ))
+                    + torch.sum(torch.abs(
+                        lora.lora_B[lora.active_adapter].weight * lora.lora_B[lora.active_adapter].weight.grad
+                    ))
+                ).item()
+
+                if layer_id not in grads_abs:
+                    grads_abs[layer_id] = {}
+                grads_abs[layer_id][proj_name] = grad_lora
+
+        # apply signs of all params
+        nonlinearize(model, signs)
+
+        # reset grads
         self.alpha_pl_module.zero_grad()
 
         pl_module.model.to(device)
