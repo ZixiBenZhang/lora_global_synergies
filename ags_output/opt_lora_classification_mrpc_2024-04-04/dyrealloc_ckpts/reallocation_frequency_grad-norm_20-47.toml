@@ -1,0 +1,97 @@
+total_reallocation_number = 100
+
+[layer_0]
+q_proj = 0
+v_proj = 0
+
+[layer_1]
+q_proj = 0
+v_proj = 0
+
+[layer_2]
+q_proj = 0
+v_proj = 80
+
+[layer_3]
+q_proj = 0
+v_proj = 41
+
+[layer_4]
+q_proj = 0
+v_proj = 55
+
+[layer_5]
+q_proj = 0
+v_proj = 7
+
+[layer_6]
+q_proj = 0
+v_proj = 27
+
+[layer_7]
+q_proj = 0
+v_proj = 39
+
+[layer_8]
+q_proj = 0
+v_proj = 80
+
+[layer_9]
+q_proj = 0
+v_proj = 93
+
+[layer_10]
+q_proj = 0
+v_proj = 92
+
+[layer_11]
+q_proj = 0
+v_proj = 100
+
+[layer_12]
+q_proj = 0
+v_proj = 99
+
+[layer_13]
+q_proj = 0
+v_proj = 63
+
+[layer_14]
+q_proj = 0
+v_proj = 32
+
+[layer_15]
+q_proj = 0
+v_proj = 99
+
+[layer_16]
+q_proj = 0
+v_proj = 12
+
+[layer_17]
+q_proj = 0
+v_proj = 34
+
+[layer_18]
+q_proj = 0
+v_proj = 49
+
+[layer_19]
+q_proj = 0
+v_proj = 95
+
+[layer_20]
+q_proj = 0
+v_proj = 10
+
+[layer_21]
+q_proj = 0
+v_proj = 68
+
+[layer_22]
+q_proj = 0
+v_proj = 16
+
+[layer_23]
+q_proj = 0
+v_proj = 9
