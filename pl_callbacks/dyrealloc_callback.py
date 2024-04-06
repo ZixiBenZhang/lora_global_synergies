@@ -410,7 +410,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     test_batch = self.data_module.transfer_batch_to_device(test_batch, torch.device("cuda"), 0)
                     _loss = module.test_step(batch=test_batch, batch_idx=i)
                     # print(module.device, _loss, test_batch["input_ids"].shape)
-                print()
+                if torch.cuda.current_device() == 0:
+                    print()
 
                 # compute metrics
                 match self.task:
