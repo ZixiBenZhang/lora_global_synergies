@@ -182,7 +182,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             len(self.data_module.training_dataset), generator=rng
         )
         validation_idx = torch.randperm(
-            len(self.data_module.val_dataloader()), generator=rng
+            len(self.data_module.validation_dataset), generator=rng
         )
         if len(train_idx) >= len(validation_idx):
             train_idx = train_idx[: len(validation_idx)]
