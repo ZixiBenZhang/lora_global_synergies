@@ -71,6 +71,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.alpha_pl_module = alpha_pl_module
         self.train_set_len = None
         self.val_set_len = None
+        self.num_devices = None
 
         assert task in ["classification", "summarization", "causal_language_modeling"]
         self.task = task
@@ -138,6 +139,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             enable_model_summary=False,
             enable_checkpointing=False,
         )
+        self.num_devices = trainer.num_devices
 
     def _get_importance_test(self) -> Callable:
         match self.importance_test_name:
@@ -212,7 +214,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 ),
                 indices=interleave_idx,
             ),
-            batch_size=self.data_module.batch_size,
+            batch_size=self.data_module.batch_size * self.num_devices,
             shuffle=False,
             num_workers=self.data_module.num_workers,
             collate_fn=data_collator,
@@ -404,7 +406,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     msg = f">>> Testing on batch {i + 1} / {self.limit_test_batches}"
                     print(msg, end="\r")
                     test_batch = self.data_module.transfer_batch_to_device(test_batch, torch.device("cuda"), 0)
-                    _ = module.test_step(batch=test_batch, batch_idx=i)
+                    _loss = module.test_step(batch=test_batch, batch_idx=i)
+                    print(module.device, _loss, batch.shape)
                 print()
 
                 # compute metrics
