@@ -402,9 +402,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 for i, test_batch in enumerate(test_dataloader):
                     if i >= self.limit_test_batches:
                         break
-                    print(" " * len(msg), end="\r")
+                    if torch.cuda.current_device() == 0:
+                        print(" " * len(msg), end="\r")
                     msg = f">>> Testing on batch {i + 1} / {self.limit_test_batches}"
-                    print(msg, end="\r")
+                    if torch.cuda.current_device() == 0:
+                        print(msg, end="\r")
                     test_batch = self.data_module.transfer_batch_to_device(test_batch, torch.device("cuda"), 0)
                     _loss = module.test_step(batch=test_batch, batch_idx=i)
                     # print(module.device, _loss, test_batch["input_ids"].shape)
