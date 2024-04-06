@@ -399,7 +399,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
                 # run test
                 msg = ""
-                print(len(test_dataloader))
                 for i, test_batch in enumerate(test_dataloader):
                     if i >= self.limit_test_batches:
                         break
