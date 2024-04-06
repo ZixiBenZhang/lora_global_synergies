@@ -302,8 +302,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     : (budget - len(greater))
                 ]
                 self.rng_state = self.rng.get_state()
-                print(tie_idx.device, tie_idx)
-                # todo: debug (particularly for alpha & const testing) sometimes e.g. tie_idx = [1]
+                print(tie_idx.device, tie_idx, tie[tie_idx])
+                # todo: debug (particularly for alpha & const testing) sometimes e.g. tie_idx = [1]; probably several tie but budget==1
                 turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
             else:
                 idx = idx[-budget:]
