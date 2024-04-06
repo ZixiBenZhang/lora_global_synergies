@@ -11,14 +11,16 @@ from transformers import (
     LlamaForSequenceClassification,
     LlamaForCausalLM,
     OPTForSequenceClassification,
-    OPTForCausalLM,
+    OPTForCausalLM, GemmaConfig, GemmaTokenizer,
 )
 
+from models.configuration_gemma_lora import GemmaLoraConfig
 from models.configuration_opt_lora import OPTLoraConfig
 from models.configuration_opt_lora_layer_residual_shortcuts import (
     OPTLoraAgsLayerResConfig,
 )
 from models.configuration_roberta_lora import RobertaLoraConfig
+from models.modeling_gemma_lora import GemmaLoraForSequenceClassification, GemmaLoraForCausalLM
 from models.modeling_opt_lora import (
     OPTLoraForSequenceClassification,
     OPTLoraForCausalLM,
@@ -183,7 +185,50 @@ HF_NLP_MODELS = {
             causal_LM=True,
         ),
     },
-    # TODO: Llama & Vicuna model info
+    "google/gemma-2b": {
+        "config_cls": GemmaConfig,
+        "tokenizer_cls": GemmaTokenizer,
+        "info": AgsModelInfo(
+            "google/gemma-2b",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
+    },
+    "google/gemma-7b": {
+        "config_cls": GemmaConfig,
+        "tokenizer_cls": GemmaTokenizer,
+        "info": AgsModelInfo(
+            "google/gemma-7b",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
+    },
+    "google/gemma-2b-it": {
+        "config_cls": GemmaConfig,
+        "tokenizer_cls": GemmaTokenizer,
+        "info": AgsModelInfo(
+            "google/gemma-2b-it",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
+    },
+    "google/gemma-7b-it": {
+        "config_cls": GemmaConfig,
+        "tokenizer_cls": GemmaTokenizer,
+        "info": AgsModelInfo(
+            "google/gemma-7b-it",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
+    },
 }
 
 MANUAL_MODELS = {
@@ -241,6 +286,20 @@ MANUAL_MODELS = {
         "sequence_classification": RobertaLoraForSequenceClassification,
         "causal_LM": RobertaLoraForCausalLM,
     },
+    "gemma_lora": {
+        "config_cls": GemmaLoraConfig,
+        "tokenizer_cls": GemmaTokenizer,
+        "info": AgsModelInfo(
+            "gemma_lora",
+            model_source="manual",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+            is_lora=True,
+        ),
+        "sequence_classification": GemmaLoraForSequenceClassification,
+        "causal_LM": GemmaLoraForCausalLM,
+    },
     "opt_lora_ags_layer_residual": {
         "config_cls": OPTLoraAgsLayerResConfig,
         "tokenizer_cls": GPT2Tokenizer,
@@ -256,7 +315,6 @@ MANUAL_MODELS = {
         "sequence_classification": OPTLoraAgsForSequenceClassification,
         "causal_LM": OPTLoraAgsForCausalLM,
     },
-    # TODO: more LoRA model info
 }
 
 
