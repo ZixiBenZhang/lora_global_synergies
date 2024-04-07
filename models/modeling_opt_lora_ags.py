@@ -38,7 +38,7 @@ from transformers.utils import (
 
 from lora.lora_modules import LoraLinear
 from projectors.shortcut_modules import ShortcutFromIdentity, ShortcutFromZeros
-from .configuration_opt_lora_layer_residual_shortcuts import OPTLoraAgsLayerResConfig
+from .configuration_opt_lora_ags import OPTLoraAgsConfig
 
 logger = logging.get_logger(__name__)
 
@@ -146,7 +146,7 @@ class OPTLoraAgsAttention(nn.Module):
 
     def __init__(
         self,
-        config: OPTLoraAgsLayerResConfig,
+        config: OPTLoraAgsConfig,
         embed_dim: int,
         num_heads: int,
         layer_id: int = 0,
@@ -351,7 +351,7 @@ class OPTLoraAgsAttention(nn.Module):
 # W1, W2 in here
 # Residual shortcut projections in here
 class OPTLoraAgsDecoderLayer(nn.Module):
-    def __init__(self, config: OPTLoraAgsLayerResConfig, layer_id: int = 0):
+    def __init__(self, config: OPTLoraAgsConfig, layer_id: int = 0):
         super().__init__()
         self.embed_dim = config.hidden_size
         self.layer_id = layer_id
@@ -406,6 +406,8 @@ class OPTLoraAgsDecoderLayer(nn.Module):
             in_out_features=self.embed_dim,
             config=layer_shortcut_config["shortcut2"],
         )
+        if self.layer_id == 0:
+            self.shortcut_ffn = None
 
     def forward(
         self,
@@ -542,7 +544,7 @@ OPT_START_DOCSTRING = r"""
     OPT_START_DOCSTRING,
 )
 class OPTLoraAgsPreTrainedModel(PreTrainedModel):
-    config_class = OPTLoraAgsLayerResConfig
+    config_class = OPTLoraAgsConfig
     base_model_prefix = "model"
     supports_gradient_checkpointing = True
     _no_split_modules = ["OPTLoraDecoderLayer"]
@@ -633,7 +635,7 @@ class OPTLoraAgsDecoder(OPTLoraAgsPreTrainedModel):
         config: OPTLoraAgsResConfig
     """
 
-    def __init__(self, config: OPTLoraAgsLayerResConfig):
+    def __init__(self, config: OPTLoraAgsConfig):
         super().__init__(config)
         self.dropout = config.dropout
         self.layerdrop = config.layerdrop
@@ -940,7 +942,7 @@ class OPTLoraAgsDecoder(OPTLoraAgsPreTrainedModel):
     OPT_START_DOCSTRING,
 )
 class OPTLoraAgsModel(OPTLoraAgsPreTrainedModel):
-    def __init__(self, config: OPTLoraAgsLayerResConfig):
+    def __init__(self, config: OPTLoraAgsConfig):
         super().__init__(config)
         self.decoder = OPTLoraAgsDecoder(config)
         # Initialize weights and apply final processing
@@ -1016,7 +1018,7 @@ class OPTLoraAgsModel(OPTLoraAgsPreTrainedModel):
 class OPTLoraAgsForCausalLM(OPTLoraAgsPreTrainedModel):
     _tied_weights_keys = ["lm_head.weight"]
 
-    def __init__(self, config: OPTLoraAgsLayerResConfig):
+    def __init__(self, config: OPTLoraAgsConfig):
         super().__init__(config)
         self.model = OPTLoraAgsModel(config)
 
@@ -1245,7 +1247,7 @@ class OPTLoraAgsForCausalLM(OPTLoraAgsPreTrainedModel):
     OPT_START_DOCSTRING,
 )
 class OPTLoraAgsForSequenceClassification(OPTLoraAgsPreTrainedModel):
-    def __init__(self, config: OPTLoraAgsLayerResConfig):
+    def __init__(self, config: OPTLoraAgsConfig):
         super().__init__(config)
         self.num_labels = config.num_labels
         self.model = OPTLoraAgsModel(config)
@@ -1375,7 +1377,7 @@ class OPTLoraAgsForSequenceClassification(OPTLoraAgsPreTrainedModel):
     OPT_START_DOCSTRING,
 )
 class OPTLoraAgsForQuestionAnswering(OPTLoraAgsPreTrainedModel):
-    def __init__(self, config: OPTLoraAgsLayerResConfig):
+    def __init__(self, config: OPTLoraAgsConfig):
         super().__init__(config)
         self.model = OPTLoraAgsModel(config)
         self.qa_outputs = nn.Linear(config.word_embed_proj_dim, 2)

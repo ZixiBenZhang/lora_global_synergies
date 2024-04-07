@@ -16,7 +16,7 @@ OPT_PRETRAINED_CONFIG_ARCHIVE_MAP = {
 }
 
 
-class OPTLoraAgsLayerResConfig(PretrainedConfig):
+class OPTLoraAgsConfig(PretrainedConfig):
     r"""
     This is the configuration class to store the configuration of a [`OPTModel`]. It is used to instantiate a OPT model
     according to the specified arguments, defining the model architecture. Instantiating a configuration with the
@@ -141,7 +141,7 @@ class OPTLoraAgsLayerResConfig(PretrainedConfig):
         self.lora_config = lora_config
         if shortcut_config is not None:
             shortcut_config = parse_shortcut_config(
-                shortcut_config, num_hidden_layers, num_attention_heads
+                shortcut_config, num_hidden_layers
             )
         self.shortcut_config = shortcut_config
 
@@ -161,6 +161,5 @@ class OPTLoraAgsLayerResConfig(PretrainedConfig):
             value = parse_shortcut_config(
                 config=value,
                 num_hidden_layers=self.num_hidden_layers,
-                num_heads=self.num_attention_heads,
             )
         return super().__setattr__(key, value)

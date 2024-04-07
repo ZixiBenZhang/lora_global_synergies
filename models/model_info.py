@@ -18,8 +18,8 @@ from transformers import (
 
 from models.configuration_gemma_lora import GemmaLoraConfig
 from models.configuration_opt_lora import OPTLoraConfig
-from models.configuration_opt_lora_layer_residual_shortcuts import (
-    OPTLoraAgsLayerResConfig,
+from models.configuration_opt_lora_ags import (
+    OPTLoraAgsConfig,
 )
 from models.configuration_roberta_lora import RobertaLoraConfig
 from models.modeling_gemma_lora import (
@@ -305,11 +305,11 @@ MANUAL_MODELS = {
         "sequence_classification": GemmaLoraForSequenceClassification,
         "causal_LM": GemmaLoraForCausalLM,
     },
-    "opt_lora_ags_layer_residual": {
-        "config_cls": OPTLoraAgsLayerResConfig,
+    "opt_lora_ags": {
+        "config_cls": OPTLoraAgsConfig,
         "tokenizer_cls": GPT2Tokenizer,
         "info": AgsModelInfo(
-            "opt_lora_ags_layer_residual",
+            "opt_lora_ags",
             model_source="manual",
             task_type="nlp",
             sequence_classification=True,
