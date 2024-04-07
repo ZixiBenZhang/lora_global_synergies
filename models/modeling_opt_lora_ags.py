@@ -398,17 +398,14 @@ class OPTLoraAgsDecoderLayer(nn.Module):
             in_out_features=self.embed_dim,
             config=layer_shortcut_config["residual2"],
         )
-        self.shortcut1 = ShortcutFromZeros(
+        self.shortcut_sa = ShortcutFromZeros(
             in_out_features=self.embed_dim,
             config=layer_shortcut_config["shortcut1"],
         )
-        self.shortcut2 = ShortcutFromZeros(
+        self.shortcut_ffn = ShortcutFromZeros(
             in_out_features=self.embed_dim,
             config=layer_shortcut_config["shortcut2"],
         )
-        if self.layer_id == 0:
-            self.shortcut1 = None
-            self.shortcut2 = None
 
     def forward(
         self,
@@ -418,11 +415,10 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         past_key_value: Optional[Tuple[torch.Tensor]] = None,
         output_attentions: Optional[bool] = False,
         use_cache: Optional[bool] = False,
-        residual_sa: Optional[torch.Tensor] = None,
         residual_ffn: Optional[torch.Tensor] = None,
-    ) -> Tuple[
+    ) -> Tuple[Tuple[
         torch.FloatTensor, Optional[Tuple[torch.FloatTensor, torch.FloatTensor]]
-    ]:
+    ], torch.FloatTensor]:
         """
         Args:
             hidden_states (`torch.FloatTensor`): input to the layer of shape `(batch, seq_len, embed_dim)`
@@ -437,13 +433,14 @@ class OPTLoraAgsDecoderLayer(nn.Module):
                 If set to `True`, `past_key_values` key value states are returned and can be used to speed up decoding
                 (see `past_key_values`).
             past_key_value (`Tuple(torch.FloatTensor)`, *optional*): cached past key and value projection states
-            residual_sa (`torch.FloatTensor`, *optional*): cross-layer shortcut from previous self_attn input,
-                before transformation.
-            residual_ffn (`torch.FloatTensor`, *optional*): cross-layer shortcut from previous FFN input,
-                before transformation.
+            residual_ffn (`torch.FloatTensor`, *optional*): cross-layer shortcut from previous layer's FFN input,
+                before applying the transformation.
         """
 
-        # In-layer residual transformation 1
+        # residual_sa for this layer
+        residual_sa = hidden_states
+
+        # in-layer residual transformation 1
         residual = self.residual1(hidden_states)
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE attention
@@ -468,19 +465,24 @@ class OPTLoraAgsDecoderLayer(nn.Module):
             hidden_states, p=self.dropout, training=self.training
         )
         hidden_states = residual + hidden_states
-        if residual_sa is not None and self.shortcut1 is not None:
-            residual = self.shortcut1(residual_sa)
-            hidden_states = residual + hidden_states
 
         # 350m applies layer norm AFTER attention
         if not self.do_layer_norm_before:
             hidden_states = self.self_attn_layer_norm(hidden_states)
 
+        # cross-layer shortcut from previous FFN input
+        if residual_ffn is not None and self.shortcut_ffn is not None:
+            residual_ffn = self.shortcut_ffn(residual_ffn)
+            hidden_states = residual_ffn + hidden_states
+
+        # residual_ffn for next decoder layer
+        residual_ffn = hidden_states
+
         # Fully Connected
         hidden_states_shape = hidden_states.shape
         hidden_states = hidden_states.reshape(-1, hidden_states.size(-1))
 
-        # In-layer residual transformation 2
+        # in-layer residual transformation 2
         residual = self.residual2(hidden_states)
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE ffn
@@ -496,14 +498,16 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         )
 
         hidden_states = residual + hidden_states
-        if residual_ffn is not None and self.shortcut2 is not None:
-            residual = self.shortcut2(residual_ffn)
-            hidden_states = residual + hidden_states
         hidden_states = hidden_states.view(hidden_states_shape)
 
         # 350m applies layer norm AFTER ffn
         if not self.do_layer_norm_before:
             hidden_states = self.final_layer_norm(hidden_states)
+
+        # cross-layer shortcut from current SA input
+        if self.shortcut_sa is not None:
+            residual_sa = self.shortcut_sa(residual_sa)
+            hidden_states = residual_sa + hidden_states
 
         outputs = (hidden_states,)
 
@@ -513,7 +517,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         if use_cache:
             outputs += (present_key_value,)
 
-        return outputs
+        return outputs, residual_ffn
 
 
 OPT_START_DOCSTRING = r"""
@@ -854,6 +858,9 @@ class OPTLoraAgsDecoder(OPTLoraAgsPreTrainedModel):
                         f" {head_mask.size()[0]}."
                     )
 
+        # Cross-layer shortcut hidden states
+        residual_ffn = None
+
         for idx, decoder_layer in enumerate(self.layers):
             # add LayerDrop (see https://arxiv.org/abs/1909.11556 for description)
             if output_hidden_states:
@@ -885,13 +892,14 @@ class OPTLoraAgsDecoder(OPTLoraAgsPreTrainedModel):
                     None,
                 )
             else:
-                layer_outputs = decoder_layer(
+                layer_outputs, residual_ffn = decoder_layer(
                     hidden_states,
                     attention_mask=attention_mask,
                     layer_head_mask=(head_mask[idx] if head_mask is not None else None),
                     past_key_value=past_key_value,
                     output_attentions=output_attentions,
                     use_cache=use_cache,
+                    residual_ffn=residual_ffn,
                 )
 
             hidden_states = layer_outputs[0]
