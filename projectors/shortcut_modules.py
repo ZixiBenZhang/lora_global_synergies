@@ -128,19 +128,32 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
                 x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
             )
             # x = x.to(self.proj_A[self.active_projector].weight.dtype)
+            # Beta only applied to (delta W)
             res = res + self.proj_B[self.active_projector](
                 self.proj_A[self.active_projector](
                     self.proj_dropout[self.active_projector](x)
                 )
-            )
+            ) * self.importance_beta
         else:
-            # Projector dropout unused
-            res = F.linear(
-                x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
-            )
+            if self.importance_beta != 1.0 and self.r[self.active_projector] > 0:
+                self.unmerge()
+                # Projector dropout used
+                res = F.linear(
+                    x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+                )
+                # x = x.to(self.proj_A[self.active_projector].weight.dtype)
+                # Beta only applied to (delta W)
+                res = res + self.proj_B[self.active_projector](
+                    self.proj_A[self.active_projector](
+                        self.proj_dropout[self.active_projector](x)
+                    )
+                ) * self.importance_beta
+            else:
+                # Projector dropout unused
+                res = F.linear(
+                    x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+                )
         # res = res.to(input_dtype)
-        # Only effective during beta importance testing
-        res = res * self.importance_beta
         return res
 
 
@@ -151,32 +164,32 @@ class ShortcutFromIdentity(ShortcutBase):
         # Identity layer
         nn.init.eye_(self.weight)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # input_dtype = x.dtype
-        if (
-            self.active_projector not in self.proj_A.keys()
-        ):  # active_projector wouldn't be in proj_A.keys() if r==0
-            res = x
-        elif self.disable_projectors:
-            res = x
-        elif self.r[self.active_projector] > 0 and not self.merged:
-            # Projector dropout used
-            res = x
-            # x = x.to(self.proj_A[self.active_projector].weight.dtype)
-            res = res + self.proj_B[self.active_projector](
-                self.proj_A[self.active_projector](
-                    self.proj_dropout[self.active_projector](x)
-                )
-            )
-        else:
-            # Projector dropout unused
-            res = F.linear(
-                x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
-            )
-        # res = res.to(input_dtype)
-        # Only effective during beta importance testing
-        res = res * self.importance_beta
-        return res
+    # def forward(self, x: torch.Tensor) -> torch.Tensor:
+    #     # input_dtype = x.dtype
+    #     if (
+    #         self.active_projector not in self.proj_A.keys()
+    #     ):  # active_projector wouldn't be in proj_A.keys() if r==0
+    #         res = x
+    #     elif self.disable_projectors:
+    #         res = x
+    #     elif self.r[self.active_projector] > 0 and not self.merged:
+    #         # Projector dropout used
+    #         res = x
+    #         # x = x.to(self.proj_A[self.active_projector].weight.dtype)
+    #         res = res + self.proj_B[self.active_projector](
+    #             self.proj_A[self.active_projector](
+    #                 self.proj_dropout[self.active_projector](x)
+    #             )
+    #         )
+    #     else:
+    #         # Projector dropout unused
+    #         res = F.linear(
+    #             x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+    #         )
+    #     # res = res.to(input_dtype)
+    #     # Only effective during beta importance testing
+    #     res = res * self.importance_beta
+    #     return res
 
 
 class ShortcutFromZeros(ShortcutBase):
@@ -186,31 +199,31 @@ class ShortcutFromZeros(ShortcutBase):
         # Zeros layer
         nn.init.zeros_(self.weight)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # input_dtype = x.dtype
-        if (
-            self.active_projector not in self.proj_A.keys()
-        ):  # active_projector wouldn't be in proj_A.keys() if r==0
-            res = torch.zeros_like(x)
-        elif self.disable_projectors:
-            res = torch.zeros_like(x)
-        elif self.r[self.active_projector] > 0 and not self.merged:
-            # Projector dropout used
-            # x = x.to(self.proj_A[self.active_projector].weight.dtype)
-            res = self.proj_B[self.active_projector](
-                self.proj_A[self.active_projector](
-                    self.proj_dropout[self.active_projector](x)
-                )
-            )
-        else:
-            # Projector dropout unused
-            res = F.linear(
-                x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
-            )
-        # res = res.to(input_dtype)
-        # Only effective during beta importance testing
-        res = res * self.importance_beta
-        return res
+    # def forward(self, x: torch.Tensor) -> torch.Tensor:
+    #     # input_dtype = x.dtype
+    #     if (
+    #         self.active_projector not in self.proj_A.keys()
+    #     ):  # active_projector wouldn't be in proj_A.keys() if r==0
+    #         res = torch.zeros_like(x)
+    #     elif self.disable_projectors:
+    #         res = torch.zeros_like(x)
+    #     elif self.r[self.active_projector] > 0 and not self.merged:
+    #         # Projector dropout used
+    #         # x = x.to(self.proj_A[self.active_projector].weight.dtype)
+    #         res = self.proj_B[self.active_projector](
+    #             self.proj_A[self.active_projector](
+    #                 self.proj_dropout[self.active_projector](x)
+    #             )
+    #         )
+    #     else:
+    #         # Projector dropout unused
+    #         res = F.linear(
+    #             x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+    #         )
+    #     # res = res.to(input_dtype)
+    #     # Only effective during beta importance testing
+    #     res = res * self.importance_beta
+    #     return res
 
 
 def mark_ags_as_trainable(model: nn.Module) -> None:
