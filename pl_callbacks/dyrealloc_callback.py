@@ -302,7 +302,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 self.rng.set_state(self.rng_state)
                 tie_idx = torch.randperm(len(tie), generator=self.rng)[
                     : (budget - len(greater))
-                ]
+                ].numpy()
                 self.rng_state = self.rng.get_state()
                 print(tie_idx.device, tie_idx, tie[tie_idx])
                 # todo: debug (particularly for alpha & const testing) sometimes e.g. tie_idx = [1]; probably several tie but budget==1
