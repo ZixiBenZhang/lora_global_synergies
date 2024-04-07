@@ -20,8 +20,11 @@ from models.modeling_opt_lora import (
     OPTLoraForQuestionAnswering,
     OPTLoraDecoderLayer,
 )
-from pl_model_wrapper import NLPClassificationModelWrapper, NLPSummarizationModelWrapper, \
-    NLPLanguageModelingModelWrapper
+from pl_model_wrapper import (
+    NLPClassificationModelWrapper,
+    NLPSummarizationModelWrapper,
+    NLPLanguageModelingModelWrapper,
+)
 from pl_model_wrapper.base import PlWrapperBase
 
 logger = logging.getLogger(__name__)
@@ -76,7 +79,15 @@ class DynamicLoraReallocationCallback(pl.Callback):
         assert task in ["classification", "summarization", "causal_language_modeling"]
         self.task = task
 
-        assert importance_test_name in ["constant", "grad_norm", "snip", "synflow", "fisher", "jacob_cov", "alpha_test"]
+        assert importance_test_name in [
+            "constant",
+            "grad_norm",
+            "snip",
+            "synflow",
+            "fisher",
+            "jacob_cov",
+            "alpha_test",
+        ]
         self.importance_test_name = importance_test_name
         self.importance_test = self._get_importance_test()
 
@@ -158,7 +169,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
             case "jacob_cov":
                 raise NotImplementedError
             case _:
-                raise ValueError(f"Unsupported importance test {self.importance_test_name}")
+                raise ValueError(
+                    f"Unsupported importance test {self.importance_test_name}"
+                )
 
     def _get_alpha_testing_dataloader(self, rng):
         return self._get_mixed_dataloader(rng)
@@ -247,9 +260,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
         with torch.no_grad():
             model = self.alpha_pl_module.model
             assert (
-                    type(model) is OPTLoraForCausalLM
-                    or type(model) is OPTLoraForSequenceClassification
-                    or type(model) is OPTLoraForQuestionAnswering
+                type(model) is OPTLoraForCausalLM
+                or type(model) is OPTLoraForSequenceClassification
+                or type(model) is OPTLoraForQuestionAnswering
             )
             model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
             for decoder_layer in reversed(model.model.decoder.layers):
@@ -264,8 +277,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 }
                 for proj_name, lora in lora_modules.items():
                     if (
-                            lora.active_adapter not in lora.lora_A.keys()
-                            or lora.r[lora.active_adapter] == 0
+                        lora.active_adapter not in lora.lora_A.keys()
+                        or lora.r[lora.active_adapter] == 0
                     ):
                         continue
                     lora.disable_adapters = False
@@ -405,7 +418,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     msg = f">>> Testing on batch {i + 1} / {self.limit_test_batches}"
                     if torch.cuda.current_device() == 0:
                         print(msg, end="\r")
-                    test_batch = self.data_module.transfer_batch_to_device(test_batch, torch.device("cuda"), 0)
+                    test_batch = self.data_module.transfer_batch_to_device(
+                        test_batch, torch.device("cuda"), 0
+                    )
                     _loss = module.test_step(batch=test_batch, batch_idx=i)
                     # print(module.device, _loss, test_batch["input_ids"].shape)
                 if torch.cuda.current_device() == 0:
@@ -565,9 +580,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
     ) -> dict[int, dict[str, float]]:
         model = self.alpha_pl_module.model
         assert (
-                type(model) is OPTLoraForCausalLM
-                or type(model) is OPTLoraForSequenceClassification
-                or type(model) is OPTLoraForQuestionAnswering
+            type(model) is OPTLoraForCausalLM
+            or type(model) is OPTLoraForSequenceClassification
+            or type(model) is OPTLoraForQuestionAnswering
         )
         model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
 
@@ -587,8 +602,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 }
                 for proj_name, lora in lora_modules.items():
                     if (
-                            lora.active_adapter not in lora.lora_A.keys()
-                            or lora.r[lora.active_adapter] == 0
+                        lora.active_adapter not in lora.lora_A.keys()
+                        or lora.r[lora.active_adapter] == 0
                     ):
                         continue
 
@@ -617,7 +632,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 )
             return DataLoader(
                 datamodule.training_dataset,
-                batch_size=datamodule.batch_size * trainer.num_devices,  # use effective batch size
+                batch_size=datamodule.batch_size
+                * trainer.num_devices,  # use effective batch size
                 shuffle=False,
                 num_workers=datamodule.num_workers,
                 collate_fn=data_collator,
@@ -628,9 +644,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
         # GRAD NORM
         model = self.alpha_pl_module.model
         assert (
-                type(model) is OPTLoraForCausalLM
-                or type(model) is OPTLoraForSequenceClassification
-                or type(model) is OPTLoraForQuestionAnswering
+            type(model) is OPTLoraForCausalLM
+            or type(model) is OPTLoraForSequenceClassification
+            or type(model) is OPTLoraForQuestionAnswering
         )
         model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
 
@@ -644,7 +660,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
             print(" " * len(msg), end="\r")
             msg = f">>> Testing on batch {i + 1} / {self.limit_test_batches}"
             print(msg, end="\r")
-            batch = self.data_module.transfer_batch_to_device(batch, torch.device("cuda"), 0)
+            batch = self.data_module.transfer_batch_to_device(
+                batch, torch.device("cuda"), 0
+            )
             loss = self.alpha_pl_module.training_step(batch=batch, batch_idx=i)
             # print(loss.device, loss)
             loss.backward()
@@ -665,14 +683,14 @@ class DynamicLoraReallocationCallback(pl.Callback):
             }
             for proj_name, lora in lora_modules.items():
                 if (
-                        lora.active_adapter not in lora.lora_A.keys()
-                        or lora.r[lora.active_adapter] == 0
+                    lora.active_adapter not in lora.lora_A.keys()
+                    or lora.r[lora.active_adapter] == 0
                 ):
                     continue
 
                 grad_lora = (
-                        lora.lora_A[lora.active_adapter].weight.grad.norm()
-                        + lora.lora_B[lora.active_adapter].weight.grad.norm()
+                    lora.lora_A[lora.active_adapter].weight.grad.norm()
+                    + lora.lora_B[lora.active_adapter].weight.grad.norm()
                 ).item()
 
                 if layer_id not in grads_norm:
@@ -704,7 +722,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 )
             return DataLoader(
                 datamodule.training_dataset,
-                batch_size=datamodule.batch_size * trainer.num_devices,  # use effective batch size
+                batch_size=datamodule.batch_size
+                * trainer.num_devices,  # use effective batch size
                 shuffle=False,
                 num_workers=datamodule.num_workers,
                 collate_fn=data_collator,
@@ -715,9 +734,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
         # SNIP
         model = self.alpha_pl_module.model
         assert (
-                type(model) is OPTLoraForCausalLM
-                or type(model) is OPTLoraForSequenceClassification
-                or type(model) is OPTLoraForQuestionAnswering
+            type(model) is OPTLoraForCausalLM
+            or type(model) is OPTLoraForSequenceClassification
+            or type(model) is OPTLoraForQuestionAnswering
         )
         model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
 
@@ -746,33 +765,40 @@ class DynamicLoraReallocationCallback(pl.Callback):
         def lora_forward(self, x):
             if self.active_adapter not in self.lora_A.keys():
                 res = F.linear(
-                    x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+                    x,
+                    self.weight if not self.fan_in_fan_out else self.weight.T,
+                    self.bias,
                 )
             elif self.disable_adapters:
                 if self.r[self.active_adapter] > 0 and self.merged:
                     self.unmerge()
                 res = F.linear(
-                    x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+                    x,
+                    self.weight if not self.fan_in_fan_out else self.weight.T,
+                    self.bias,
                 )
             else:
                 # weight mask activated
                 self.unmerge()
                 res = F.linear(
-                    x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+                    x,
+                    self.weight if not self.fan_in_fan_out else self.weight.T,
+                    self.bias,
                 )
                 res = (
-                        res
-                        + (
+                    res
+                    + (
+                        F.linear(
                             F.linear(
-                                F.linear(
-                                    self.lora_dropout[self.active_adapter](x),
-                                    self.lora_A[self.active_adapter].weight
-                                    * self.weight_mask_A,
-                                ),
-                                self.lora_B[self.active_adapter].weight * self.weight_mask_B,
-                            )
+                                self.lora_dropout[self.active_adapter](x),
+                                self.lora_A[self.active_adapter].weight
+                                * self.weight_mask_A,
+                            ),
+                            self.lora_B[self.active_adapter].weight
+                            * self.weight_mask_B,
                         )
-                        * self.scaling[self.active_adapter]
+                    )
+                    * self.scaling[self.active_adapter]
                 )
             # res = res.to(input_dtype)
             return res
@@ -793,8 +819,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
             original_forward[decoder_layer.layer_id] = {}
             for proj_name, lora in lora_modules.items():
                 if (
-                        lora.active_adapter not in lora.lora_A.keys()
-                        or lora.r[lora.active_adapter] == 0
+                    lora.active_adapter not in lora.lora_A.keys()
+                    or lora.r[lora.active_adapter] == 0
                 ):
                     continue
 
@@ -818,7 +844,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
             print(" " * len(msg), end="\r")
             msg = f">>> Testing on batch {i + 1} / {self.limit_test_batches}"
             print(msg, end="\r")
-            batch = self.data_module.transfer_batch_to_device(batch, torch.device("cuda"), 0)
+            batch = self.data_module.transfer_batch_to_device(
+                batch, torch.device("cuda"), 0
+            )
             loss = self.alpha_pl_module.training_step(batch=batch, batch_idx=i)
             # print(loss.device, loss)
             loss.backward()
@@ -839,14 +867,14 @@ class DynamicLoraReallocationCallback(pl.Callback):
             }
             for proj_name, lora in lora_modules.items():
                 if (
-                        lora.active_adapter not in lora.lora_A.keys()
-                        or lora.r[lora.active_adapter] == 0
+                    lora.active_adapter not in lora.lora_A.keys()
+                    or lora.r[lora.active_adapter] == 0
                 ):
                     continue
 
                 grad_lora = (
-                        torch.sum(torch.abs(lora.weight_mask_A.grad))
-                        + torch.sum(torch.abs(lora.weight_mask_B.grad))
+                    torch.sum(torch.abs(lora.weight_mask_A.grad))
+                    + torch.sum(torch.abs(lora.weight_mask_B.grad))
                 ).item()
 
                 if layer_id not in grads_abs:
@@ -867,9 +895,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
             }
             for proj_name, lora in lora_modules.items():
                 if (
-                        lora.active_adapter not in lora.lora_A.keys()
-                        or lora.disable_adapters
-                        or lora.r[lora.active_adapter] == 0
+                    lora.active_adapter not in lora.lora_A.keys()
+                    or lora.disable_adapters
+                    or lora.r[lora.active_adapter] == 0
                 ):
                     continue
 
@@ -896,9 +924,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
         # SYNFLOW
         model = self.alpha_pl_module.model
         assert (
-                type(model) is OPTLoraForCausalLM
-                or type(model) is OPTLoraForSequenceClassification
-                or type(model) is OPTLoraForQuestionAnswering
+            type(model) is OPTLoraForCausalLM
+            or type(model) is OPTLoraForSequenceClassification
+            or type(model) is OPTLoraForQuestionAnswering
         )
         model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
 
@@ -924,7 +952,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.alpha_pl_module.to("cuda")
         self.alpha_pl_module.zero_grad()
         example_input = next(iter(dataloader))
-        input_dim = list(example_input["input_ids"].shape) + [model.model.decoder.embed_tokens.weight.shape[1]]
+        input_dim = list(example_input["input_ids"].shape) + [
+            model.model.decoder.embed_tokens.weight.shape[1]
+        ]
         inputs = torch.ones(input_dim).float().to("cuda")
         attention_mask = example_input["attention_mask"]
         token_type_ids = example_input.get("token_type_ids", None)
@@ -967,18 +997,24 @@ class DynamicLoraReallocationCallback(pl.Callback):
             }
             for proj_name, lora in lora_modules.items():
                 if (
-                        lora.active_adapter not in lora.lora_A.keys()
-                        or lora.r[lora.active_adapter] == 0
+                    lora.active_adapter not in lora.lora_A.keys()
+                    or lora.r[lora.active_adapter] == 0
                 ):
                     continue
 
                 grad_lora = (
-                    torch.sum(torch.abs(
-                        lora.lora_A[lora.active_adapter].weight * lora.lora_A[lora.active_adapter].weight.grad
-                    ))
-                    + torch.sum(torch.abs(
-                        lora.lora_B[lora.active_adapter].weight * lora.lora_B[lora.active_adapter].weight.grad
-                    ))
+                    torch.sum(
+                        torch.abs(
+                            lora.lora_A[lora.active_adapter].weight
+                            * lora.lora_A[lora.active_adapter].weight.grad
+                        )
+                    )
+                    + torch.sum(
+                        torch.abs(
+                            lora.lora_B[lora.active_adapter].weight
+                            * lora.lora_B[lora.active_adapter].weight.grad
+                        )
+                    )
                 ).item()
 
                 if layer_id not in grads_abs:

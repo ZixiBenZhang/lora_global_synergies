@@ -72,7 +72,9 @@ def reallocate_lora_rank(filename, metric_name=None, metric_attr=None):
     turn_on = turn_on.astype(int).tolist()
     assert len(turn_on) == budget
 
-    print(f"{metric_name if metric_name is not None else 'Metric'} threshold: {alpha_threshold}")
+    print(
+        f"{metric_name if metric_name is not None else 'Metric'} threshold: {alpha_threshold}"
+    )
 
     lora_new_config: dict[
         str, str | dict[str, int | float | str | dict[str, int | float | str]]
@@ -124,7 +126,9 @@ def reallocate_lora_rank(filename, metric_name=None, metric_attr=None):
 
 if __name__ == "__main__":
     pl.seed_everything(0)
-    directory = "../ags_output/opt_lora_classification_mrpc_2024-04-01/importance_ckpts/"
+    directory = (
+        "../ags_output/opt_lora_classification_mrpc_2024-04-01/importance_ckpts/"
+    )
     for filename in os.listdir(directory):
         if filename.endswith(".toml"):
             metric = filename.split("_")[0]

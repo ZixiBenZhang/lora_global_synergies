@@ -670,10 +670,7 @@ class OPTLoraAgsDecoder(OPTLoraAgsPreTrainedModel):
             self.final_layer_norm = None
 
         self.layers = nn.ModuleList(
-            [
-                OPTLoraAgsDecoderLayer(config, i)
-                for i in range(config.num_hidden_layers)
-            ]
+            [OPTLoraAgsDecoderLayer(config, i) for i in range(config.num_hidden_layers)]
         )
 
         self.gradient_checkpointing = False

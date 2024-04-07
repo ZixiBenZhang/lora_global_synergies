@@ -31,9 +31,16 @@ from transformers.modeling_attn_mask_utils import (
     AttentionMaskConverter,
     _prepare_4d_causal_attention_mask,
 )
-from transformers.modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast, SequenceClassifierOutputWithPast
+from transformers.modeling_outputs import (
+    BaseModelOutputWithPast,
+    CausalLMOutputWithPast,
+    SequenceClassifierOutputWithPast,
+)
 from transformers.modeling_utils import PreTrainedModel
-from transformers.pytorch_utils import ALL_LAYERNORM_LAYERS, is_torch_greater_or_equal_than_1_13
+from transformers.pytorch_utils import (
+    ALL_LAYERNORM_LAYERS,
+    is_torch_greater_or_equal_than_1_13,
+)
 from transformers.utils import (
     add_start_docstrings,
     add_start_docstrings_to_model_forward,
@@ -63,7 +70,9 @@ def _get_unpad_data(attention_mask):
     seqlens_in_batch = attention_mask.sum(dim=-1, dtype=torch.int32)
     indices = torch.nonzero(attention_mask.flatten(), as_tuple=False).flatten()
     max_seqlen_in_batch = seqlens_in_batch.max().item()
-    cu_seqlens = F.pad(torch.cumsum(seqlens_in_batch, dim=0, dtype=torch.torch.int32), (1, 0))
+    cu_seqlens = F.pad(
+        torch.cumsum(seqlens_in_batch, dim=0, dtype=torch.torch.int32), (1, 0)
+    )
     return (
         indices,
         cu_seqlens,
@@ -105,16 +114,30 @@ class GemmaRotaryEmbedding(nn.Module):
         # x: [bs, num_attention_heads, seq_len, head_size]
         if self.inv_freq is None:
             self.inv_freq = 1.0 / (
-                self.base ** (torch.arange(0, self.dim, 2, dtype=torch.int64, device=x.device).float() / self.dim)
+                self.base
+                ** (
+                    torch.arange(
+                        0, self.dim, 2, dtype=torch.int64, device=x.device
+                    ).float()
+                    / self.dim
+                )
             )
-        inv_freq_expanded = self.inv_freq[None, :, None].float().expand(position_ids.shape[0], -1, 1)
+        inv_freq_expanded = (
+            self.inv_freq[None, :, None].float().expand(position_ids.shape[0], -1, 1)
+        )
         position_ids_expanded = position_ids[:, None, :].float()
         # Force float32 since bfloat16 loses precision on long contexts
         # See https://github.com/huggingface/transformers/pull/29285
         device_type = x.device.type
-        device_type = device_type if isinstance(device_type, str) and device_type != "mps" else "cpu"
+        device_type = (
+            device_type
+            if isinstance(device_type, str) and device_type != "mps"
+            else "cpu"
+        )
         with torch.autocast(device_type=device_type, enabled=False):
-            freqs = (inv_freq_expanded.float() @ position_ids_expanded.float()).transpose(1, 2)
+            freqs = (
+                inv_freq_expanded.float() @ position_ids_expanded.float()
+            ).transpose(1, 2)
             emb = torch.cat((freqs, freqs), dim=-1)
             cos = emb.cos()
             sin = emb.sin()
@@ -167,13 +190,22 @@ class GemmaLoraMLP(nn.Module):
         self.intermediate_size = config.intermediate_size
         layer_lora_config = config.lora_config[f"model_layer_{layer_id}"]
         self.gate_proj = LoraLinear(
-            self.hidden_size, self.intermediate_size, config=layer_lora_config["w0"], bias=False
+            self.hidden_size,
+            self.intermediate_size,
+            config=layer_lora_config["w0"],
+            bias=False,
         )
         self.up_proj = LoraLinear(
-            self.hidden_size, self.intermediate_size, config=layer_lora_config["w1"], bias=False
+            self.hidden_size,
+            self.intermediate_size,
+            config=layer_lora_config["w1"],
+            bias=False,
         )
         self.down_proj = LoraLinear(
-            self.intermediate_size, self.hidden_size, config=layer_lora_config["w2"], bias=False
+            self.intermediate_size,
+            self.hidden_size,
+            config=layer_lora_config["w2"],
+            bias=False,
         )
         if config.hidden_activation is None:
             logger.warning_once(
@@ -201,7 +233,9 @@ def repeat_kv(hidden_states: torch.Tensor, n_rep: int) -> torch.Tensor:
     batch, num_key_value_heads, slen, head_dim = hidden_states.shape
     if n_rep == 1:
         return hidden_states
-    hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
+    hidden_states = hidden_states[:, :, None, :, :].expand(
+        batch, num_key_value_heads, n_rep, slen, head_dim
+    )
     return hidden_states.reshape(batch, num_key_value_heads * n_rep, slen, head_dim)
 
 
@@ -285,31 +319,47 @@ class GemmaLoraAttention(nn.Module):
         key_states = self.k_proj(hidden_states)
         value_states = self.v_proj(hidden_states)
 
-        query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
-        key_states = key_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
-        value_states = value_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+        query_states = query_states.view(
+            bsz, q_len, self.num_heads, self.head_dim
+        ).transpose(1, 2)
+        key_states = key_states.view(
+            bsz, q_len, self.num_key_value_heads, self.head_dim
+        ).transpose(1, 2)
+        value_states = value_states.view(
+            bsz, q_len, self.num_key_value_heads, self.head_dim
+        ).transpose(1, 2)
 
         past_key_value = getattr(self, "past_key_value", past_key_value)
         cos, sin = self.rotary_emb(value_states, position_ids, seq_len=None)
-        query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, None)
+        query_states, key_states = apply_rotary_pos_emb(
+            query_states, key_states, cos, sin, None
+        )
 
         if past_key_value is not None:
             # sin and cos are specific to RoPE models; cache_position needed for the static cache
             cache_kwargs = {"sin": sin, "cos": cos, "cache_position": cache_position}
-            key_states, value_states = past_key_value.update(key_states, value_states, self.layer_idx, cache_kwargs)
+            key_states, value_states = past_key_value.update(
+                key_states, value_states, self.layer_idx, cache_kwargs
+            )
 
         key_states = repeat_kv(key_states, self.num_key_value_groups)
         value_states = repeat_kv(value_states, self.num_key_value_groups)
 
-        attn_weights = torch.matmul(query_states, key_states.transpose(2, 3)) / math.sqrt(self.head_dim)
+        attn_weights = torch.matmul(
+            query_states, key_states.transpose(2, 3)
+        ) / math.sqrt(self.head_dim)
 
         if attention_mask is not None:  # no matter the length, we just slice it
             causal_mask = attention_mask[:, :, :, : key_states.shape[-2]]
             attn_weights = attn_weights + causal_mask
 
         # upcast attention to fp32
-        attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
-        attn_weights = nn.functional.dropout(attn_weights, p=self.attention_dropout, training=self.training)
+        attn_weights = nn.functional.softmax(
+            attn_weights, dim=-1, dtype=torch.float32
+        ).to(query_states.dtype)
+        attn_weights = nn.functional.dropout(
+            attn_weights, p=self.attention_dropout, training=self.training
+        )
         attn_output = torch.matmul(attn_weights, value_states)
 
         if attn_output.size() != (bsz, self.num_heads, q_len, self.head_dim):
@@ -342,11 +392,15 @@ class GemmaLoraDecoderLayer(nn.Module):
         super().__init__()
         self.hidden_size = config.hidden_size
 
-        self.self_attn = GEMMA_ATTENTION_CLASSES[config._attn_implementation](config=config, layer_idx=layer_idx)
+        self.self_attn = GEMMA_ATTENTION_CLASSES[config._attn_implementation](
+            config=config, layer_idx=layer_idx
+        )
 
         self.mlp = GemmaLoraMLP(config, layer_id=layer_idx)
         self.input_layernorm = GemmaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
-        self.post_attention_layernorm = GemmaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
+        self.post_attention_layernorm = GemmaRMSNorm(
+            config.hidden_size, eps=config.rms_norm_eps
+        )
 
     def forward(
         self,
@@ -358,7 +412,9 @@ class GemmaLoraDecoderLayer(nn.Module):
         use_cache: Optional[bool] = False,
         cache_position: Optional[torch.LongTensor] = None,
         **kwargs,
-    ) -> Tuple[torch.FloatTensor, Optional[Tuple[torch.FloatTensor, torch.FloatTensor]]]:
+    ) -> Tuple[
+        torch.FloatTensor, Optional[Tuple[torch.FloatTensor, torch.FloatTensor]]
+    ]:
         """
         Args:
             hidden_states (`torch.FloatTensor`): input to the layer of shape `(batch, seq_len, embed_dim)`
@@ -455,8 +511,13 @@ class GemmaLoraPreTrainedModel(PreTrainedModel):
             if module.padding_idx is not None:
                 module.weight.data[module.padding_idx].zero_()
 
-    def _setup_cache(self, cache_cls, max_batch_size, max_cache_len: Optional[int] = None):
-        if self.config._attn_implementation == "flash_attention_2" and cache_cls == StaticCache:
+    def _setup_cache(
+        self, cache_cls, max_batch_size, max_cache_len: Optional[int] = None
+    ):
+        if (
+            self.config._attn_implementation == "flash_attention_2"
+            and cache_cls == StaticCache
+        ):
             raise ValueError(
                 "`static` cache implementation is not compatible with `attn_implementation==flash_attention_2` "
                 "make sure to use `sdpa` in the mean time, and open an issue at https://github.com/huggingface/transformers"
@@ -465,7 +526,11 @@ class GemmaLoraPreTrainedModel(PreTrainedModel):
         for layer in self.model.layers:
             weights = layer.self_attn.o_proj.weight
             layer.self_attn.past_key_value = cache_cls(
-                self.config, max_batch_size, max_cache_len, device=weights.device, dtype=weights.dtype
+                self.config,
+                max_batch_size,
+                max_cache_len,
+                device=weights.device,
+                dtype=weights.dtype,
             )
 
     def _reset_cache(self):
@@ -565,9 +630,14 @@ class GemmaLoraModel(GemmaLoraPreTrainedModel):
         self.padding_idx = config.pad_token_id
         self.vocab_size = config.vocab_size
 
-        self.embed_tokens = nn.Embedding(config.vocab_size, config.hidden_size, self.padding_idx)
+        self.embed_tokens = nn.Embedding(
+            config.vocab_size, config.hidden_size, self.padding_idx
+        )
         self.layers = nn.ModuleList(
-            [GemmaLoraDecoderLayer(config, layer_idx) for layer_idx in range(config.num_hidden_layers)]
+            [
+                GemmaLoraDecoderLayer(config, layer_idx)
+                for layer_idx in range(config.num_hidden_layers)
+            ]
         )
         self.norm = GemmaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
         self.gradient_checkpointing = False
@@ -596,12 +666,20 @@ class GemmaLoraModel(GemmaLoraPreTrainedModel):
         return_dict: Optional[bool] = None,
         cache_position: Optional[torch.LongTensor] = None,
     ) -> Union[Tuple, BaseModelOutputWithPast]:
-        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
+        output_attentions = (
+            output_attentions
+            if output_attentions is not None
+            else self.config.output_attentions
+        )
         output_hidden_states = (
-            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+            output_hidden_states
+            if output_hidden_states is not None
+            else self.config.output_hidden_states
         )
         use_cache = use_cache if use_cache is not None else self.config.use_cache
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
 
         if (input_ids is None) ^ (inputs_embeds is not None):
             raise ValueError(
@@ -625,13 +703,17 @@ class GemmaLoraModel(GemmaLoraPreTrainedModel):
 
         if cache_position is None:
             cache_position = torch.arange(
-                past_seen_tokens, past_seen_tokens + inputs_embeds.shape[1], device=inputs_embeds.device
+                past_seen_tokens,
+                past_seen_tokens + inputs_embeds.shape[1],
+                device=inputs_embeds.device,
             )
 
         if position_ids is None:
             position_ids = cache_position.unsqueeze(0)
 
-        causal_mask = self._update_causal_mask(attention_mask, inputs_embeds, cache_position)
+        causal_mask = self._update_causal_mask(
+            attention_mask, inputs_embeds, cache_position
+        )
 
         # embed positions
         hidden_states = inputs_embeds
@@ -639,7 +721,9 @@ class GemmaLoraModel(GemmaLoraPreTrainedModel):
         # normalized
         # Gemma downcasts the below to float16, causing sqrt(3072)=55.4256 to become 55.5
         # See https://github.com/huggingface/transformers/pull/29402
-        normalizer = torch.tensor(self.config.hidden_size**0.5, dtype=hidden_states.dtype)
+        normalizer = torch.tensor(
+            self.config.hidden_size**0.5, dtype=hidden_states.dtype
+        )
         hidden_states = hidden_states * normalizer
 
         # decoder layers
@@ -690,10 +774,16 @@ class GemmaLoraModel(GemmaLoraPreTrainedModel):
         next_cache = None
         if use_cache:
             next_cache = (
-                next_decoder_cache.to_legacy_cache() if isinstance(next_decoder_cache, Cache) else next_decoder_cache
+                next_decoder_cache.to_legacy_cache()
+                if isinstance(next_decoder_cache, Cache)
+                else next_decoder_cache
             )
         if not return_dict:
-            return tuple(v for v in [hidden_states, next_cache, all_hidden_states, all_self_attns] if v is not None)
+            return tuple(
+                v
+                for v in [hidden_states, next_cache, all_hidden_states, all_self_attns]
+                if v is not None
+            )
         return BaseModelOutputWithPast(
             last_hidden_state=hidden_states,
             past_key_values=next_cache,
@@ -714,24 +804,43 @@ class GemmaLoraModel(GemmaLoraPreTrainedModel):
         dtype, device = input_tensor.dtype, input_tensor.device
         min_dtype = torch.finfo(dtype).min
         sequence_length = input_tensor.shape[1]
-        if hasattr(getattr(self.layers[0], "self_attn", {}), "past_key_value"):  # static cache
+        if hasattr(
+            getattr(self.layers[0], "self_attn", {}), "past_key_value"
+        ):  # static cache
             target_length = self.config.max_position_embeddings
         else:  # dynamic cache
             target_length = (
-                attention_mask.shape[-1] if isinstance(attention_mask, torch.Tensor) else cache_position[-1] + 1
+                attention_mask.shape[-1]
+                if isinstance(attention_mask, torch.Tensor)
+                else cache_position[-1] + 1
             )
 
-        causal_mask = torch.full((sequence_length, target_length), fill_value=min_dtype, dtype=dtype, device=device)
+        causal_mask = torch.full(
+            (sequence_length, target_length),
+            fill_value=min_dtype,
+            dtype=dtype,
+            device=device,
+        )
         if sequence_length != 1:
             causal_mask = torch.triu(causal_mask, diagonal=1)
-        causal_mask *= torch.arange(target_length, device=device) > cache_position.reshape(-1, 1)
-        causal_mask = causal_mask[None, None, :, :].expand(input_tensor.shape[0], 1, -1, -1)
+        causal_mask *= torch.arange(
+            target_length, device=device
+        ) > cache_position.reshape(-1, 1)
+        causal_mask = causal_mask[None, None, :, :].expand(
+            input_tensor.shape[0], 1, -1, -1
+        )
         if attention_mask is not None:
-            causal_mask = causal_mask.clone()  # copy to contiguous memory for in-place edit
+            causal_mask = (
+                causal_mask.clone()
+            )  # copy to contiguous memory for in-place edit
             if attention_mask.dim() == 2:
                 mask_length = attention_mask.shape[-1]
-                padding_mask = causal_mask[..., :mask_length].eq(0.0) * attention_mask[:, None, None, :].eq(0.0)
-                causal_mask[..., :mask_length] = causal_mask[..., :mask_length].masked_fill(padding_mask, min_dtype)
+                padding_mask = causal_mask[..., :mask_length].eq(0.0) * attention_mask[
+                    :, None, None, :
+                ].eq(0.0)
+                causal_mask[..., :mask_length] = causal_mask[
+                    ..., :mask_length
+                ].masked_fill(padding_mask, min_dtype)
             elif attention_mask.dim() == 4:
                 # backwards compatibility: we allow passing a 4D attention mask shorter than the input length with
                 # cache. In that case, the 4D attention mask attends to the newest tokens only.
@@ -742,7 +851,10 @@ class GemmaLoraModel(GemmaLoraPreTrainedModel):
                 mask_shape = attention_mask.shape
                 mask_slice = (attention_mask.eq(0.0)).to(dtype=dtype) * min_dtype
                 causal_mask[
-                    : mask_shape[0], : mask_shape[1], offset : mask_shape[2] + offset, : mask_shape[3]
+                    : mask_shape[0],
+                    : mask_shape[1],
+                    offset : mask_shape[2] + offset,
+                    : mask_shape[3],
                 ] = mask_slice
 
         if (
@@ -760,7 +872,9 @@ class GemmaLoraModel(GemmaLoraPreTrainedModel):
                 # Attend to all tokens in fully masked rows in the causal_mask, for example the relevant first rows when
                 # using left padding. This is required by F.scaled_dot_product_attention memory-efficient attention path.
                 # Details: https://github.com/pytorch/pytorch/issues/110213
-                causal_mask = AttentionMaskConverter._unmask_unattended(causal_mask, min_dtype)
+                causal_mask = AttentionMaskConverter._unmask_unattended(
+                    causal_mask, min_dtype
+                )
 
         return causal_mask
 
@@ -798,7 +912,9 @@ class GemmaLoraForCausalLM(GemmaLoraPreTrainedModel):
 
     # Ignore copy
     @add_start_docstrings_to_model_forward(GEMMA_INPUTS_DOCSTRING)
-    @replace_return_docstrings(output_type=CausalLMOutputWithPast, config_class=_CONFIG_FOR_DOC)
+    @replace_return_docstrings(
+        output_type=CausalLMOutputWithPast, config_class=_CONFIG_FOR_DOC
+    )
     def forward(
         self,
         input_ids: torch.LongTensor = None,
@@ -838,11 +954,19 @@ class GemmaLoraForCausalLM(GemmaLoraPreTrainedModel):
         >>> tokenizer.batch_decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
         "What is your favorite condiment?"
         ```"""
-        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
-        output_hidden_states = (
-            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+        output_attentions = (
+            output_attentions
+            if output_attentions is not None
+            else self.config.output_attentions
         )
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+        output_hidden_states = (
+            output_hidden_states
+            if output_hidden_states is not None
+            else self.config.output_hidden_states
+        )
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
 
         # decoder outputs consists of (dec_features, layer_state, dec_hidden, dec_attn)
         outputs = self.model(
@@ -887,25 +1011,43 @@ class GemmaLoraForCausalLM(GemmaLoraPreTrainedModel):
         )
 
     def prepare_inputs_for_generation(
-        self, input_ids, past_key_values=None, attention_mask=None, inputs_embeds=None, cache_position=None, **kwargs
+        self,
+        input_ids,
+        past_key_values=None,
+        attention_mask=None,
+        inputs_embeds=None,
+        cache_position=None,
+        **kwargs,
     ):
         # With static cache, the `past_key_values` is None
         # TODO joao: standardize interface for the different Cache classes and remove of this if
         has_static_cache = False
         if past_key_values is None:
-            past_key_values = getattr(getattr(self.model.layers[0], "self_attn", {}), "past_key_value", None)
+            past_key_values = getattr(
+                getattr(self.model.layers[0], "self_attn", {}), "past_key_value", None
+            )
             has_static_cache = past_key_values is not None
 
         past_length = 0
         if past_key_values is not None:
             if isinstance(past_key_values, Cache):
-                past_length = cache_position[0] if cache_position is not None else past_key_values.get_seq_length()
+                past_length = (
+                    cache_position[0]
+                    if cache_position is not None
+                    else past_key_values.get_seq_length()
+                )
                 max_cache_length = (
-                    torch.tensor(past_key_values.get_max_length(), device=input_ids.device)
+                    torch.tensor(
+                        past_key_values.get_max_length(), device=input_ids.device
+                    )
                     if past_key_values.get_max_length() is not None
                     else None
                 )
-                cache_length = past_length if max_cache_length is None else torch.min(max_cache_length, past_length)
+                cache_length = (
+                    past_length
+                    if max_cache_length is None
+                    else torch.min(max_cache_length, past_length)
+                )
             # TODO joao: remove this `else` after `generate` prioritizes `Cache` objects
             else:
                 cache_length = past_length = past_key_values[0][0].shape[2]
@@ -915,7 +1057,10 @@ class GemmaLoraForCausalLM(GemmaLoraPreTrainedModel):
             # 1 - If the length of the attention_mask exceeds the length of input_ids, then we are in a setting where
             # some of the inputs are exclusively passed as part of the cache (e.g. when passing input_embeds as
             # input)
-            if attention_mask is not None and attention_mask.shape[1] > input_ids.shape[1]:
+            if (
+                attention_mask is not None
+                and attention_mask.shape[1] > input_ids.shape[1]
+            ):
                 input_ids = input_ids[:, -(attention_mask.shape[1] - past_length) :]
             # 2 - If the past_length is smaller than input_ids', then input_ids holds all input tokens. We can discard
             # input_ids based on the past_length.
@@ -948,9 +1093,13 @@ class GemmaLoraForCausalLM(GemmaLoraPreTrainedModel):
             # TODO: use `next_tokens` directly instead.
             model_inputs = {"input_ids": input_ids.contiguous()}
 
-        input_length = position_ids.shape[-1] if position_ids is not None else input_ids.shape[-1]
+        input_length = (
+            position_ids.shape[-1] if position_ids is not None else input_ids.shape[-1]
+        )
         if cache_position is None:
-            cache_position = torch.arange(past_length, past_length + input_length, device=input_ids.device)
+            cache_position = torch.arange(
+                past_length, past_length + input_length, device=input_ids.device
+            )
         else:
             cache_position = cache_position[-input_length:]
 
@@ -973,7 +1122,10 @@ class GemmaLoraForCausalLM(GemmaLoraPreTrainedModel):
         reordered_past = ()
         for layer_past in past_key_values:
             reordered_past += (
-                tuple(past_state.index_select(0, beam_idx.to(past_state.device)) for past_state in layer_past),
+                tuple(
+                    past_state.index_select(0, beam_idx.to(past_state.device))
+                    for past_state in layer_past
+                ),
             )
         return reordered_past
 
@@ -1030,7 +1182,9 @@ class GemmaLoraForSequenceClassification(GemmaLoraPreTrainedModel):
             config.num_labels - 1]`. If `config.num_labels == 1` a regression loss is computed (Mean-Square loss), If
             `config.num_labels > 1` a classification loss is computed (Cross-Entropy).
         """
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+        return_dict = (
+            return_dict if return_dict is not None else self.config.use_return_dict
+        )
 
         transformer_outputs = self.model(
             input_ids,
@@ -1052,19 +1206,25 @@ class GemmaLoraForSequenceClassification(GemmaLoraPreTrainedModel):
             batch_size = inputs_embeds.shape[0]
 
         if self.config.pad_token_id is None and batch_size != 1:
-            raise ValueError("Cannot handle batch sizes > 1 if no padding token is defined.")
+            raise ValueError(
+                "Cannot handle batch sizes > 1 if no padding token is defined."
+            )
         if self.config.pad_token_id is None:
             sequence_lengths = -1
         else:
             if input_ids is not None:
                 # if no pad token found, use modulo instead of reverse indexing for ONNX compatibility
-                sequence_lengths = torch.eq(input_ids, self.config.pad_token_id).int().argmax(-1) - 1
+                sequence_lengths = (
+                    torch.eq(input_ids, self.config.pad_token_id).int().argmax(-1) - 1
+                )
                 sequence_lengths = sequence_lengths % input_ids.shape[-1]
                 sequence_lengths = sequence_lengths.to(logits.device)
             else:
                 sequence_lengths = -1
 
-        pooled_logits = logits[torch.arange(batch_size, device=logits.device), sequence_lengths]
+        pooled_logits = logits[
+            torch.arange(batch_size, device=logits.device), sequence_lengths
+        ]
 
         loss = None
         if labels is not None:
@@ -1072,7 +1232,9 @@ class GemmaLoraForSequenceClassification(GemmaLoraPreTrainedModel):
             if self.config.problem_type is None:
                 if self.num_labels == 1:
                     self.config.problem_type = "regression"
-                elif self.num_labels > 1 and (labels.dtype == torch.long or labels.dtype == torch.int):
+                elif self.num_labels > 1 and (
+                    labels.dtype == torch.long or labels.dtype == torch.int
+                ):
                     self.config.problem_type = "single_label_classification"
                 else:
                     self.config.problem_type = "multi_label_classification"
@@ -1085,7 +1247,9 @@ class GemmaLoraForSequenceClassification(GemmaLoraPreTrainedModel):
                     loss = loss_fct(pooled_logits, labels)
             elif self.config.problem_type == "single_label_classification":
                 loss_fct = CrossEntropyLoss()
-                loss = loss_fct(pooled_logits.view(-1, self.num_labels), labels.view(-1))
+                loss = loss_fct(
+                    pooled_logits.view(-1, self.num_labels), labels.view(-1)
+                )
             elif self.config.problem_type == "multi_label_classification":
                 loss_fct = BCEWithLogitsLoss()
                 loss = loss_fct(pooled_logits, labels)

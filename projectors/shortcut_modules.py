@@ -66,7 +66,7 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
             float(config["proj_dropout"]),
             config["projector_name"],
             config["disable_projector"],
-            config.get("importance_beta", 1.0)
+            config.get("importance_beta", 1.0),
         )
         init_proj_weights = config.get("init_proj_weights", True)
         self.disable_projectors = disable_projector
@@ -81,7 +81,9 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
 
     def set_importance_beta(self, beta: float):
         assert type(beta) is float
-        self.importance_beta = torch.tensor(beta, requires_grad=self.importance_beta.requires_grad)
+        self.importance_beta = torch.tensor(
+            beta, requires_grad=self.importance_beta.requires_grad
+        )
 
     def get_delta_w(self, projector_name):
         # Linear's tensor is out_features rows * in_features columns as default

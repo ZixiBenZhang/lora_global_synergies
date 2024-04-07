@@ -24,7 +24,15 @@ STRATEGIES = [
     # "deepspeed_stage_3_offload",
 ]
 ACCELERATORS = ["auto", "cpu", "gpu"]
-IMP_TEST_NAMES = ["constant", "grad_norm", "snip", "synflow", "fisher", "jacob_cov", "alpha_test"]
+IMP_TEST_NAMES = [
+    "constant",
+    "grad_norm",
+    "snip",
+    "synflow",
+    "fisher",
+    "jacob_cov",
+    "alpha_test",
+]
 
 CLI_DEFAULTS = {
     # Main program arguments

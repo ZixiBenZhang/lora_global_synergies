@@ -142,9 +142,9 @@ def alpha_importance_test(
 
     dataloader = get_alpha_test_dataloader(data_module)
 
-    original_val_metrics = trainer.test(
-        pl_model, dataloaders=dataloader, verbose=True
-    )[0]
+    original_val_metrics = trainer.test(pl_model, dataloaders=dataloader, verbose=True)[
+        0
+    ]
 
     def get_metric_name():
         match task:

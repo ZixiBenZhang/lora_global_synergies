@@ -11,7 +11,9 @@ from transformers import (
     LlamaForSequenceClassification,
     LlamaForCausalLM,
     OPTForSequenceClassification,
-    OPTForCausalLM, GemmaConfig, GemmaTokenizer,
+    OPTForCausalLM,
+    GemmaConfig,
+    GemmaTokenizer,
 )
 
 from models.configuration_gemma_lora import GemmaLoraConfig
@@ -20,7 +22,10 @@ from models.configuration_opt_lora_layer_residual_shortcuts import (
     OPTLoraAgsLayerResConfig,
 )
 from models.configuration_roberta_lora import RobertaLoraConfig
-from models.modeling_gemma_lora import GemmaLoraForSequenceClassification, GemmaLoraForCausalLM
+from models.modeling_gemma_lora import (
+    GemmaLoraForSequenceClassification,
+    GemmaLoraForCausalLM,
+)
 from models.modeling_opt_lora import (
     OPTLoraForSequenceClassification,
     OPTLoraForCausalLM,

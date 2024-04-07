@@ -113,16 +113,20 @@ def alpha_importance_test(
     if type(limit_test_batches) is float:
         limit_alpha_test_batches = math.ceil(len(dataloader) * limit_test_batches)
         if limit_alpha_test_batches != len(dataloader) * limit_test_batches:
-            logger.warning("More data batches than the provided test ratio limit are used")
+            logger.warning(
+                "More data batches than the provided test ratio limit are used"
+            )
     else:
         limit_alpha_test_batches = limit_test_batches
 
     # Run each test only on one minibatch
-    trainer = pl.Trainer(**pl_validator_args, limit_test_batches=limit_alpha_test_batches)
+    trainer = pl.Trainer(
+        **pl_validator_args, limit_test_batches=limit_alpha_test_batches
+    )
 
-    original_val_metrics = trainer.test(
-        pl_model, dataloaders=dataloader, verbose=True
-    )[0]
+    original_val_metrics = trainer.test(pl_model, dataloaders=dataloader, verbose=True)[
+        0
+    ]
 
     def get_metric_name():
         match task:
@@ -316,7 +320,9 @@ def zero_proxy_train_lora(
     print_trainable_parameters(model)
 
     # Zero-proxy training for LoRA modules
-    trainer = pl.Trainer(**pl_trainer_args, limit_train_batches=limit_zero_proxy_train_batches)
+    trainer = pl.Trainer(
+        **pl_trainer_args, limit_train_batches=limit_zero_proxy_train_batches
+    )
 
     trainer.fit(pl_model, datamodule=data_module)
 

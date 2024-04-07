@@ -25,9 +25,7 @@ Layer-wise: specify a layer-wise & proj_type-wise config for each (i) in "model_
 # TODO: insert init_proj_weights and fan_in_fan_out to shortcut_config??
 
 
-def parse_shortcut_config(
-    config: str | dict, num_hidden_layers: int
-) -> dict:
+def parse_shortcut_config(config: str | dict, num_hidden_layers: int) -> dict:
     assert isinstance(config, (str, dict)), "config must be a str path to toml or dict"
     if isinstance(config, str):
         config = toml.load(config)
@@ -43,9 +41,7 @@ def parse_shortcut_config(
             raise ValueError(f"Unsupported config granularity: {granularity}")
 
 
-def parse_by_network(
-    config: dict, num_hidden_layers: int
-) -> dict:
+def parse_by_network(config: dict, num_hidden_layers: int) -> dict:
     assert "default" in config, "Must provide default config"
     default_sc: dict = get_mat_config(
         config["default"]
@@ -57,27 +53,19 @@ def parse_by_network(
         p_config[layer_entry] = {}
 
         # Residual shortcut projections
-        all_residual1_sc: dict = config.get("all_layers", {}).get(
-            "residual1", None
-        )
+        all_residual1_sc: dict = config.get("all_layers", {}).get("residual1", None)
         p_config[layer_entry]["residual1"] = create_a_mat_config(
             all_residual1_sc, default_sc
         )
-        all_residual2_sc: dict = config.get("all_layers", {}).get(
-            "residual2", None
-        )
+        all_residual2_sc: dict = config.get("all_layers", {}).get("residual2", None)
         p_config[layer_entry]["residual2"] = create_a_mat_config(
             all_residual2_sc, default_sc
         )
-        all_shortcut1_sc: dict = config.get("all_layers", {}).get(
-            "shortcut1", None
-        )
+        all_shortcut1_sc: dict = config.get("all_layers", {}).get("shortcut1", None)
         p_config[layer_entry]["shortcut1"] = create_a_mat_config(
             all_shortcut1_sc, default_sc
         )
-        all_shortcut2_sc: dict = config.get("all_layers", {}).get(
-            "shortcut2", None
-        )
+        all_shortcut2_sc: dict = config.get("all_layers", {}).get("shortcut2", None)
         p_config[layer_entry]["shortcut2"] = create_a_mat_config(
             all_shortcut2_sc, default_sc
         )
@@ -86,9 +74,7 @@ def parse_by_network(
     return p_config
 
 
-def parse_by_layer(
-    config: dict, num_hidden_layers: int
-) -> dict:
+def parse_by_layer(config: dict, num_hidden_layers: int) -> dict:
     assert "default" in config, "Must provide default config"
     default_sc: dict = get_mat_config(
         config["default"]

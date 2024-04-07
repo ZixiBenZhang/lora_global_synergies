@@ -116,7 +116,9 @@ def synflow_test(
     # compute gradients with input of ones
     model.zero_grad()
     example_input = next(iter(dataloader))
-    input_dim = list(example_input["input_ids"].shape) + [model.model.decoder.embed_tokens.weight.shape[1]]
+    input_dim = list(example_input["input_ids"].shape) + [
+        model.model.decoder.embed_tokens.weight.shape[1]
+    ]
     inputs = torch.ones(input_dim).float().to("cuda")
     attention_mask = example_input["attention_mask"]
     token_type_ids = example_input.get("token_type_ids", None)
@@ -167,12 +169,18 @@ def synflow_test(
                 continue
 
             grad_lora = (
-                torch.sum(torch.abs(
-                    lora.lora_A[lora.active_adapter].weight * lora.lora_A[lora.active_adapter].weight.grad
-                ))
-                + torch.sum(torch.abs(
-                    lora.lora_B[lora.active_adapter].weight * lora.lora_B[lora.active_adapter].weight.grad
-                ))
+                torch.sum(
+                    torch.abs(
+                        lora.lora_A[lora.active_adapter].weight
+                        * lora.lora_A[lora.active_adapter].weight.grad
+                    )
+                )
+                + torch.sum(
+                    torch.abs(
+                        lora.lora_B[lora.active_adapter].weight
+                        * lora.lora_B[lora.active_adapter].weight.grad
+                    )
+                )
             ).item()
 
             if f"layer_{layer_id}" not in grads_abs:

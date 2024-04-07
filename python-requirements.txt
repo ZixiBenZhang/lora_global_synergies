@@ -7,4 +7,3 @@ tensorboard
 optuna
 tabulate
 toml
-flash-attn

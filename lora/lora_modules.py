@@ -109,7 +109,9 @@ class LoraLinear(nn.Linear, LoRALayer):
 
     def set_importance_alpha(self, alpha: float):
         assert type(alpha) is float
-        self.importance_alpha = torch.tensor(alpha, requires_grad=self.importance_alpha.requires_grad)
+        self.importance_alpha = torch.tensor(
+            alpha, requires_grad=self.importance_alpha.requires_grad
+        )
 
     def get_delta_w(self, adapter_name):
         # Linear's tensor is out_features rows * in_features columns as default
@@ -167,12 +169,10 @@ class LoraLinear(nn.Linear, LoRALayer):
             )
         else:
             # LoRA dropout unused
-            res = (
-                F.linear(
-                    x,
-                    self.weight if not self.fan_in_fan_out else self.weight.T,
-                    self.bias,
-                )
+            res = F.linear(
+                x,
+                self.weight if not self.fan_in_fan_out else self.weight.T,
+                self.bias,
             )
         # res = res.to(input_dtype)
         # Only effective during alpha importance testing

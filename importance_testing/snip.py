@@ -163,7 +163,9 @@ def snip_test(
     if type(limit_test_batches) is float:
         limit_batch_num = math.ceil(len(dataloader) * limit_test_batches)
         if limit_batch_num != len(dataloader) * limit_test_batches:
-            logger.warning("More data batches than the provided test ratio limit are used")
+            logger.warning(
+                "More data batches than the provided test ratio limit are used"
+            )
     else:
         limit_batch_num = limit_test_batches
     pl_model.to("cuda")
