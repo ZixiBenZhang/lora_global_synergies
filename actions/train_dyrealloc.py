@@ -14,6 +14,7 @@ from lora.lora_modules import (
 )
 from models.model_info import AgsModelInfo
 from pl_callbacks.dyrealloc_callback import DynamicLoraReallocationCallback
+from projectors.shortcut_modules import update_ags_importance_beta_require_grad
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 from tools.trainable_param_printer import print_trainable_parameters
@@ -173,6 +174,7 @@ def train_dynamic_reallocation(
                 else:
                     param.requires_grad = True
         update_lora_importance_alpha_require_grad(model, require_grad=False)
+        update_ags_importance_beta_require_grad(model, require_grad=False)
         print_trainable_parameters(model)
 
         pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
@@ -206,6 +208,7 @@ def train_dynamic_reallocation(
                 else:
                     param.requires_grad = True
         update_lora_importance_alpha_require_grad(model, require_grad=False)
+        update_ags_importance_beta_require_grad(model, require_grad=False)
         print_trainable_parameters(model)
 
         pl_model: pl.LightningModule = wrapper_pl_model(

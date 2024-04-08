@@ -21,6 +21,7 @@ from models.modeling_opt_lora import (
     OPTLoraForSequenceClassification,
     OPTLoraDecoderLayer,
 )
+from projectors.shortcut_modules import update_ags_importance_beta_require_grad
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 from tools.trainable_param_printer import print_trainable_parameters
@@ -374,6 +375,7 @@ def zero_proxy_train_lora(
                 param.requires_grad = True
 
     update_lora_importance_alpha_require_grad(model, require_grad=False)
+    update_ags_importance_beta_require_grad(model, require_grad=False)
     print_trainable_parameters(model)
 
     # Zero-proxy training for LoRA modules

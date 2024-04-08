@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 
 from dataset import AgsDatasetInfo
 from dataset.pl_dataset_module import AgsDataModule
-from lora.lora_modules import LoraLinear, update_lora_importance_alpha_require_grad
+from lora.lora_modules import LoraLinear
 from models.model_info import AgsModelInfo
 from models.modeling_opt_lora import (
     OPTLoraForCausalLM,
@@ -19,7 +19,6 @@ from models.modeling_opt_lora import (
     OPTLoraDecoderLayer,
 )
 from pl_model_wrapper.base import PlWrapperBase
-from tools.trainable_param_printer import print_trainable_parameters
 
 logger = logging.getLogger(__name__)
 

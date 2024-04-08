@@ -230,3 +230,9 @@ def mark_ags_as_trainable(model: nn.Module) -> None:
     for n, p in model.named_parameters():
         if "proj_" in n:
             p.requires_grad = True
+
+
+def update_ags_importance_beta_require_grad(model: nn.Module, require_grad: bool):
+    for n, p in model.named_parameters():
+        if "importance_beta" in n:
+            p.requires_grad = require_grad
