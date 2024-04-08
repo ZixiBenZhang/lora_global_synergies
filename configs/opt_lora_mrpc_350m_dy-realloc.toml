@@ -8,7 +8,7 @@ load_type = "hf"
 importance_test_name = "alpha_test"
 metric_red_tolerance = 0.005
 imp_limit_test_batches = 32
-realloc_N = 0.2
+realloc_N = 1.0
 turn_on_percentile = 0.25
 # training
 training_optimizer = "adamw"
