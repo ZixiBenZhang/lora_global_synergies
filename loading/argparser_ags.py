@@ -34,7 +34,7 @@ IMP_TEST_NAMES = [
     "alpha_test",
 ]
 DYREALLOC_AGS_MODES = [
-    None,
+    "off",
     "combined",
     "separated"
 ]
@@ -65,7 +65,7 @@ CLI_DEFAULTS = {
     "alpha_limit_zptrain_batches:": 32,
     "realloc_N": 0.1,
     "turn_on_percentile": 0.25,
-    "dyrealloc_ags_mode": None,
+    "dyrealloc_ags_mode": DYREALLOC_AGS_MODES[0],
     # Trainer options
     "training_optimizer": OPTIMIZERS[0],
     # "trainer_precision": TRAINER_PRECISION[1],
@@ -303,7 +303,6 @@ def get_arg_parser():
             for dynamic lora reallocation training, 
             reallocation mode for shortcut modules in AGS models.
             One of {'(' + '|'.join(DYREALLOC_AGS_MODES) + ')'}.
-            "None" for no reallocation on shortcut modules.
             (default: %(default)s)
         """,
         metavar="TYPE",
