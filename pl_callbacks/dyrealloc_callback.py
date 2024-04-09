@@ -20,12 +20,15 @@ from models.modeling_opt_lora import (
     OPTLoraForQuestionAnswering,
     OPTLoraDecoderLayer,
 )
+from models.modeling_opt_lora_ags import OPTLoraAgsForCausalLM, OPTLoraAgsForSequenceClassification, \
+    OPTLoraAgsForQuestionAnswering, OPTLoraAgsDecoderLayer
 from pl_model_wrapper import (
     NLPClassificationModelWrapper,
     NLPSummarizationModelWrapper,
     NLPLanguageModelingModelWrapper,
 )
 from pl_model_wrapper.base import PlWrapperBase
+from projectors.shortcut_modules import ShortcutBase
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +39,10 @@ LORA_NAME_HASH = {
     "out_proj": 3,
     "fc1": 4,
     "fc2": 5,
+    "residual_1": 6,
+    "residual_2": 7,
+    "shortcut_sa": 8,
+    "shortcut_ffn": 9,
 }
 ALPHA_UB = 10
 
@@ -53,6 +60,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         turn_on_percentile: float = 0.25,
         limit_test_batches: Optional[int | float] = None,
         save_path: str = None,
+        ags_mode: str = None,
     ):
         """
         :param importance_test_name: importance test name (metric) to be used
@@ -65,6 +73,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         :param turn_on_percentile: percentage of lora modules to be activated by the reallocation
         :param limit_test_batches: number of batches used in alpha testing
         :param save_path: file path for saving reallocation history
+        :param ags_mode: mode of dynamic reallocation on AGS model shortcuts, one of [None, "combined", "separated"]
         """
         super().__init__()
 
@@ -90,6 +99,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
         ]
         self.importance_test_name = importance_test_name
         self.importance_test = self._get_importance_test()
+        self.ags_mode = ags_mode
+        if self.ags_mode is not None:
+            self.ags_importance_test = self._get_ags_importance_test()
+        else:
+            self.ags_importance_test = None
 
         self.N = N
         self.limit_test_batches = limit_test_batches
@@ -171,6 +185,27 @@ class DynamicLoraReallocationCallback(pl.Callback):
             case _:
                 raise ValueError(
                     f"Unsupported importance test {self.importance_test_name}"
+                )
+
+    def _get_ags_importance_test(self) -> Callable:
+        match self.importance_test_name:
+            case "alpha_test":
+                pass
+            case "constant":
+                pass
+            case "grad_norm":
+                return self._grad_norm_ags_test
+            case "snip":
+                pass
+            case "synflow":
+                pass
+            case "fisher":
+                raise NotImplementedError
+            case "jacob_cov":
+                raise NotImplementedError
+            case _:
+                raise ValueError(
+                    f"Unsupported ags importance test {self.importance_test_name}"
                 )
 
     def _get_alpha_testing_dataloader(self, rng):
@@ -263,8 +298,12 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 type(model) is OPTLoraForCausalLM
                 or type(model) is OPTLoraForSequenceClassification
                 or type(model) is OPTLoraForQuestionAnswering
+                or type(model) is OPTLoraAgsForCausalLM
+                or type(model) is OPTLoraAgsForSequenceClassification
+                or type(model) is OPTLoraAgsForQuestionAnswering
             )
-            model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+            model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering | OPTLoraAgsForCausalLM | OPTLoraAgsForSequenceClassification | OPTLoraAgsForQuestionAnswering
+
             for decoder_layer in reversed(model.model.decoder.layers):
                 decoder_layer: OPTLoraDecoderLayer
                 lora_modules: dict[str, LoraLinear] = {
@@ -291,85 +330,343 @@ class DynamicLoraReallocationCallback(pl.Callback):
             batch,
             batch_idx,
         )
+        if self.ags_mode is not None:
+            ags_res_val: None | dict[int, dict[str, float]] = self.ags_importance_test(
+                trainer,
+                pl_module,
+                batch,
+                batch_idx,
+            )
+        else:
+            ags_res_val = None
 
         with torch.no_grad():
-            # Decide which modules to keep
-            alpha_list = np.concatenate(
-                [
+            if self.ags_mode is None:
+                # Decide which modules to keep
+                alpha_list = np.concatenate(
                     [
-                        (layer_id, LORA_NAME_HASH[proj_name], v)
-                        for proj_name, v in d.items()
+                        [
+                            (layer_id, LORA_NAME_HASH[proj_name], v)
+                            for proj_name, v in d.items()
+                        ]
+                        for layer_id, d in res_val.items()
+                    ],
+                    axis=0,
+                )
+                original_lora_module_num = len(alpha_list)
+                budget = math.floor(self.turn_on_percentile * original_lora_module_num)
+                idx = alpha_list[:, 2].argsort()
+                alpha_threshold = alpha_list[idx[-budget], 2]
+                if sum(alpha_list[:, 2] == alpha_threshold) > 1:
+                    # Uniformly break tie
+                    greater = alpha_list[alpha_list[:, 2] > alpha_threshold, :2]
+                    tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
+                    self.rng.set_state(self.rng_state)
+                    tie_idx = torch.randperm(len(tie), generator=self.rng)[
+                        : (budget - len(greater))
+                    ].numpy()
+                    self.rng_state = self.rng.get_state()
+                    turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
+                else:
+                    idx = idx[-budget:]
+                    turn_on = alpha_list[idx, :2]
+                turn_on = turn_on.astype(int).tolist()
+                assert len(turn_on) == budget
+
+                reallocation: list[list[int]] = alpha_list.tolist()
+                reallocation = [
+                    [
+                        int(layer_id),
+                        list(LORA_NAME_HASH.keys())[int(proj_hash)],
+                        alpha,
+                        ([layer_id, proj_hash] in turn_on),
                     ]
-                    for layer_id, d in res_val.items()
-                ],
-                axis=0,
-            )
-            original_lora_module_num = len(alpha_list)
-            budget = math.floor(self.turn_on_percentile * original_lora_module_num)
-            idx = alpha_list[:, 2].argsort()
-            alpha_threshold = alpha_list[idx[-budget], 2]
-            if sum(alpha_list[:, 2] == alpha_threshold) > 1:
-                # Uniformly break tie
-                greater = alpha_list[alpha_list[:, 2] > alpha_threshold, :2]
-                tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
-                self.rng.set_state(self.rng_state)
-                tie_idx = torch.randperm(len(tie), generator=self.rng)[
-                    : (budget - len(greater))
-                ].numpy()
-                self.rng_state = self.rng.get_state()
-                turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
-            else:
-                idx = idx[-budget:]
-                turn_on = alpha_list[idx, :2]
-            turn_on = turn_on.astype(int).tolist()
-            assert len(turn_on) == budget
-
-            reallocation: list[list[int]] = alpha_list.tolist()
-            reallocation = [
-                [
-                    int(layer_id),
-                    list(LORA_NAME_HASH.keys())[int(proj_hash)],
-                    alpha,
-                    ([layer_id, proj_hash] in turn_on),
+                    for layer_id, proj_hash, alpha in reallocation
                 ]
-                for layer_id, proj_hash, alpha in reallocation
-            ]
-            self.reallocation_history.append(
-                {
-                    "epoch": pl_module.current_epoch,
-                    "step": batch_idx,
-                    "turn_on": reallocation,
-                }
-            )
+                self.reallocation_history.append(
+                    {
+                        "epoch": pl_module.current_epoch,
+                        "step": batch_idx,
+                        "turn_on": reallocation,
+                    }
+                )
 
-            # Turn on/off lora modules
-            model = self.alpha_pl_module.model
-            assert (
-                type(model) is OPTLoraForCausalLM
-                or type(model) is OPTLoraForSequenceClassification
-                or type(model) is OPTLoraForQuestionAnswering
-            )
-            model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
-            for decoder_layer in reversed(model.model.decoder.layers):
-                decoder_layer: OPTLoraDecoderLayer
-                layer_id = decoder_layer.layer_id
-                lora_modules: dict[str, LoraLinear] = {
-                    "q_proj": decoder_layer.self_attn.q_proj,
-                    "k_proj": decoder_layer.self_attn.k_proj,
-                    "v_proj": decoder_layer.self_attn.v_proj,
-                    "out_proj": decoder_layer.self_attn.out_proj,
-                    "fc1": decoder_layer.fc1,
-                    "fc2": decoder_layer.fc2,
-                }
+                # Turn on/off lora modules
+                model = self.alpha_pl_module.model
+                assert (
+                    type(model) is OPTLoraForCausalLM
+                    or type(model) is OPTLoraForSequenceClassification
+                    or type(model) is OPTLoraForQuestionAnswering
+                    or type(model) is OPTLoraAgsForCausalLM
+                    or type(model) is OPTLoraAgsForSequenceClassification
+                    or type(model) is OPTLoraAgsForQuestionAnswering
+                )
+                model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering | OPTLoraAgsForCausalLM | OPTLoraAgsForSequenceClassification | OPTLoraAgsForQuestionAnswering
 
-                for proj_name, lora in lora_modules.items():
-                    if (
-                        lora.active_adapter not in lora.lora_A.keys()
-                        or lora.r[lora.active_adapter] == 0
-                    ):
-                        continue
-                    proj_hash = LORA_NAME_HASH[proj_name]
-                    lora.disable_adapters = [layer_id, proj_hash] not in turn_on
+                for decoder_layer in reversed(model.model.decoder.layers):
+                    decoder_layer: OPTLoraDecoderLayer
+                    layer_id = decoder_layer.layer_id
+                    lora_modules: dict[str, LoraLinear] = {
+                        "q_proj": decoder_layer.self_attn.q_proj,
+                        "k_proj": decoder_layer.self_attn.k_proj,
+                        "v_proj": decoder_layer.self_attn.v_proj,
+                        "out_proj": decoder_layer.self_attn.out_proj,
+                        "fc1": decoder_layer.fc1,
+                        "fc2": decoder_layer.fc2,
+                    }
+
+                    for proj_name, lora in lora_modules.items():
+                        if (
+                            lora.active_adapter not in lora.lora_A.keys()
+                            or lora.r[lora.active_adapter] == 0
+                        ):
+                            continue
+                        proj_hash = LORA_NAME_HASH[proj_name]
+                        lora.disable_adapters = [layer_id, proj_hash] not in turn_on
+
+            elif self.ags_mode == "combined":
+                # Decide which modules to keep
+                alpha_list = np.concatenate(
+                    [
+                        [
+                            (layer_id, LORA_NAME_HASH[proj_name], v)
+                            for proj_name, v in d.items()
+                        ]
+                        for layer_id, d in res_val.items()
+                    ],
+                    axis=0,
+                )
+                original_lora_module_num = len(alpha_list)
+                ags_alpha_list = np.concatenate(
+                    [
+                        [
+                            (layer_id, LORA_NAME_HASH[proj_name], v)
+                            for proj_name, v in d.items()
+                        ]
+                        for layer_id, d in ags_res_val.items()
+                    ],
+                    axis=0,
+                )
+                original_ags_module_num = len(ags_alpha_list)
+
+                budget = math.floor(
+                    self.turn_on_percentile * original_lora_module_num
+                ) + round(
+                    self.turn_on_percentile * original_ags_module_num
+                )
+                alpha_list = np.concatenate([alpha_list, ags_alpha_list], axis=0)
+                idx = alpha_list[:, 2].argsort()
+                alpha_threshold = alpha_list[idx[-budget], 2]
+                if sum(alpha_list[:, 2] == alpha_threshold) > 1:
+                    # Uniformly break tie
+                    greater = alpha_list[alpha_list[:, 2] > alpha_threshold, :2]
+                    tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
+                    self.rng.set_state(self.rng_state)
+                    tie_idx = torch.randperm(len(tie), generator=self.rng)[
+                              : (budget - len(greater))
+                              ].numpy()
+                    self.rng_state = self.rng.get_state()
+                    turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
+                else:
+                    idx = idx[-budget:]
+                    turn_on = alpha_list[idx, :2]
+                turn_on = turn_on.astype(int).tolist()
+                assert len(turn_on) == budget
+
+                reallocation: list[list[int]] = alpha_list.tolist()
+                reallocation = [
+                    [
+                        int(layer_id),
+                        list(LORA_NAME_HASH.keys())[int(proj_hash)],
+                        alpha,
+                        ([layer_id, proj_hash] in turn_on),
+                    ]
+                    for layer_id, proj_hash, alpha in reallocation
+                ]
+                self.reallocation_history.append(
+                    {
+                        "epoch": pl_module.current_epoch,
+                        "step": batch_idx,
+                        "turn_on": reallocation,
+                    }
+                )
+
+                # Turn on/off lora modules
+                model = self.alpha_pl_module.model
+                assert (
+                        type(model) is OPTLoraAgsForCausalLM
+                        or type(model) is OPTLoraAgsForSequenceClassification
+                        or type(model) is OPTLoraAgsForQuestionAnswering
+                )
+                model: OPTLoraAgsForCausalLM | OPTLoraAgsForSequenceClassification | OPTLoraAgsForQuestionAnswering
+
+                for decoder_layer in reversed(model.model.decoder.layers):
+                    decoder_layer: OPTLoraAgsDecoderLayer
+                    layer_id = decoder_layer.layer_id
+
+                    lora_modules: dict[str, LoraLinear] = {
+                        "q_proj": decoder_layer.self_attn.q_proj,
+                        "k_proj": decoder_layer.self_attn.k_proj,
+                        "v_proj": decoder_layer.self_attn.v_proj,
+                        "out_proj": decoder_layer.self_attn.out_proj,
+                        "fc1": decoder_layer.fc1,
+                        "fc2": decoder_layer.fc2,
+                    }
+                    for proj_name, lora in lora_modules.items():
+                        if (
+                                lora.active_adapter not in lora.lora_A.keys()
+                                or lora.r[lora.active_adapter] == 0
+                        ):
+                            continue
+                        proj_hash = LORA_NAME_HASH[proj_name]
+                        lora.disable_adapters = [layer_id, proj_hash] not in turn_on
+
+                    shortcut_modules: dict[str, ShortcutBase] = {
+                        "residual_1": decoder_layer.residual_1,
+                        "residual_2": decoder_layer.residual_2,
+                        "shortcut_sa": decoder_layer.shortcut_sa,
+                        "shortcut_ffn": decoder_layer.shortcut_ffn,
+                    }
+                    for proj_name, shortcut in shortcut_modules.items():
+                        if (
+                            shortcut is None
+                            or shortcut.active_adapter not in shortcut.proj_A.keys()
+                            or shortcut.r[shortcut.active_adapter] == 0
+                        ):
+                            continue
+                        proj_hash = LORA_NAME_HASH[proj_name]
+                        shortcut.disable_projectors = [layer_id, proj_hash] not in turn_on
+
+            elif self.ags_mode == "separated":
+                # Decide which modules to keep
+                alpha_list = np.concatenate(
+                    [
+                        [
+                            (layer_id, LORA_NAME_HASH[proj_name], v)
+                            for proj_name, v in d.items()
+                        ]
+                        for layer_id, d in res_val.items()
+                    ],
+                    axis=0,
+                )
+                original_lora_module_num = len(alpha_list)
+                ags_alpha_list = np.concatenate(
+                    [
+                        [
+                            (layer_id, LORA_NAME_HASH[proj_name], v)
+                            for proj_name, v in d.items()
+                        ]
+                        for layer_id, d in ags_res_val.items()
+                    ],
+                    axis=0,
+                )
+                original_ags_module_num = len(ags_alpha_list)
+
+                budget = math.floor(
+                    self.turn_on_percentile * original_lora_module_num
+                )
+                idx = alpha_list[:, 2].argsort()
+                alpha_threshold = alpha_list[idx[-budget], 2]
+                ags_budget = round(
+                    self.turn_on_percentile * original_ags_module_num
+                )
+                ags_idx = ags_alpha_list[:, 2].argsort()
+                ags_alpha_threshold = ags_alpha_list[ags_idx[-ags_budget], 2]
+
+                if sum(alpha_list[:, 2] == alpha_threshold) > 1:
+                    # Uniformly break tie
+                    greater = alpha_list[alpha_list[:, 2] > alpha_threshold, :2]
+                    tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
+                    self.rng.set_state(self.rng_state)
+                    tie_idx = torch.randperm(len(tie), generator=self.rng)[
+                          : (budget - len(greater))
+                          ].numpy()
+                    self.rng_state = self.rng.get_state()
+                    turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
+                else:
+                    idx = idx[-budget:]
+                    turn_on = alpha_list[idx, :2]
+                if sum(ags_alpha_list[:, 2] == ags_alpha_threshold) > 1:
+                    # Uniformly break tie
+                    greater = ags_alpha_list[ags_alpha_list[:, 2] > ags_alpha_threshold, :2]
+                    tie = ags_alpha_list[ags_alpha_list[:, 2] == ags_alpha_threshold, :2]
+                    self.rng.set_state(self.rng_state)
+                    tie_idx = torch.randperm(len(tie), generator=self.rng)[
+                              : (ags_budget - len(greater))
+                              ].numpy()
+                    self.rng_state = self.rng.get_state()
+                    ags_turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
+                else:
+                    ags_idx = ags_idx[-ags_budget:]
+                    ags_turn_on = ags_alpha_list[ags_idx, :2]
+
+                turn_on = np.concatenate([turn_on, ags_turn_on], axis=0)
+                turn_on = turn_on.astype(int).tolist()
+                assert len(turn_on) == budget + ags_budget
+
+                reallocation: list[list[int]] = np.concatenate([alpha_list, ags_alpha_list], axis=0).tolist()
+                reallocation = [
+                    [
+                        int(layer_id),
+                        list(LORA_NAME_HASH.keys())[int(proj_hash)],
+                        alpha,
+                        ([layer_id, proj_hash] in turn_on),
+                    ]
+                    for layer_id, proj_hash, alpha in reallocation
+                ]
+                self.reallocation_history.append(
+                    {
+                        "epoch": pl_module.current_epoch,
+                        "step": batch_idx,
+                        "turn_on": reallocation,
+                    }
+                )
+
+                # Turn on/off lora modules
+                model = self.alpha_pl_module.model
+                assert (
+                        type(model) is OPTLoraAgsForCausalLM
+                        or type(model) is OPTLoraAgsForSequenceClassification
+                        or type(model) is OPTLoraAgsForQuestionAnswering
+                )
+                model: OPTLoraAgsForCausalLM | OPTLoraAgsForSequenceClassification | OPTLoraAgsForQuestionAnswering
+
+                for decoder_layer in reversed(model.model.decoder.layers):
+                    decoder_layer: OPTLoraAgsDecoderLayer
+                    layer_id = decoder_layer.layer_id
+
+                    lora_modules: dict[str, LoraLinear] = {
+                        "q_proj": decoder_layer.self_attn.q_proj,
+                        "k_proj": decoder_layer.self_attn.k_proj,
+                        "v_proj": decoder_layer.self_attn.v_proj,
+                        "out_proj": decoder_layer.self_attn.out_proj,
+                        "fc1": decoder_layer.fc1,
+                        "fc2": decoder_layer.fc2,
+                    }
+                    for proj_name, lora in lora_modules.items():
+                        if (
+                                lora.active_adapter not in lora.lora_A.keys()
+                                or lora.r[lora.active_adapter] == 0
+                        ):
+                            continue
+                        proj_hash = LORA_NAME_HASH[proj_name]
+                        lora.disable_adapters = [layer_id, proj_hash] not in turn_on
+
+                    shortcut_modules: dict[str, ShortcutBase] = {
+                        "residual_1": decoder_layer.residual_1,
+                        "residual_2": decoder_layer.residual_2,
+                        "shortcut_sa": decoder_layer.shortcut_sa,
+                        "shortcut_ffn": decoder_layer.shortcut_ffn,
+                    }
+                    for proj_name, shortcut in shortcut_modules.items():
+                        if (
+                                shortcut is None
+                                or shortcut.active_adapter not in shortcut.proj_A.keys()
+                                or shortcut.r[shortcut.active_adapter] == 0
+                        ):
+                            continue
+                        proj_hash = LORA_NAME_HASH[proj_name]
+                        shortcut.disable_projectors = [layer_id, proj_hash] not in turn_on
 
             self.save_reallocation_history()
 
@@ -504,8 +801,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 type(model) is OPTLoraForCausalLM
                 or type(model) is OPTLoraForSequenceClassification
                 or type(model) is OPTLoraForQuestionAnswering
+                or type(model) is OPTLoraAgsForCausalLM
+                or type(model) is OPTLoraAgsForSequenceClassification
+                or type(model) is OPTLoraAgsForQuestionAnswering
             )
-            model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+            model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering | OPTLoraAgsForCausalLM | OPTLoraAgsForSequenceClassification | OPTLoraAgsForQuestionAnswering
 
             # Get alpha importance for each module
             for decoder_layer in reversed(model.model.decoder.layers):
@@ -583,8 +883,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
             type(model) is OPTLoraForCausalLM
             or type(model) is OPTLoraForSequenceClassification
             or type(model) is OPTLoraForQuestionAnswering
+            or type(model) is OPTLoraAgsForCausalLM
+            or type(model) is OPTLoraAgsForSequenceClassification
+            or type(model) is OPTLoraAgsForQuestionAnswering
         )
-        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering | OPTLoraAgsForCausalLM | OPTLoraAgsForSequenceClassification | OPTLoraAgsForQuestionAnswering
 
         # constant score of every lora module
         with torch.no_grad():
@@ -647,8 +950,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
             type(model) is OPTLoraForCausalLM
             or type(model) is OPTLoraForSequenceClassification
             or type(model) is OPTLoraForQuestionAnswering
+            or type(model) is OPTLoraAgsForCausalLM
+            or type(model) is OPTLoraAgsForSequenceClassification
+            or type(model) is OPTLoraAgsForQuestionAnswering
         )
-        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering | OPTLoraAgsForCausalLM | OPTLoraAgsForSequenceClassification | OPTLoraAgsForQuestionAnswering
 
         # compute gradients
         self.alpha_pl_module.to("cuda")
@@ -703,6 +1009,95 @@ class DynamicLoraReallocationCallback(pl.Callback):
         pl_module.model.to(device)
         return grads_norm
 
+    def _grad_norm_ags_test(
+        self,
+        trainer: pl.Trainer,
+        pl_module: PlWrapperBase,
+        batch: Any,
+        batch_idx: int,
+    ) -> dict[int, dict[str, float]]:
+        device = pl_module.model.device
+
+        def get_unshuffled_train_dataloader(datamodule: AgsDataModule):
+            if datamodule.training_dataset is None:
+                raise RuntimeError("The training dataset is not available.")
+            data_collator = None
+            if datamodule.dataset_info.data_collator_cls is not None:
+                data_collator = datamodule.dataset_info.data_collator_cls(
+                    tokenizer=datamodule.tokenizer
+                )
+            return DataLoader(
+                datamodule.training_dataset,
+                batch_size=datamodule.batch_size
+                * trainer.num_devices,  # use effective batch size
+                shuffle=False,
+                num_workers=datamodule.num_workers,
+                collate_fn=data_collator,
+            )
+
+        dataloader = get_unshuffled_train_dataloader(self.data_module)
+
+        # GRAD NORM on shortcuts
+        model = self.alpha_pl_module.model
+        assert (
+            type(model) is OPTLoraAgsForCausalLM
+            or type(model) is OPTLoraAgsForSequenceClassification
+            or type(model) is OPTLoraAgsForQuestionAnswering
+        )
+        model: OPTLoraAgsForCausalLM | OPTLoraAgsForSequenceClassification | OPTLoraAgsForQuestionAnswering
+
+        # compute gradients
+        self.alpha_pl_module.to("cuda")
+        self.alpha_pl_module.zero_grad()
+        msg = ""
+        for i, batch in enumerate(dataloader):
+            if i >= self.limit_test_batches:
+                break
+            print(" " * len(msg), end="\r")
+            msg = f">>> Testing on batch {i + 1} / {self.limit_test_batches}"
+            print(msg, end="\r")
+            batch = self.data_module.transfer_batch_to_device(
+                batch, torch.device("cuda"), 0
+            )
+            loss = self.alpha_pl_module.training_step(batch=batch, batch_idx=i)
+            # print(loss.device, loss)
+            loss.backward()
+        print()
+
+        # calculate score of every shortcut module
+        grads_norm = {}
+        for decoder_layer in model.model.decoder.layers:
+            decoder_layer: OPTLoraAgsDecoderLayer
+            layer_id = decoder_layer.layer_id
+            shortcut_modules: dict[str, ShortcutBase] = {
+                "residual_1": decoder_layer.residual_1,
+                "residual_2": decoder_layer.residual_2,
+                "shortcut_sa": decoder_layer.shortcut_sa,
+                "shortcut_ffn": decoder_layer.shortcut_ffn,
+            }
+            for proj_name, shortcut in shortcut_modules.items():
+                if (
+                    shortcut is None
+                    or shortcut.active_adapter not in shortcut.proj_A.keys()
+                    or shortcut.r[shortcut.active_adapter] == 0
+                ):
+                    continue
+
+                grad_shortcut = (
+                    shortcut.lora_A[shortcut.active_adapter].weight.grad.norm()
+                    + shortcut.lora_B[shortcut.active_adapter].weight.grad.norm()
+                ).item()
+
+                if layer_id not in grads_norm:
+                    grads_norm[layer_id] = {}
+                grads_norm[layer_id][proj_name] = grad_shortcut
+
+        # reset grads
+        self.alpha_pl_module.zero_grad()
+
+        pl_module.model.to(device)
+        return grads_norm
+
     def _snip_test(
         self,
         trainer: pl.Trainer,
@@ -737,8 +1132,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
             type(model) is OPTLoraForCausalLM
             or type(model) is OPTLoraForSequenceClassification
             or type(model) is OPTLoraForQuestionAnswering
+            or type(model) is OPTLoraAgsForCausalLM
+            or type(model) is OPTLoraAgsForSequenceClassification
+            or type(model) is OPTLoraAgsForQuestionAnswering
         )
-        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering | OPTLoraAgsForCausalLM | OPTLoraAgsForSequenceClassification | OPTLoraAgsForQuestionAnswering
 
         @torch.no_grad()
         def get_require_grad(net: nn.Module):
@@ -927,8 +1325,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
             type(model) is OPTLoraForCausalLM
             or type(model) is OPTLoraForSequenceClassification
             or type(model) is OPTLoraForQuestionAnswering
+            or type(model) is OPTLoraAgsForCausalLM
+            or type(model) is OPTLoraAgsForSequenceClassification
+            or type(model) is OPTLoraAgsForQuestionAnswering
         )
-        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering
+        model: OPTLoraForCausalLM | OPTLoraForSequenceClassification | OPTLoraForQuestionAnswering | OPTLoraAgsForCausalLM | OPTLoraAgsForSequenceClassification | OPTLoraAgsForQuestionAnswering
 
         # convert params to their abs, keep sign for converting it back
         @torch.no_grad()
@@ -1041,7 +1442,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             "total_reallocation_number": len(self.reallocation_history)
         }
         # format: {dyrealloc_{i}: {epoch: epoch, step: step, turn_on: turn_on[]}
-        history: dict[str, int | dict[str, int | list]] = {
+        history: dict[str, int | dict[str, int | list]] = {} if self.importance_test_name != "alpha_test" else {
             "max_alpha": ALPHA_UB,
         }
         for i, reallocation in enumerate(self.reallocation_history):
