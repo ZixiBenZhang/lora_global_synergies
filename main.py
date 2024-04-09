@@ -242,6 +242,7 @@ def main():
             dyrealloc_args = {
                 "realloc_N": args.realloc_N,
                 "turn_on_percentile": args.turn_on_percentile,
+                "ags_mode": args.dyrealloc_ags_mode,
             }
 
             train_dyrealloc_params = {

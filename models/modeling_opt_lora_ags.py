@@ -390,11 +390,11 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         )
 
         layer_shortcut_config = config.shortcut_config[f"model_layer_{layer_id}"]
-        self.residual1 = ShortcutFromIdentity(
+        self.residual_1 = ShortcutFromIdentity(
             in_out_features=self.embed_dim,
             config=layer_shortcut_config["residual1"],
         )
-        self.residual2 = ShortcutFromIdentity(
+        self.residual_2 = ShortcutFromIdentity(
             in_out_features=self.embed_dim,
             config=layer_shortcut_config["residual2"],
         )
@@ -443,7 +443,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         residual_sa = hidden_states
 
         # in-layer residual transformation 1
-        residual = self.residual1(hidden_states)
+        residual = self.residual_1(hidden_states)
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE attention
         if self.do_layer_norm_before:
@@ -485,7 +485,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         hidden_states = hidden_states.reshape(-1, hidden_states.size(-1))
 
         # in-layer residual transformation 2
-        residual = self.residual2(hidden_states)
+        residual = self.residual_2(hidden_states)
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE ffn
         if self.do_layer_norm_before:

@@ -33,6 +33,11 @@ IMP_TEST_NAMES = [
     "jacob_cov",
     "alpha_test",
 ]
+DYREALLOC_AGS_MODES = [
+    None,
+    "combined",
+    "separated"
+]
 
 CLI_DEFAULTS = {
     # Main program arguments
@@ -60,6 +65,7 @@ CLI_DEFAULTS = {
     "alpha_limit_zptrain_batches:": 32,
     "realloc_N": 0.1,
     "turn_on_percentile": 0.25,
+    "dyrealloc_ags_mode": None,
     # Trainer options
     "training_optimizer": OPTIMIZERS[0],
     # "trainer_precision": TRAINER_PRECISION[1],
@@ -221,7 +227,7 @@ def get_arg_parser():
         choices=IMP_TEST_NAMES,
         help=f"""
             Name (metric) of the importance test method,
-            One of {'(' + '|'.join(LOG_LEVELS) + ')'}.
+            One of {'(' + '|'.join(IMP_TEST_NAMES) + ')'}.
             (default: %(default)s)
         """,
         metavar="",
@@ -288,6 +294,19 @@ def get_arg_parser():
         """,
         type=float,
         metavar="NUM",
+    )
+    reallocation_group.add_argument(
+        "--dyrealloc-ags-mode",
+        dest="dyrealloc_ags_mode",
+        choices=DYREALLOC_AGS_MODES,
+        help=f"""
+            for dynamic lora reallocation training, 
+            reallocation mode for shortcut modules in AGS models.
+            One of {'(' + '|'.join(DYREALLOC_AGS_MODES) + ')'}.
+            "None" for no reallocation on shortcut modules.
+            (default: %(default)s)
+        """,
+        metavar="TYPE",
     )
 
     # Trainer options
