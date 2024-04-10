@@ -119,6 +119,7 @@ def get_mat_config(config: dict):
     # default for linear layer's matrix
     return {
         "r": config["r"],
+        "shortcut_alpha": config["shortcut_alpha"],
         "proj_dropout": config["proj_dropout"],
         "projector_name": config["projector_name"],
         "disable_projector": config["disable_projector"],

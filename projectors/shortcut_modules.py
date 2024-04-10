@@ -14,6 +14,8 @@ class LowRankProjectorLayer:
     ):
         # params are stored as {projector_config_name: param_value}
         self.r = {}
+        self.shortcut_alpha = {}
+        self.scaling = {}
         self.in_features = in_features
         self.out_features = out_features
         self.kwargs = kwargs
@@ -25,8 +27,9 @@ class LowRankProjectorLayer:
         self.disable_projectors = False
         self.merged = False
 
-    def set_projector(self, projector_name, r, proj_dropout_p, init_proj_weights):
+    def set_projector(self, projector_name, r, shortcut_alpha, proj_dropout_p, init_proj_weights):
         self.r[projector_name] = r
+        self.shortcut_alpha[projector_name] = shortcut_alpha
 
         if proj_dropout_p > 0:
             dropout_layer = nn.Dropout(p=proj_dropout_p)
@@ -45,6 +48,7 @@ class LowRankProjectorLayer:
                     {projector_name: nn.Linear(r, self.out_features, bias=False)}
                 )
             )
+            self.scaling[projector_name] = shortcut_alpha / r
         if init_proj_weights:
             self.reset_proj_parameters(projector_name)
 
@@ -133,7 +137,7 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
                 self.proj_A[self.active_projector](
                     self.proj_dropout[self.active_projector](x)
                 )
-            ) * self.importance_beta
+            ) * self.scaling[self.active_projector] * self.importance_beta
         else:
             if self.importance_beta != 1.0 and self.r[self.active_projector] > 0:
                 self.unmerge()
@@ -147,7 +151,7 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
                     self.proj_A[self.active_projector](
                         self.proj_dropout[self.active_projector](x)
                     )
-                ) * self.importance_beta
+                ) * self.scaling[self.active_projector] * self.importance_beta
             else:
                 # Projector dropout unused
                 res = F.linear(
