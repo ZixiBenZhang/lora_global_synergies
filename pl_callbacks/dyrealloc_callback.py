@@ -190,7 +190,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
     def _get_ags_importance_test(self) -> Callable:
         match self.importance_test_name:
             case "alpha_test":
-                pass
+                return self._alpha_importance_ags_test
             case "constant":
                 pass
             case "grad_norm":
@@ -854,6 +854,169 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     if torch.cuda.current_device() == 0:
                         logger.warning(
                             f">>> Layer {layer_id} Projection {proj_name} Alpha {alpha_res}"
+                        )
+
+        pl_module.model.to(device)
+        return res_val
+
+    def _alpha_importance_ags_test(
+        self,
+        trainer: pl.Trainer,
+        pl_module: PlWrapperBase,
+        batch: Any,
+        batch_idx: int,
+    ) -> dict[int, dict[str, float]]:
+        device = pl_module.model.device
+
+        with torch.no_grad():
+            self.rng.set_state(self.rng_state)
+            dataloader = self._get_alpha_testing_dataloader(self.rng)
+            self.rng_state = self.rng.get_state()
+
+            def _test(module: PlWrapperBase, test_dataloader: DataLoader) -> float:
+                module.to("cuda")
+                # reset metrics
+                match self.task:
+                    case "classification":
+                        module: NLPClassificationModelWrapper
+                        module.acc_test.reset()
+                    case "summarization":
+                        module: NLPSummarizationModelWrapper
+                        module.rouge_test.reset()
+                    case "causal_language_modeling":
+                        module: NLPLanguageModelingModelWrapper
+                        module.loss_test.reset()
+                    case _:
+                        raise ValueError(f"Unsupported task: {self.task}")
+
+                # run test
+                msg = ""
+                for i, test_batch in enumerate(test_dataloader):
+                    if i >= self.limit_test_batches:
+                        break
+                    if torch.cuda.current_device() == 0:
+                        print(" " * len(msg), end="\r")
+                    msg = f">>> Testing on batch {i + 1} / {self.limit_test_batches}"
+                    if torch.cuda.current_device() == 0:
+                        print(msg, end="\r")
+                    test_batch = self.data_module.transfer_batch_to_device(
+                        test_batch, torch.device("cuda"), 0
+                    )
+                    _loss = module.test_step(batch=test_batch, batch_idx=i)
+                    # print(module.device, _loss, test_batch["input_ids"].shape)
+                if torch.cuda.current_device() == 0:
+                    print()
+
+                # compute metrics
+                match self.task:
+                    case "classification":
+                        module: NLPClassificationModelWrapper
+                        res = module.acc_test.compute()
+                    case "summarization":
+                        module: NLPSummarizationModelWrapper
+                        res = module.rouge_test.compute()
+                    case "causal_language_modeling":
+                        module: NLPLanguageModelingModelWrapper
+                        res = torch.exp(module.loss_test.compute())
+                    case _:
+                        raise ValueError(f"Unsupported task: {self.task}")
+
+                return res
+
+            original_val_metrics = _test(self.alpha_pl_module, dataloader)
+
+            def get_metric_threshold():
+                original_metric = original_val_metrics
+                match self.task:
+                    case "classification":
+                        # Accuracy
+                        return (
+                            original_metric
+                            - original_metric * self.metric_reduction_tolerance
+                        )
+                    case "summarization":
+                        # Rouge score
+                        return (
+                            original_metric
+                            - original_metric * self.metric_reduction_tolerance
+                        )
+                    case "causal_language_modeling":
+                        # Perplexity
+                        # larger impact to perplexity should be required as perplexity reduced
+                        return (
+                            original_metric
+                            + 1 / original_metric * self.metric_reduction_tolerance
+                        )
+                    case _:
+                        raise ValueError(f"Unsupported task: {self.task}")
+
+            def check_exceed_threshold(val_metrics_dict):
+                val_metric = val_metrics_dict
+                threshold = get_metric_threshold()
+                match self.task:
+                    case "classification":
+                        return val_metric < threshold
+                    case "summarization":
+                        return val_metric < threshold
+                    case "causal_language_modeling":
+                        return val_metric > threshold
+                    case _:
+                        raise ValueError(f"Unsupported task: {self.task}")
+
+            # Result format: {layer_idx: {proj: alpha}}
+            res_val: dict[int, dict[str, float]] = {}
+
+            model = self.alpha_pl_module.model
+            assert (
+                type(model) is OPTLoraAgsForCausalLM
+                or type(model) is OPTLoraAgsForSequenceClassification
+                or type(model) is OPTLoraAgsForQuestionAnswering
+            )
+            model: OPTLoraAgsForCausalLM | OPTLoraAgsForSequenceClassification | OPTLoraAgsForQuestionAnswering
+
+            # Get alpha importance for each module
+            for decoder_layer in reversed(model.model.decoder.layers):
+                decoder_layer: OPTLoraAgsDecoderLayer
+                layer_id = decoder_layer.layer_id
+                shortcut_modules: dict[str, ShortcutBase] = {
+                    "residual_1": decoder_layer.residual_1,
+                    "residual_2": decoder_layer.residual_2,
+                    "shortcut_sa": decoder_layer.shortcut_sa,
+                    "shortcut_ffn": decoder_layer.shortcut_ffn,
+                }
+
+                for proj_name, shortcut in shortcut_modules.items():
+                    if (
+                            shortcut is None
+                            or shortcut.active_adapter not in shortcut.proj_A.keys()
+                            or shortcut.r[shortcut.active_adapter] == 0
+                    ):
+                        continue
+
+                    # logger.warning(
+                    #     f"Beta testing layer {layer_id} projection {proj_name}",
+                    #     # end="\r",
+                    # )
+
+                    lb, rb = (0, ALPHA_UB)
+                    while lb < rb:
+                        beta = (lb + rb) // 2
+                        shortcut.set_importance_beta(beta / ALPHA_UB)
+                        val_metrics = _test(self.alpha_pl_module, dataloader)
+                        if check_exceed_threshold(val_metrics):
+                            lb = beta + 1
+                        else:
+                            rb = beta
+                    beta_res = rb
+
+                    shortcut.set_importance_beta(1.0)
+                    if layer_id not in res_val:
+                        res_val[layer_id] = {}
+                    res_val[layer_id][proj_name] = beta_res
+
+                    if torch.cuda.current_device() == 0:
+                        logger.warning(
+                            f">>> Layer {layer_id} Projection {proj_name} Beta {beta_res}"
                         )
 
         pl_module.model.to(device)
