@@ -65,8 +65,9 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
         self.weight.requires_grad = False
 
         self.config = config
-        r, proj_dropout_p, projector_name, disable_projector, importance_beta = (
+        r, shortcut_alpha, proj_dropout_p, projector_name, disable_projector, importance_beta = (
             config["r"],
+            config["shortcut_alpha"],
             float(config["proj_dropout"]),
             config["projector_name"],
             config["disable_projector"],
@@ -78,7 +79,7 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
         if self.fan_in_fan_out:
             self.weight.data = self.weight.data.T
 
-        self.set_projector(projector_name, r, proj_dropout_p, init_proj_weights)
+        self.set_projector(projector_name, r, shortcut_alpha, proj_dropout_p, init_proj_weights)
         self.active_projector = projector_name
 
         self.importance_beta = torch.tensor(importance_beta, requires_grad=False)
