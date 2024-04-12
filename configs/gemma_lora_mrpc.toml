@@ -8,12 +8,12 @@ training_optimizer = "adamw"
 learning_rate = 1e-4
 weight_decay = 0.01
 max_epochs = 20
-batch_size = 4
+batch_size = 2
 log_every_n_steps = 10
 # torch lightning
 task = "classification"
 #num_workers = 0
-num_devices = 2
+num_devices = 4
 #accelerator = "cpu"
 # language model options
 is_pretrained = true
