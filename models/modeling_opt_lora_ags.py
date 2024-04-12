@@ -414,6 +414,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         )
         if self.layer_id == 0:
             self.shortcut_ffn = None
+            self.shortcut_ln_ffn = None
 
     def forward(
         self,
