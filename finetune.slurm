@@ -1,17 +1,16 @@
 #!/bin/bash
 #
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=2
+#SBATCH --cpus-per-task=42
+#SBATCH --mem-per-cpu=3850
+#SBATCH --gres=gpu:ampere_a100:2
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:4
-#SBATCH --qos=gpu
-#SBATCH --time=48:00:00
-#SBATCH --account=ec249
-#SBATCH --exclusive
-#SBATCH --hint=nomultithread
+#SBATCH --time=40:00:00
+#SBATCH --account=su114
 
-source /work/ec249/ec249/zzhang/torch_lora/bin/activate
-export HUGGINGFACE_HUB_CACHE="/work/ec249/ec249/zzhang/hf_cache/hub"
-export HF_DATASETS_CACHE="/work/ec249/ec249/zzhang/hf_cache/datasets"
-export HF_MODULES_CACHE="/work/ec249/ec249/zzhang/hf_cache/modules"
+source ~/torch/bin/activate
 
-unset SLURM_NTASKS
-env srun python -m main train --config configs/opt_lora_qqp_350m.toml --num-devices 4 --batch-size 2
+srun python -m main train --config ./configs/opt_ags_mrpc_350m.toml \
+--num-devices 4 --batch-size 2 \
+--learning-rate 1e-5
