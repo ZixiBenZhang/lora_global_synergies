@@ -12,5 +12,4 @@
 source ~/torch/bin/activate
 
 srun python -m main train --config ./configs/opt_ags_mrpc_350m.toml \
---num-devices 4 --batch-size 2 \
 --learning-rate 1e-5
