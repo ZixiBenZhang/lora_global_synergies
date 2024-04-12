@@ -11,11 +11,11 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ./configs/opt_ags_mrpc_350m.toml \
+srun python -m main train --config ../configs/opt_ags_mrpc_350m.toml \
 --learning-rate 1e-5
 
-srun python -m main train --config ./configs/opt_ags_mrpc_350m.toml \
+srun python -m main train --config ../configs/opt_ags_mrpc_350m.toml \
 --learning-rate 2e-5
 
-srun python -m main train --config ./configs/opt_ags_mrpc_350m.toml \
+srun python -m main train --config ../configs/opt_ags_mrpc_350m.toml \
 --learning-rate 5e-5
