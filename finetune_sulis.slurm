@@ -7,8 +7,8 @@
 #SBATCH --gres=gpu:ampere_a100:2
 #SBATCH --partition=gpu
 #SBATCH --time=40:00:00
-#SBATCH --account=su114-gpu
+#SBATCH --account=su114
 
 source ~/anaconda/bin/activate
 
-srun python -m main train --config configs/opt_lora_qqp_350m.toml
+srun python -m main train --config ./configs/opt_ags_mrpc_350m.toml
