@@ -52,9 +52,7 @@ def train_dynamic_reallocation(
     turn_on_percentile = dynamic_reallocation_args[
         "turn_on_percentile"
     ]  # for reallocating lora ranks
-    ags_mode = dynamic_reallocation_args[
-        "ags_mode"
-    ]
+    ags_mode = dynamic_reallocation_args["ags_mode"]
 
     alpha_pl_trainer_args = copy.deepcopy(pl_trainer_args)
 

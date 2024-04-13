@@ -33,11 +33,7 @@ IMP_TEST_NAMES = [
     "jacob_cov",
     "alpha_test",
 ]
-DYREALLOC_AGS_MODES = [
-    "off",
-    "combined",
-    "separated"
-]
+DYREALLOC_AGS_MODES = ["off", "combined", "separated"]
 
 CLI_DEFAULTS = {
     # Main program arguments

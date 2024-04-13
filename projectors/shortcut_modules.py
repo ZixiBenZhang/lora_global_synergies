@@ -27,7 +27,9 @@ class LowRankProjectorLayer:
         self.disable_projectors = False
         self.merged = False
 
-    def set_projector(self, projector_name, r, shortcut_alpha, proj_dropout_p, init_proj_weights):
+    def set_projector(
+        self, projector_name, r, shortcut_alpha, proj_dropout_p, init_proj_weights
+    ):
         self.r[projector_name] = r
         self.shortcut_alpha[projector_name] = shortcut_alpha
 
@@ -65,7 +67,14 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
         self.weight.requires_grad = False
 
         self.config = config
-        r, shortcut_alpha, proj_dropout_p, projector_name, disable_projector, importance_beta = (
+        (
+            r,
+            shortcut_alpha,
+            proj_dropout_p,
+            projector_name,
+            disable_projector,
+            importance_beta,
+        ) = (
             config["r"],
             config["shortcut_alpha"],
             float(config["proj_dropout"]),
@@ -79,7 +88,9 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
         if self.fan_in_fan_out:
             self.weight.data = self.weight.data.T
 
-        self.set_projector(projector_name, r, shortcut_alpha, proj_dropout_p, init_proj_weights)
+        self.set_projector(
+            projector_name, r, shortcut_alpha, proj_dropout_p, init_proj_weights
+        )
         self.active_projector = projector_name
 
         self.importance_beta = torch.tensor(importance_beta, requires_grad=False)
@@ -134,29 +145,43 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
             )
             # x = x.to(self.proj_A[self.active_projector].weight.dtype)
             # Beta only applied to (delta W)
-            res = res + self.proj_B[self.active_projector](
-                self.proj_A[self.active_projector](
-                    self.proj_dropout[self.active_projector](x)
+            res = (
+                res
+                + self.proj_B[self.active_projector](
+                    self.proj_A[self.active_projector](
+                        self.proj_dropout[self.active_projector](x)
+                    )
                 )
-            ) * self.scaling[self.active_projector] * self.importance_beta
+                * self.scaling[self.active_projector]
+                * self.importance_beta
+            )
         else:
             if self.importance_beta != 1.0 and self.r[self.active_projector] > 0:
                 self.unmerge()
                 # Projector dropout used
                 res = F.linear(
-                    x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+                    x,
+                    self.weight if not self.fan_in_fan_out else self.weight.T,
+                    self.bias,
                 )
                 # x = x.to(self.proj_A[self.active_projector].weight.dtype)
                 # Beta only applied to (delta W)
-                res = res + self.proj_B[self.active_projector](
-                    self.proj_A[self.active_projector](
-                        self.proj_dropout[self.active_projector](x)
+                res = (
+                    res
+                    + self.proj_B[self.active_projector](
+                        self.proj_A[self.active_projector](
+                            self.proj_dropout[self.active_projector](x)
+                        )
                     )
-                ) * self.scaling[self.active_projector] * self.importance_beta
+                    * self.scaling[self.active_projector]
+                    * self.importance_beta
+                )
             else:
                 # Projector dropout unused
                 res = F.linear(
-                    x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
+                    x,
+                    self.weight if not self.fan_in_fan_out else self.weight.T,
+                    self.bias,
                 )
         # res = res.to(input_dtype)
         return res

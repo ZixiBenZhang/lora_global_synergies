@@ -21,8 +21,12 @@ from models.modeling_opt_lora import (
     OPTLoraForQuestionAnswering,
     OPTLoraDecoderLayer,
 )
-from models.modeling_opt_lora_ags import OPTLoraAgsForCausalLM, OPTLoraAgsForSequenceClassification, \
-    OPTLoraAgsForQuestionAnswering, OPTLoraAgsDecoderLayer
+from models.modeling_opt_lora_ags import (
+    OPTLoraAgsForCausalLM,
+    OPTLoraAgsForSequenceClassification,
+    OPTLoraAgsForQuestionAnswering,
+    OPTLoraAgsDecoderLayer,
+)
 from pl_model_wrapper import (
     NLPClassificationModelWrapper,
     NLPSummarizationModelWrapper,
@@ -115,13 +119,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.reallocation_history: list[dict[str, int | list]] = []
         t = time.strftime("%H-%M")
         i = 0
-        while (
-            os.path.isfile(
-                f"{save_path}/reallocation_history_{self.importance_test_name.replace('_', '-')}_{t}_version-{i}.toml"
-            )
-            or os.path.isfile(
-                f"{save_path}/reallocation_frequency_{self.importance_test_name.replace('_', '-')}_{t}_version-{i}.toml"
-            )
+        while os.path.isfile(
+            f"{save_path}/reallocation_history_{self.importance_test_name.replace('_', '-')}_{t}_version-{i}.toml"
+        ) or os.path.isfile(
+            f"{save_path}/reallocation_frequency_{self.importance_test_name.replace('_', '-')}_{t}_version-{i}.toml"
         ):
             i += 1
         self.history_save_path = f"{save_path}/reallocation_history_{self.importance_test_name.replace('_', '-')}_{t}_version-{i}.toml"
@@ -379,9 +380,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
                 budget = math.floor(
                     self.turn_on_percentile * original_lora_module_num
-                ) + round(
-                    self.turn_on_percentile * original_ags_module_num
-                )
+                ) + round(self.turn_on_percentile * original_ags_module_num)
                 alpha_list = np.concatenate([alpha_list, ags_alpha_list], axis=0)
                 idx = alpha_list[:, 2].argsort()
                 alpha_threshold = alpha_list[idx[-budget], 2]
@@ -391,8 +390,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
                     self.rng.set_state(self.rng_state)
                     tie_idx = torch.randperm(len(tie), generator=self.rng)[
-                              : (budget - len(greater))
-                              ].numpy()
+                        : (budget - len(greater))
+                    ].numpy()
                     self.rng_state = self.rng.get_state()
                     turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
                 else:
@@ -422,9 +421,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 # Turn on/off lora modules
                 model = self.alpha_pl_module.model
                 assert (
-                        type(model) is OPTLoraAgsForCausalLM
-                        or type(model) is OPTLoraAgsForSequenceClassification
-                        or type(model) is OPTLoraAgsForQuestionAnswering
+                    type(model) is OPTLoraAgsForCausalLM
+                    or type(model) is OPTLoraAgsForSequenceClassification
+                    or type(model) is OPTLoraAgsForQuestionAnswering
                 )
                 model: OPTLoraAgsForCausalLM | OPTLoraAgsForSequenceClassification | OPTLoraAgsForQuestionAnswering
 
@@ -442,8 +441,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     }
                     for proj_name, lora in lora_modules.items():
                         if (
-                                lora.active_adapter not in lora.lora_A.keys()
-                                or lora.r[lora.active_adapter] == 0
+                            lora.active_adapter not in lora.lora_A.keys()
+                            or lora.r[lora.active_adapter] == 0
                         ):
                             continue
                         proj_hash = LORA_NAME_HASH[proj_name]
@@ -463,7 +462,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         ):
                             continue
                         proj_hash = LORA_NAME_HASH[proj_name]
-                        shortcut.disable_projectors = [layer_id, proj_hash] not in turn_on
+                        shortcut.disable_projectors = [
+                            layer_id,
+                            proj_hash,
+                        ] not in turn_on
 
             elif self.ags_mode == "separated":
                 # Decide which modules to keep
@@ -490,14 +492,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 )
                 original_ags_module_num = len(ags_alpha_list)
 
-                budget = math.floor(
-                    self.turn_on_percentile * original_lora_module_num
-                )
+                budget = math.floor(self.turn_on_percentile * original_lora_module_num)
                 idx = alpha_list[:, 2].argsort()
                 alpha_threshold = alpha_list[idx[-budget], 2]
-                ags_budget = round(
-                    self.turn_on_percentile * original_ags_module_num
-                )
+                ags_budget = round(self.turn_on_percentile * original_ags_module_num)
                 ags_idx = ags_alpha_list[:, 2].argsort()
                 ags_alpha_threshold = ags_alpha_list[ags_idx[-ags_budget], 2]
 
@@ -507,8 +505,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     tie = alpha_list[alpha_list[:, 2] == alpha_threshold, :2]
                     self.rng.set_state(self.rng_state)
                     tie_idx = torch.randperm(len(tie), generator=self.rng)[
-                          : (budget - len(greater))
-                          ].numpy()
+                        : (budget - len(greater))
+                    ].numpy()
                     self.rng_state = self.rng.get_state()
                     turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
                 else:
@@ -516,12 +514,16 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     turn_on = alpha_list[idx, :2]
                 if sum(ags_alpha_list[:, 2] == ags_alpha_threshold) > 1:
                     # Uniformly break tie
-                    greater = ags_alpha_list[ags_alpha_list[:, 2] > ags_alpha_threshold, :2]
-                    tie = ags_alpha_list[ags_alpha_list[:, 2] == ags_alpha_threshold, :2]
+                    greater = ags_alpha_list[
+                        ags_alpha_list[:, 2] > ags_alpha_threshold, :2
+                    ]
+                    tie = ags_alpha_list[
+                        ags_alpha_list[:, 2] == ags_alpha_threshold, :2
+                    ]
                     self.rng.set_state(self.rng_state)
                     tie_idx = torch.randperm(len(tie), generator=self.rng)[
-                              : (ags_budget - len(greater))
-                              ].numpy()
+                        : (ags_budget - len(greater))
+                    ].numpy()
                     self.rng_state = self.rng.get_state()
                     ags_turn_on = np.concatenate([tie[tie_idx], greater], axis=0)
                 else:
@@ -532,7 +534,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 turn_on = turn_on.astype(int).tolist()
                 assert len(turn_on) == budget + ags_budget
 
-                reallocation: list[list[int]] = np.concatenate([alpha_list, ags_alpha_list], axis=0).tolist()
+                reallocation: list[list[int]] = np.concatenate(
+                    [alpha_list, ags_alpha_list], axis=0
+                ).tolist()
                 reallocation = [
                     [
                         int(layer_id),
@@ -553,9 +557,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 # Turn on/off lora modules
                 model = self.alpha_pl_module.model
                 assert (
-                        type(model) is OPTLoraAgsForCausalLM
-                        or type(model) is OPTLoraAgsForSequenceClassification
-                        or type(model) is OPTLoraAgsForQuestionAnswering
+                    type(model) is OPTLoraAgsForCausalLM
+                    or type(model) is OPTLoraAgsForSequenceClassification
+                    or type(model) is OPTLoraAgsForQuestionAnswering
                 )
                 model: OPTLoraAgsForCausalLM | OPTLoraAgsForSequenceClassification | OPTLoraAgsForQuestionAnswering
 
@@ -573,8 +577,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     }
                     for proj_name, lora in lora_modules.items():
                         if (
-                                lora.active_adapter not in lora.lora_A.keys()
-                                or lora.r[lora.active_adapter] == 0
+                            lora.active_adapter not in lora.lora_A.keys()
+                            or lora.r[lora.active_adapter] == 0
                         ):
                             continue
                         proj_hash = LORA_NAME_HASH[proj_name]
@@ -588,13 +592,16 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     }
                     for proj_name, shortcut in shortcut_modules.items():
                         if (
-                                shortcut is None
-                                or shortcut.active_adapter not in shortcut.proj_A.keys()
-                                or shortcut.r[shortcut.active_adapter] == 0
+                            shortcut is None
+                            or shortcut.active_adapter not in shortcut.proj_A.keys()
+                            or shortcut.r[shortcut.active_adapter] == 0
                         ):
                             continue
                         proj_hash = LORA_NAME_HASH[proj_name]
-                        shortcut.disable_projectors = [layer_id, proj_hash] not in turn_on
+                        shortcut.disable_projectors = [
+                            layer_id,
+                            proj_hash,
+                        ] not in turn_on
 
             else:
                 # Decide which modules to keep
@@ -998,9 +1005,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
                 for proj_name, shortcut in shortcut_modules.items():
                     if (
-                            shortcut is None
-                            or shortcut.active_adapter not in shortcut.proj_A.keys()
-                            or shortcut.r[shortcut.active_adapter] == 0
+                        shortcut is None
+                        or shortcut.active_adapter not in shortcut.proj_A.keys()
+                        or shortcut.r[shortcut.active_adapter] == 0
                     ):
                         continue
 
@@ -1616,9 +1623,13 @@ class DynamicLoraReallocationCallback(pl.Callback):
             "total_reallocation_number": len(self.reallocation_history)
         }
         # format: {dyrealloc_{i}: {epoch: epoch, step: step, turn_on: turn_on[]}
-        history: dict[str, int | dict[str, int | list]] = {} if self.importance_test_name != "alpha_test" else {
-            "max_alpha": ALPHA_UB,
-        }
+        history: dict[str, int | dict[str, int | list]] = (
+            {}
+            if self.importance_test_name != "alpha_test"
+            else {
+                "max_alpha": ALPHA_UB,
+            }
+        )
         for i, reallocation in enumerate(self.reallocation_history):
             history[f"dyrealloc_{i}"] = reallocation
             for lora_module in reallocation["turn_on"]:

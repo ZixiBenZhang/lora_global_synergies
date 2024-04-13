@@ -429,9 +429,10 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         output_attentions: Optional[bool] = False,
         use_cache: Optional[bool] = False,
         residual_ffn: Optional[torch.Tensor] = None,
-    ) -> Tuple[Tuple[
-        torch.FloatTensor, Optional[Tuple[torch.FloatTensor, torch.FloatTensor]]
-    ], torch.FloatTensor]:
+    ) -> Tuple[
+        Tuple[torch.FloatTensor, Optional[Tuple[torch.FloatTensor, torch.FloatTensor]]],
+        torch.FloatTensor,
+    ]:
         """
         Args:
             hidden_states (`torch.FloatTensor`): input to the layer of shape `(batch, seq_len, embed_dim)`

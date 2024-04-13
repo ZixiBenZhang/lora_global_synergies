@@ -10,7 +10,10 @@ from lora.lora_modules import (
     update_lora_importance_alpha_require_grad,
 )
 from models.model_info import AgsModelInfo
-from projectors.shortcut_modules import update_ags_importance_beta_require_grad, update_ags_ln_require_grad
+from projectors.shortcut_modules import (
+    update_ags_importance_beta_require_grad,
+    update_ags_ln_require_grad,
+)
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 from pl_callbacks.metrics_callback import ValidationMetricsCallback

@@ -140,9 +140,7 @@ class OPTLoraAgsConfig(PretrainedConfig):
             )
         self.lora_config = lora_config
         if shortcut_config is not None:
-            shortcut_config = parse_shortcut_config(
-                shortcut_config, num_hidden_layers
-            )
+            shortcut_config = parse_shortcut_config(shortcut_config, num_hidden_layers)
         self.shortcut_config = shortcut_config
 
         # Note that the only purpose of `_remove_final_layer_norm` is to keep backward compatibility
