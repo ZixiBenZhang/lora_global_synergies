@@ -127,7 +127,7 @@ def train(
 
         update_lora_importance_alpha_require_grad(model, require_grad=False)
         update_ags_importance_beta_require_grad(model, require_grad=False)
-        update_ags_ln_require_grad(model, require_grad=False)
+        # update_ags_ln_require_grad(model, require_grad=False)
         print_trainable_parameters(model)
 
         pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
@@ -166,7 +166,7 @@ def train(
 
         update_lora_importance_alpha_require_grad(model, require_grad=False)
         update_ags_importance_beta_require_grad(model, require_grad=False)
-        update_ags_ln_require_grad(model, require_grad=False)
+        # update_ags_ln_require_grad(model, require_grad=False)
         print_trainable_parameters(model)
 
         pl_model: pl.LightningModule = wrapper_pl_model(
