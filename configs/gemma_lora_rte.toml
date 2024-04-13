@@ -5,7 +5,7 @@ load_name = "google/gemma-2b"
 load_type = "hf"
 # training
 training_optimizer = "adamw"
-learning_rate = 1e-4
+learning_rate = 5e-4
 weight_decay = 0.01
 max_epochs = 20
 batch_size = 4
