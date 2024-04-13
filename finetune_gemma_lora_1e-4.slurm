@@ -11,5 +11,5 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ./configs/gemma_lora_sst2.toml \
+srun python -m main train --config ./configs/gemma_lora_mnli.toml \
 --learning-rate 1e-4
