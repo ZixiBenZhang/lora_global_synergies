@@ -11,5 +11,5 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ../configs/gemma_plain_mrpc.toml \
+srun python -m ../main train --config ../configs/gemma_plain_mrpc.toml \
 --learning-rate 1e-5

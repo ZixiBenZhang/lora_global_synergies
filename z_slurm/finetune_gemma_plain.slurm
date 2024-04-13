@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
+#SBATCH --ntasks-per-node=2
 #SBATCH --cpus-per-task=42
 #SBATCH --mem-per-cpu=3850
 #SBATCH --gres=gpu:ampere_a100:2
@@ -11,5 +11,5 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ../configs/gemma_lora_mrpc.toml \
+srun python -m ../main train --config ../configs/gemma_lora_mrpc.toml \
 --learning-rate 1e-4
