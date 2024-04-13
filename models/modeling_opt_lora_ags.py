@@ -405,6 +405,8 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         self.shortcut_ln_sa = nn.LayerNorm(
             self.embed_dim, elementwise_affine=config.layer_norm_elementwise_affine
         )
+        self.shortcut_ln_sa.weight.data.copy_(self.final_layer_norm.weight.data)
+        self.shortcut_ln_sa.bias.data.copy_(self.final_layer_norm.bias.data)
         self.shortcut_ffn = ShortcutFromZeros(
             in_out_features=self.embed_dim,
             config=layer_shortcut_config["shortcut2"],
@@ -412,6 +414,8 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         self.shortcut_ln_ffn = nn.LayerNorm(
             self.embed_dim, elementwise_affine=config.layer_norm_elementwise_affine
         )
+        self.shortcut_ln_ffn.weight.data.copy_(self.self_attn_layer_norm.weight.data)
+        self.shortcut_ln_ffn.bias.data.copy_(self.self_attn_layer_norm.bias.data)
         if self.layer_id == 0:
             self.shortcut_ffn = None
             self.shortcut_ln_ffn = None
