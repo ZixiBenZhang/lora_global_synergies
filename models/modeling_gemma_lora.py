@@ -192,7 +192,7 @@ class GemmaLoraMLP(nn.Module):
         self.gate_proj = LoraLinear(
             self.hidden_size,
             self.intermediate_size,
-            config=layer_lora_config["w0"],
+            config=layer_lora_config["w1"],
             bias=False,
         )
         self.up_proj = LoraLinear(
