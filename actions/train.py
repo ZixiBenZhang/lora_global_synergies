@@ -10,7 +10,7 @@ from lora.lora_modules import (
     update_lora_importance_alpha_require_grad,
 )
 from models.model_info import AgsModelInfo
-from projectors.shortcut_modules import update_ags_importance_beta_require_grad
+from projectors.shortcut_modules import update_ags_importance_beta_require_grad, update_ags_ln_require_grad
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 from pl_callbacks.metrics_callback import ValidationMetricsCallback
@@ -124,6 +124,7 @@ def train(
 
         update_lora_importance_alpha_require_grad(model, require_grad=False)
         update_ags_importance_beta_require_grad(model, require_grad=False)
+        update_ags_ln_require_grad(model, require_grad=False)
         print_trainable_parameters(model)
 
         pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
@@ -162,6 +163,7 @@ def train(
 
         update_lora_importance_alpha_require_grad(model, require_grad=False)
         update_ags_importance_beta_require_grad(model, require_grad=False)
+        update_ags_ln_require_grad(model, require_grad=False)
         print_trainable_parameters(model)
 
         pl_model: pl.LightningModule = wrapper_pl_model(
@@ -178,21 +180,6 @@ def train(
         trainer = pl.Trainer(**pl_trainer_args)
         trainer.fit(pl_model, datamodule=data_module)
 
-    # TODO: save the trained model graph if there are architectural changes.
-    # NOTE: This is important if the model was previously transformed with architectural
-    # changes. The state dictionary that's saved by PyTorch Lightning wouldn't work.
-
-    # Compute metric for hyperparameter search
-    # match task:
-    #     case "classification":
-    #         val_metric = val_history.val_history_metrics["val_acc_epoch"]
-    #         best_perf = max(val_metric)
-    #     case "summarization":
-    #         val_metric = trainer.callback_metrics["val_rouge_epoch"]
-    #         best_perf = max(val_metric)
-    #     case _:
-    #         val_metric = trainer.callback_metrics["val_acc_epoch"]
-    #         best_perf = max(val_metric)
     val_metric = val_history.val_history_metrics["val_loss_epoch"]
     best_perf = min(val_metric)
 
