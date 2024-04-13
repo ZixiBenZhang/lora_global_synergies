@@ -1,5 +1,6 @@
 import logging
 import math
+import os
 import time
 import types
 from typing import Any, Optional, Callable
@@ -113,8 +114,18 @@ class DynamicLoraReallocationCallback(pl.Callback):
 
         self.reallocation_history: list[dict[str, int | list]] = []
         t = time.strftime("%H-%M")
-        self.history_save_path = f"{save_path}/reallocation_history_{self.importance_test_name.replace('_', '-')}_{t}.toml"
-        self.frequency_save_path = f"{save_path}/reallocation_frequency_{self.importance_test_name.replace('_', '-')}_{t}.toml"
+        i = 0
+        while (
+            os.path.isfile(
+                f"{save_path}/reallocation_history_{self.importance_test_name.replace('_', '-')}_{t}_version-{i}.toml"
+            )
+            or os.path.isfile(
+                f"{save_path}/reallocation_frequency_{self.importance_test_name.replace('_', '-')}_{t}_version-{i}.toml"
+            )
+        ):
+            i += 1
+        self.history_save_path = f"{save_path}/reallocation_history_{self.importance_test_name.replace('_', '-')}_{t}_version-{i}.toml"
+        self.frequency_save_path = f"{save_path}/reallocation_frequency_{self.importance_test_name.replace('_', '-')}_{t}_version-{i}.toml"
 
         with torch.random.fork_rng(devices=range(torch.cuda.device_count())):
             self.rng = torch.random.manual_seed(torch.seed())
