@@ -7,3 +7,4 @@ tensorboard
 optuna
 tabulate
 toml
+sentencepiece
