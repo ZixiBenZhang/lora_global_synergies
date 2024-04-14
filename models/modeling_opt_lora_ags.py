@@ -527,7 +527,8 @@ class OPTLoraAgsDecoderLayer(nn.Module):
             residual_sa = self.shortcut_sa(residual_sa)
             hidden_states_ = residual_sa + hidden_states
             assert torch.all(hidden_states_ == hidden_states), \
-                f"residual_sa: {residual_sa}\n shortcut_sa: {self.shortcut_sa.weight}"
+                f"residual_sa: {residual_sa}\n shortcut_sa: {self.shortcut_sa.weight} \n " \
+                f"proj_B: {self.shortcut_sa.proj_B[self.shortcut_sa.active_projector].weight}"
             hidden_states = self.final_layer_norm(hidden_states_)
 
         outputs = (hidden_states,)
