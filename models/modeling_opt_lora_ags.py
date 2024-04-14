@@ -390,14 +390,14 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         )
 
         layer_shortcut_config = config.shortcut_config[f"model_layer_{layer_id}"]
-        # self.residual_1 = ShortcutFromIdentity(
-        #     in_out_features=self.embed_dim,
-        #     config=layer_shortcut_config["residual1"],
-        # )
-        # self.residual_2 = ShortcutFromIdentity(
-        #     in_out_features=self.embed_dim,
-        #     config=layer_shortcut_config["residual2"],
-        # )
+        self.residual_1 = ShortcutFromIdentity(
+            in_out_features=self.embed_dim,
+            config=layer_shortcut_config["residual1"],
+        )
+        self.residual_2 = ShortcutFromIdentity(
+            in_out_features=self.embed_dim,
+            config=layer_shortcut_config["residual2"],
+        )
         self.shortcut_sa = ShortcutFromZeros(
             in_out_features=self.embed_dim,
             config=layer_shortcut_config["shortcut1"],
@@ -418,8 +418,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         # self.shortcut_ln_ffn.bias.data.copy_(self.self_attn_layer_norm.bias.data)
         # if self.layer_id == 0:
         #     self.shortcut_ffn = None
-            # self.shortcut_ln_ffn = None
-        # Todo: debug AGS model (why shortcut-disabled has low performance?)
+        #      self.shortcut_ln_ffn = None
 
     def forward(
         self,
@@ -456,7 +455,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         residual_sa = torch.clone(hidden_states)
 
         # in-layer residual transformation 1
-        residual = hidden_states
+        residual = self.residual_1(idden_states)
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE attention
         if self.do_layer_norm_before:
@@ -489,8 +488,8 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         if residual_ffn is not None and self.shortcut_ffn is not None:
             residual_ffn = self.shortcut_ffn(residual_ffn)
             hidden_states_ = residual_ffn + hidden_states
-            assert torch.all(hidden_states_ == hidden_states), \
-                f"residual_ffn: {residual_ffn}\n shortcut_ffn: {self.shortcut_ffn.weight}"
+            # assert torch.all(hidden_states_ == hidden_states), \
+            #     f"residual_ffn: {residual_ffn}\n shortcut_ffn: {self.shortcut_ffn.weight}"
             hidden_states = self.self_attn_layer_norm(hidden_states_)
 
         # residual_ffn for next decoder layer
@@ -501,7 +500,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         hidden_states = hidden_states.reshape(-1, hidden_states.size(-1))
 
         # in-layer residual transformation 2
-        residual = hidden_states
+        residual = self.residual_2(hidden_states)
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE ffn
         if self.do_layer_norm_before:
@@ -526,9 +525,9 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         if self.shortcut_sa is not None:
             residual_sa = self.shortcut_sa(residual_sa)
             hidden_states_ = residual_sa + hidden_states
-            assert torch.all(hidden_states_ == hidden_states), \
-                f"residual_sa: {residual_sa}\n shortcut_sa: {self.shortcut_sa.weight} \n " \
-                f"proj_B: {self.shortcut_sa.proj_B[self.shortcut_sa.active_projector].weight}"
+            # assert torch.all(hidden_states_ == hidden_states), \
+            #     f"residual_sa: {residual_sa}\n shortcut_sa: {self.shortcut_sa.weight} \n " \
+            #     f"proj_B: {self.shortcut_sa.proj_B[self.shortcut_sa.active_projector].weight}"
             hidden_states = self.final_layer_norm(hidden_states_)
 
         outputs = (hidden_states,)
