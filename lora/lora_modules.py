@@ -183,7 +183,7 @@ class LoraLinear(LoRALayer, nn.Linear):
 def reset_lora(model: nn.Module) -> None:
     for name, module in model.named_modules():
         if isinstance(module, LoraLinear):
-            module.reset_parameters()
+            module.reset_lora_parameters(module.active_adapter)
 
 
 def mark_only_lora_as_trainable(model: nn.Module, bias: str = "none") -> None:

@@ -313,7 +313,7 @@ def reset_shortcut(model: nn.Module) -> None:
     for name, module in model.named_modules():
         if isinstance(module, ShortcutBase):
             module.force_init_weight()
-            module.reset_parameters()
+            module.reset_proj_parameters(module.active_projector)
 
 
 def mark_ags_as_trainable(model: nn.Module) -> None:
