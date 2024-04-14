@@ -390,27 +390,27 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         )
 
         layer_shortcut_config = config.shortcut_config[f"model_layer_{layer_id}"]
-        self.residual_1 = ShortcutFromIdentity(
-            in_out_features=self.embed_dim,
-            config=layer_shortcut_config["residual1"],
-        )
-        self.residual_2 = ShortcutFromIdentity(
-            in_out_features=self.embed_dim,
-            config=layer_shortcut_config["residual2"],
-        )
-        # self.shortcut_sa = ShortcutFromZeros(
+        # self.residual_1 = ShortcutFromIdentity(
         #     in_out_features=self.embed_dim,
-        #     config=layer_shortcut_config["shortcut1"],
+        #     config=layer_shortcut_config["residual1"],
         # )
+        # self.residual_2 = ShortcutFromIdentity(
+        #     in_out_features=self.embed_dim,
+        #     config=layer_shortcut_config["residual2"],
+        # )
+        self.shortcut_sa = ShortcutFromZeros(
+            in_out_features=self.embed_dim,
+            config=layer_shortcut_config["shortcut1"],
+        )
         # self.shortcut_ln_sa = nn.LayerNorm(
         #     self.embed_dim, elementwise_affine=config.layer_norm_elementwise_affine
         # )
         # self.shortcut_ln_sa.weight.data.copy_(self.final_layer_norm.weight.data)
         # self.shortcut_ln_sa.bias.data.copy_(self.final_layer_norm.bias.data)
-        # self.shortcut_ffn = ShortcutFromZeros(
-        #     in_out_features=self.embed_dim,
-        #     config=layer_shortcut_config["shortcut2"],
-        # )
+        self.shortcut_ffn = ShortcutFromZeros(
+            in_out_features=self.embed_dim,
+            config=layer_shortcut_config["shortcut2"],
+        )
         # self.shortcut_ln_ffn = nn.LayerNorm(
         #     self.embed_dim, elementwise_affine=config.layer_norm_elementwise_affine
         # )
@@ -456,7 +456,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         residual_sa = hidden_states
 
         # in-layer residual transformation 1
-        residual = self.residual_1(hidden_states)
+        residual = hidden_states
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE attention
         if self.do_layer_norm_before:
@@ -486,10 +486,10 @@ class OPTLoraAgsDecoderLayer(nn.Module):
             hidden_states = self.self_attn_layer_norm(hidden_states)
 
         # cross-layer shortcut from previous FFN input
-        # if residual_ffn is not None and self.shortcut_ffn is not None:
-        #     residual_ffn = self.shortcut_ffn(residual_ffn)
-        #     hidden_states = residual_ffn + hidden_states
-        #     hidden_states = self.self_attn_layer_norm(hidden_states)
+        if residual_ffn is not None and self.shortcut_ffn is not None:
+            residual_ffn = self.shortcut_ffn(residual_ffn)
+            hidden_states = residual_ffn + hidden_states
+            hidden_states = self.self_attn_layer_norm(hidden_states)
 
         # residual_ffn for next decoder layer
         residual_ffn = hidden_states
@@ -499,7 +499,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         hidden_states = hidden_states.reshape(-1, hidden_states.size(-1))
 
         # in-layer residual transformation 2
-        residual = self.residual_2(hidden_states)
+        residual = hidden_states
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE ffn
         if self.do_layer_norm_before:
@@ -521,10 +521,10 @@ class OPTLoraAgsDecoderLayer(nn.Module):
             hidden_states = self.final_layer_norm(hidden_states)
 
         # cross-layer shortcut from current SA input
-        # if self.shortcut_sa is not None:
-        #     residual_sa = self.shortcut_sa(residual_sa)
-        #     hidden_states = residual_sa + hidden_states
-        #     hidden_states = self.final_layer_norm(hidden_states)
+        if self.shortcut_sa is not None:
+            residual_sa = self.shortcut_sa(residual_sa)
+            hidden_states = residual_sa + hidden_states
+            hidden_states = self.final_layer_norm(hidden_states)
 
         outputs = (hidden_states,)
 
