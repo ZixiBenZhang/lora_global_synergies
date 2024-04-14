@@ -490,7 +490,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
             residual_ffn = self.shortcut_ffn(residual_ffn)
             hidden_states_ = residual_ffn + hidden_states
             assert torch.all(hidden_states_ == hidden_states), \
-                f"residual_ffn: {residual_ffn}\n shortcut_ffn: {self.shortcut_ffn}"
+                f"residual_ffn: {residual_ffn}\n shortcut_ffn: {self.shortcut_ffn.weight}"
             hidden_states = self.self_attn_layer_norm(hidden_states_)
 
         # residual_ffn for next decoder layer
@@ -527,7 +527,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
             residual_sa = self.shortcut_sa(residual_sa)
             hidden_states_ = residual_sa + hidden_states
             assert torch.all(hidden_states_ == hidden_states), \
-                f"residual_sa: {residual_sa}\n shortcut_sa: {self.shortcut_sa}"
+                f"residual_sa: {residual_sa}\n shortcut_sa: {self.shortcut_sa.weight}"
             hidden_states = self.final_layer_norm(hidden_states_)
 
         outputs = (hidden_states,)
