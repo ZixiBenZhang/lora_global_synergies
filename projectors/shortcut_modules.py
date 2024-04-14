@@ -101,6 +101,9 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
             beta, requires_grad=self.importance_beta.requires_grad
         )
 
+    def _force_init_weight(self):
+        pass
+
     def get_delta_w(self, projector_name):
         # Linear's tensor is out_features rows * in_features columns as default
         prod = self.proj_B[projector_name].weight @ self.proj_A[projector_name].weight
@@ -109,6 +112,7 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
         return prod * self.scaling[projector_name]
 
     def merge(self):
+        self._force_init_weight()
         if self.active_projector not in self.proj_A.keys():
             return
         if self.merged:
@@ -118,6 +122,7 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
             self.merged = True
 
     def unmerge(self):
+        self._force_init_weight()
         if self.active_projector not in self.proj_A.keys():
             return
         if not self.merged:
@@ -127,6 +132,7 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
             self.merged = False
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        self._force_init_weight()
         # input_dtype = x.dtype
         if (
             self.active_projector not in self.proj_A.keys()
@@ -192,12 +198,33 @@ class ShortcutFromIdentity(ShortcutBase):
         super().__init__(in_out_features, config, **kwargs)
 
         # Identity layer
-        self.weight = nn.init.eye_(self.weight)
+        nn.init.eye_(self.weight)
 
+    def _force_init_weight(self):
+        nn.init.eye_(self.weight)
+
+    # def merge(self):
+    #     if self.active_projector not in self.proj_A.keys():
+    #         return
+    #     if self.merged:
+    #         return
+    #     if self.r[self.active_projector] > 0:
+    #         self.weight.data = torch.eye(self.weight.data.size(0)) + self.get_delta_w(self.active_projector)
+    #         self.merged = True
+    #
+    # def unmerge(self):
+    #     if self.active_projector not in self.proj_A.keys():
+    #         return
+    #     if not self.merged:
+    #         return
+    #     if self.r[self.active_projector] > 0:
+    #         self.weight.data -= self.get_delta_w(self.active_projector)
+    #         self.merged = False
+    #
     # def forward(self, x: torch.Tensor) -> torch.Tensor:
     #     # input_dtype = x.dtype
     #     if (
-    #         self.active_projector not in self.proj_A.keys()
+    #             self.active_projector not in self.proj_A.keys()
     #     ):  # active_projector wouldn't be in proj_A.keys() if r==0
     #         res = x
     #     elif self.disable_projectors:
@@ -206,19 +233,42 @@ class ShortcutFromIdentity(ShortcutBase):
     #         # Projector dropout used
     #         res = x
     #         # x = x.to(self.proj_A[self.active_projector].weight.dtype)
-    #         res = res + self.proj_B[self.active_projector](
-    #             self.proj_A[self.active_projector](
-    #                 self.proj_dropout[self.active_projector](x)
+    #         # Beta only applied to (delta W)
+    #         res = (
+    #             res
+    #             + self.proj_B[self.active_projector](
+    #                 self.proj_A[self.active_projector](
+    #                     self.proj_dropout[self.active_projector](x)
+    #                 )
     #             )
+    #             * self.scaling[self.active_projector]
+    #             * self.importance_beta
     #         )
     #     else:
-    #         # Projector dropout unused
-    #         res = F.linear(
-    #             x, self.weight if not self.fan_in_fan_out else self.weight.T, self.bias
-    #         )
+    #         if self.importance_beta != 1.0 and self.r[self.active_projector] > 0:
+    #             self.unmerge()
+    #             # Projector dropout used
+    #             res = x
+    #             # x = x.to(self.proj_A[self.active_projector].weight.dtype)
+    #             # Beta only applied to (delta W)
+    #             res = (
+    #                 res
+    #                 + self.proj_B[self.active_projector](
+    #                     self.proj_A[self.active_projector](
+    #                         self.proj_dropout[self.active_projector](x)
+    #                     )
+    #                 )
+    #                 * self.scaling[self.active_projector]
+    #                 * self.importance_beta
+    #             )
+    #         else:
+    #             # Projector dropout unused
+    #             res = F.linear(
+    #                 x,
+    #                 self.weight if not self.fan_in_fan_out else self.weight.T,
+    #                 self.bias,
+    #             )
     #     # res = res.to(input_dtype)
-    #     # Only effective during beta importance testing
-    #     res = res * self.importance_beta
     #     return res
 
 
@@ -227,7 +277,10 @@ class ShortcutFromZeros(ShortcutBase):
         super().__init__(in_out_features, config, **kwargs)
 
         # Zeros layer
-        self.weight = nn.init.zeros_(self.weight)
+        nn.init.zeros_(self.weight)
+
+    def _force_init_weight(self):
+        nn.init.zeros_(self.weight)
 
     # def forward(self, x: torch.Tensor) -> torch.Tensor:
     #     # input_dtype = x.dtype
