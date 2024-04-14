@@ -192,7 +192,7 @@ class ShortcutFromIdentity(ShortcutBase):
         super().__init__(in_out_features, config, **kwargs)
 
         # Identity layer
-        nn.init.eye_(self.weight)
+        self.weight = nn.init.eye_(self.weight)
 
     # def forward(self, x: torch.Tensor) -> torch.Tensor:
     #     # input_dtype = x.dtype
@@ -227,7 +227,7 @@ class ShortcutFromZeros(ShortcutBase):
         super().__init__(in_out_features, config, **kwargs)
 
         # Zeros layer
-        nn.init.zeros_(self.weight)
+        self.weight = nn.init.zeros_(self.weight)
 
     # def forward(self, x: torch.Tensor) -> torch.Tensor:
     #     # input_dtype = x.dtype
