@@ -65,7 +65,7 @@ class LoRALayer:
             nn.init.zeros_(self.lora_B[adapter_name].weight)
 
 
-class LoraLinear(nn.Linear, LoRALayer):
+class LoraLinear(LoRALayer, nn.Linear):
     # nn.Linear with LoRA
     def __init__(
         self, in_features: int, out_features: int, config: dict = None, **kwargs

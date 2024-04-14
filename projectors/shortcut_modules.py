@@ -60,7 +60,7 @@ class LowRankProjectorLayer:
             nn.init.zeros_(self.proj_B[projector_name].weight)
 
 
-class ShortcutBase(nn.Linear, LowRankProjectorLayer):
+class ShortcutBase(LowRankProjectorLayer, nn.Linear):
     def __init__(self, in_out_features: int, config: dict = None, **kwargs):
         nn.Linear.__init__(self, in_out_features, in_out_features, bias=False, **kwargs)
         LowRankProjectorLayer.__init__(self, in_out_features, in_out_features)
