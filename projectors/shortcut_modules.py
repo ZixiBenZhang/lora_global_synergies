@@ -101,7 +101,7 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
             beta, requires_grad=self.importance_beta.requires_grad
         )
 
-    def _force_init_weight(self):
+    def force_init_weight(self):
         pass
 
     def get_delta_w(self, projector_name):
@@ -112,7 +112,7 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
         return prod * self.scaling[projector_name]
 
     def merge(self):
-        self._force_init_weight()
+        # self.force_init_weight()
         if self.active_projector not in self.proj_A.keys():
             return
         if self.merged:
@@ -122,7 +122,7 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
             self.merged = True
 
     def unmerge(self):
-        self._force_init_weight()
+        # self.force_init_weight()
         if self.active_projector not in self.proj_A.keys():
             return
         if not self.merged:
@@ -132,7 +132,7 @@ class ShortcutBase(nn.Linear, LowRankProjectorLayer):
             self.merged = False
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        self._force_init_weight()
+        # self.force_init_weight()
         # input_dtype = x.dtype
         if (
             self.active_projector not in self.proj_A.keys()
@@ -200,7 +200,7 @@ class ShortcutFromIdentity(ShortcutBase):
         # Identity layer
         nn.init.eye_(self.weight)
 
-    def _force_init_weight(self):
+    def force_init_weight(self):
         nn.init.eye_(self.weight)
 
     # def merge(self):
@@ -279,7 +279,7 @@ class ShortcutFromZeros(ShortcutBase):
         # Zeros layer
         nn.init.zeros_(self.weight)
 
-    def _force_init_weight(self):
+    def force_init_weight(self):
         nn.init.zeros_(self.weight)
 
     # def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -307,6 +307,13 @@ class ShortcutFromZeros(ShortcutBase):
     #     # Only effective during beta importance testing
     #     res = res * self.importance_beta
     #     return res
+
+
+def reset_shortcut(model: nn.Module) -> None:
+    for name, module in model.named_modules():
+        if isinstance(module, ShortcutBase):
+            module.force_init_weight()
+            module.reset_parameters()
 
 
 def mark_ags_as_trainable(model: nn.Module) -> None:

@@ -180,6 +180,12 @@ class LoraLinear(nn.Linear, LoRALayer):
         return res
 
 
+def reset_lora(model: nn.Module) -> None:
+    for name, module in model.named_modules():
+        if isinstance(module, LoraLinear):
+            module.reset_parameters()
+
+
 def mark_only_lora_as_trainable(model: nn.Module, bias: str = "none") -> None:
     # Paramter: bias -> Which modules should be marked as trainable based on the given options
     for n, p in model.named_parameters():
