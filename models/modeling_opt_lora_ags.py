@@ -489,7 +489,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         if residual_ffn is not None and self.shortcut_ffn is not None:
             residual_ffn = self.shortcut_ffn(residual_ffn)
             hidden_states_ = residual_ffn + hidden_states
-            assert hidden_states_ == hidden_states
+            assert torch.all(hidden_states_ == hidden_states)
             hidden_states = self.self_attn_layer_norm(hidden_states_)
 
         # residual_ffn for next decoder layer
@@ -525,7 +525,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         if self.shortcut_sa is not None:
             residual_sa = self.shortcut_sa(residual_sa)
             hidden_states_ = residual_sa + hidden_states
-            assert hidden_states_ == hidden_states
+            assert torch.all(hidden_states_ == hidden_states)
             hidden_states = self.final_layer_norm(hidden_states_)
 
         outputs = (hidden_states,)
