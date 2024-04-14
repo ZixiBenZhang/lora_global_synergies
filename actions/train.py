@@ -110,9 +110,9 @@ def train(
         trainable_params = []
         if model_info.is_lora:
             trainable_params.append("lora_")
-        if model_info.is_ags:
-            trainable_params.append("proj_")
-            trainable_params.append("shortcut_ln_")
+        # if model_info.is_ags:
+        #     trainable_params.append("proj_")
+        #     trainable_params.append("shortcut_ln_")
 
         if len(trainable_params) > 0:
             for name, param in model.named_parameters():
