@@ -416,9 +416,9 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         # )
         # self.shortcut_ln_ffn.weight.data.copy_(self.self_attn_layer_norm.weight.data)
         # self.shortcut_ln_ffn.bias.data.copy_(self.self_attn_layer_norm.bias.data)
-        # if self.layer_id == 0:
-        #     self.shortcut_ffn = None
-        #      self.shortcut_ln_ffn = None
+        if self.layer_id == 0:
+            self.shortcut_ffn = None
+            # self.shortcut_ln_ffn = None
 
     def forward(
         self,
