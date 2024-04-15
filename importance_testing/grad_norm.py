@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 
 from dataset import AgsDatasetInfo
 from dataset.pl_dataset_module import AgsDataModule
-from lora.lora_modules import LoraLinear, update_lora_importance_alpha_require_grad
+from lora.lora_modules import LoraLinear, update_lora_importance_alpha_require_grad, reset_lora
 from models.model_info import AgsModelInfo
 from models.modeling_opt_lora import (
     OPTLoraForCausalLM,
@@ -16,7 +16,7 @@ from models.modeling_opt_lora import (
     OPTLoraDecoderLayer,
 )
 from pl_model_wrapper.base import PlWrapperBase
-from projectors.shortcut_modules import update_ags_importance_beta_require_grad
+from projectors.shortcut_modules import update_ags_importance_beta_require_grad, reset_shortcut
 from tools.trainable_param_printer import print_trainable_parameters
 
 logger = logging.getLogger(__name__)
@@ -52,12 +52,16 @@ def grad_norm_test(
 
     trainable_params = []
     if model_info.is_lora:
+        reset_lora(model)
         trainable_params.append("lora_")
     if model_info.is_ags:
+        reset_shortcut(model)
         trainable_params.append("proj_")
-        trainable_params.append("shortcut_ln_")
+    #     trainable_params.append("shortcut_ln_")
+
     if len(trainable_params) > 0:
         for name, param in model.named_parameters():
+            # print(name)
             if name.startswith("model") or name.startswith("roberta"):
                 param.requires_grad = False
                 for trainable_param in trainable_params:
@@ -66,8 +70,10 @@ def grad_norm_test(
                         break
             else:
                 param.requires_grad = True
+
     update_lora_importance_alpha_require_grad(model, require_grad=False)
     update_ags_importance_beta_require_grad(model, require_grad=False)
+    # update_ags_ln_require_grad(model, require_grad=False)
     print_trainable_parameters(model)
 
     def get_unshuffled_train_dataloader(datamodule: AgsDataModule):

@@ -10,11 +10,11 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 from dataset.pl_dataset_module import AgsDataModule
 from lora.lora_modules import (
-    update_lora_importance_alpha_require_grad,
+    update_lora_importance_alpha_require_grad, reset_lora,
 )
 from models.model_info import AgsModelInfo
 from pl_callbacks.dyrealloc_callback import DynamicLoraReallocationCallback
-from projectors.shortcut_modules import update_ags_importance_beta_require_grad
+from projectors.shortcut_modules import update_ags_importance_beta_require_grad, reset_shortcut
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 from tools.trainable_param_printer import print_trainable_parameters
@@ -162,12 +162,16 @@ def train_dynamic_reallocation(
 
         trainable_params = []
         if model_info.is_lora:
+            reset_lora(model)
             trainable_params.append("lora_")
         if model_info.is_ags:
+            reset_shortcut(model)
             trainable_params.append("proj_")
-            trainable_params.append("shortcut_ln_")
+        #     trainable_params.append("shortcut_ln_")
+
         if len(trainable_params) > 0:
             for name, param in model.named_parameters():
+                # print(name)
                 if name.startswith("model") or name.startswith("roberta"):
                     param.requires_grad = False
                     for trainable_param in trainable_params:
@@ -176,8 +180,10 @@ def train_dynamic_reallocation(
                             break
                 else:
                     param.requires_grad = True
+
         update_lora_importance_alpha_require_grad(model, require_grad=False)
         update_ags_importance_beta_require_grad(model, require_grad=False)
+        # update_ags_ln_require_grad(model, require_grad=False)
         print_trainable_parameters(model)
 
         pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
@@ -197,12 +203,16 @@ def train_dynamic_reallocation(
 
         trainable_params = []
         if model_info.is_lora:
+            reset_lora(model)
             trainable_params.append("lora_")
         if model_info.is_ags:
+            reset_shortcut(model)
             trainable_params.append("proj_")
-            trainable_params.append("shortcut_ln_")
+        #     trainable_params.append("shortcut_ln_")
+
         if len(trainable_params) > 0:
             for name, param in model.named_parameters():
+                # print(name)
                 if name.startswith("model") or name.startswith("roberta"):
                     param.requires_grad = False
                     for trainable_param in trainable_params:
@@ -211,8 +221,10 @@ def train_dynamic_reallocation(
                             break
                 else:
                     param.requires_grad = True
+
         update_lora_importance_alpha_require_grad(model, require_grad=False)
         update_ags_importance_beta_require_grad(model, require_grad=False)
+        # update_ags_ln_require_grad(model, require_grad=False)
         print_trainable_parameters(model)
 
         pl_model: pl.LightningModule = wrapper_pl_model(
