@@ -455,7 +455,7 @@ class OPTLoraAgsDecoderLayer(nn.Module):
         residual_sa = torch.clone(hidden_states)
 
         # in-layer residual transformation 1
-        residual = self.residual_1(idden_states)
+        residual = self.residual_1(hidden_states)
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE attention
         if self.do_layer_norm_before:
