@@ -11,5 +11,5 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ./configs/opt_ags_sst2_350m_abla-o.toml \
+srun python -m main train --config ./configs/opt_lora_sst2_350m_abla-o.toml \
 --learning-rate 1e-4
