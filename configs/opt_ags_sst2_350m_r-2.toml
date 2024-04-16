@@ -1,5 +1,5 @@
 # basics
-model = "opt_lora"
+model = "opt_lora_ags"
 dataset = "sst2"
 load_name = "facebook/opt-350m"
 load_type = "hf"
