@@ -1267,6 +1267,11 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 ):
                     continue
 
+                print(
+                    shortcut.proj_A[shortcut.active_projector].weight.requires_grad,
+                    shortcut.proj_A[shortcut.active_projector].weight.grad,
+                )
+
                 grad_shortcut = (
                     shortcut.proj_A[shortcut.active_projector].weight.grad.norm()
                     + shortcut.proj_B[shortcut.active_projector].weight.grad.norm()
