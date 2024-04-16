@@ -457,8 +457,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     for proj_name, shortcut in shortcut_modules.items():
                         if (
                             shortcut is None
-                            or shortcut.active_adapter not in shortcut.proj_A.keys()
-                            or shortcut.r[shortcut.active_adapter] == 0
+                            or shortcut.active_projector not in shortcut.proj_A.keys()
+                            or shortcut.r[shortcut.active_projector] == 0
                         ):
                             continue
                         proj_hash = LORA_NAME_HASH[proj_name]
@@ -593,8 +593,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     for proj_name, shortcut in shortcut_modules.items():
                         if (
                             shortcut is None
-                            or shortcut.active_adapter not in shortcut.proj_A.keys()
-                            or shortcut.r[shortcut.active_adapter] == 0
+                            or shortcut.active_projector not in shortcut.proj_A.keys()
+                            or shortcut.r[shortcut.active_projector] == 0
                         ):
                             continue
                         proj_hash = LORA_NAME_HASH[proj_name]
@@ -1006,8 +1006,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 for proj_name, shortcut in shortcut_modules.items():
                     if (
                         shortcut is None
-                        or shortcut.active_adapter not in shortcut.proj_A.keys()
-                        or shortcut.r[shortcut.active_adapter] == 0
+                        or shortcut.active_projector not in shortcut.proj_A.keys()
+                        or shortcut.r[shortcut.active_projector] == 0
                     ):
                         continue
 
@@ -1259,14 +1259,14 @@ class DynamicLoraReallocationCallback(pl.Callback):
             for proj_name, shortcut in shortcut_modules.items():
                 if (
                     shortcut is None
-                    or shortcut.active_adapter not in shortcut.proj_A.keys()
-                    or shortcut.r[shortcut.active_adapter] == 0
+                    or shortcut.active_projector not in shortcut.proj_A.keys()
+                    or shortcut.r[shortcut.active_projector] == 0
                 ):
                     continue
 
                 grad_shortcut = (
-                    shortcut.lora_A[shortcut.active_adapter].weight.grad.norm()
-                    + shortcut.lora_B[shortcut.active_adapter].weight.grad.norm()
+                    shortcut.lora_A[shortcut.active_projector].weight.grad.norm()
+                    + shortcut.lora_B[shortcut.active_projector].weight.grad.norm()
                 ).item()
 
                 if layer_id not in grads_norm:
