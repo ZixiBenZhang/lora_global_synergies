@@ -12,4 +12,4 @@
 source ~/torch/bin/activate
 
 srun python -m main train --config ./configs/opt_ags_rte_350m_r-2.toml \
---learning-rate 2e-4
+--learning-rate 5e-4
