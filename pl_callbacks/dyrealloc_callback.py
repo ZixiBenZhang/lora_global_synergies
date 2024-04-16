@@ -334,6 +334,23 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         continue
                     lora.disable_adapters = False
 
+                if isinstance(decoder_layer, OPTLoraAgsDecoderLayer):
+                    decoder_layer: OPTLoraAgsDecoderLayer
+                    shortcut_modules: dict[str, ShortcutBase] = {
+                        "residual_1": decoder_layer.residual_1,
+                        "residual_2": decoder_layer.residual_2,
+                        "shortcut_sa": decoder_layer.shortcut_sa,
+                        "shortcut_ffn": decoder_layer.shortcut_ffn,
+                    }
+                    for proj_name, shortcut in shortcut_modules.items():
+                        if (
+                                shortcut is None
+                                or shortcut.active_projector not in shortcut.proj_A.keys()
+                                or shortcut.r[shortcut.active_projector] == 0
+                        ):
+                            continue
+                        shortcut.disable_projectors = False
+
         # Get alpha importance of lora modules
         # format: {layer_idx: {proj: alpha}}
         res_val: dict[int, dict[str, float]] = self.importance_test(
@@ -1266,11 +1283,6 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     or shortcut.r[shortcut.active_projector] == 0
                 ):
                     continue
-
-                print(
-                    shortcut.proj_A[shortcut.active_projector].weight.requires_grad,
-                    shortcut.proj_A[shortcut.active_projector].weight.grad,
-                )
 
                 grad_shortcut = (
                     shortcut.proj_A[shortcut.active_projector].weight.grad.norm()
