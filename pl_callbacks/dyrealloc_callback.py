@@ -1234,16 +1234,19 @@ class DynamicLoraReallocationCallback(pl.Callback):
         for i, batch in enumerate(dataloader):
             if i >= self.limit_test_batches:
                 break
-            print(" " * len(msg), end="\r")
+            if torch.cuda.current_device() == 0:
+                print(" " * len(msg), end="\r")
             msg = f">>> Testing on batch {i + 1} / {self.limit_test_batches}"
-            print(msg, end="\r")
+            if torch.cuda.current_device() == 0:
+                print(msg, end="\r")
             batch = self.data_module.transfer_batch_to_device(
                 batch, torch.device("cuda"), 0
             )
             loss = self.alpha_pl_module.training_step(batch=batch, batch_idx=i)
             # print(loss.device, loss)
             loss.backward()
-        print()
+        if torch.cuda.current_device() == 0:
+            print()
 
         # calculate score of every shortcut module
         grads_norm = {}
@@ -1265,8 +1268,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     continue
 
                 grad_shortcut = (
-                    shortcut.lora_A[shortcut.active_projector].weight.grad.norm()
-                    + shortcut.lora_B[shortcut.active_projector].weight.grad.norm()
+                    shortcut.proj_A[shortcut.active_projector].weight.grad.norm()
+                    + shortcut.proj_B[shortcut.active_projector].weight.grad.norm()
                 ).item()
 
                 if layer_id not in grads_norm:
