@@ -1,0 +1,54 @@
+granularity = "network"
+
+[default]
+r = 4
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-network-opt-abla"
+init_lora_weghts = true
+fan_in_fan_out = false
+disable_adapter = false
+
+[all_layers.q_proj]
+r = 4
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-network-opt-abla"
+disable_adapter = false
+
+[all_layers.k_proj]
+# disabled
+r = 4
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-network-opt-abla"
+disable_adapter = false
+
+[all_layers.v_proj]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-network-opt-abla"
+disable_adapter = true
+
+[all_layers.o_proj]
+# disabled
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-network-opt-abla"
+disable_adapter = true
+
+[all_layers.w1]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-network-opt-abla"
+disable_adapter = true
+
+[all_layers.w2]
+r = 0
+lora_alpha = 16
+lora_dropout = 0.0
+adapter_name = "ags-network-opt-abla"
+disable_adapter = true
