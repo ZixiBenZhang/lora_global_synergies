@@ -1,15 +1,15 @@
 # basics
-model = "opt_lora_ags"
-dataset = "mrpc"
+model = "opt_lora"
+dataset = "sst2"
 load_name = "facebook/opt-350m"
 load_type = "hf"
 # training
 training_optimizer = "adamw"
 learning_rate = 1e-5
 weight_decay = 0.01
-max_epochs = 20
+max_epochs = 10
 batch_size = 4
-log_every_n_steps = 10
+log_every_n_steps = 20
 # torch lightning
 task = "classification"
 num_workers = 42
@@ -18,5 +18,5 @@ num_devices = 2
 # language model options
 is_pretrained = true
 project_dir = "./ags_output"
-lora_config = "./configs/lora/lora_networkwise.toml"
-shortcut_config = "./configs/shortcut/ags_networkwise.toml"
+lora_config = "./configs/lora/lora_networkwise_r-2.toml"
+shortcut_config = "./configs/shortcut/ags_networkwise_r-2.toml"
