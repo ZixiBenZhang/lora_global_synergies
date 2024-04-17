@@ -11,5 +11,5 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train-dyrealloc --config ./configs/opt_ags_rte_350m_dy-realloc-combined.toml \
+srun python -m main train-dyrealloc --config ./configs/opt_ags_mrpc_350m_dy-realloc-combined.toml \
 --learning-rate 3e-4
