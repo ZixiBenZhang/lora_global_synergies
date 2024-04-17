@@ -6,7 +6,7 @@
 #SBATCH --mem-per-cpu=3850
 #SBATCH --gres=gpu:ampere_a100:2
 #SBATCH --partition=gpu
-#SBATCH --time=60:00:00
+#SBATCH --time=50:00:00
 #SBATCH --account=su114
 
 source ~/torch/bin/activate
