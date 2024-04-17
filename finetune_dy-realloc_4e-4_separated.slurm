@@ -12,4 +12,4 @@
 source ~/torch/bin/activate
 
 srun python -m main train-dyrealloc --config ./configs/opt_ags_rte_350m_dy-realloc-separated.toml \
---learing-rate 4e-4
+--learning-rate 4e-4
