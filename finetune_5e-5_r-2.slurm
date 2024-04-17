@@ -11,5 +11,5 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ./configs/opt_ags_sst2_350m_r-2.toml \
+srun python -m main train --config ./configs/opt_ags_mnli_350m_r-2.toml \
 --learning-rate 5e-5
