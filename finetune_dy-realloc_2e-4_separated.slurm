@@ -2,7 +2,7 @@
 #
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=2
-#SBATCH --cpus-per-task=20
+#SBATCH --cpus-per-task=42
 #SBATCH --mem-per-cpu=3850
 #SBATCH --gres=gpu:ampere_a100:2
 #SBATCH --partition=gpu
