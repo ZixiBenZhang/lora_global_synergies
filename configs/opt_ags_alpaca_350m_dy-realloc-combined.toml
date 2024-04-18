@@ -1,0 +1,31 @@
+# Finetune LoRA modules with dynamic config reallocation
+# basics
+model = "opt_lora_ags"
+dataset = "alpaca"
+load_name = "facebook/opt-350m"
+load_type = "hf"
+# reallocation
+importance_test_name = "grad_norm"
+#metric_red_tolerance = 0.005
+imp_limit_test_batches = 32
+realloc_N = 0.2
+turn_on_percentile = 0.25
+dyrealloc_ags_mode = "combined"
+# training
+training_optimizer = "adamw"
+learning_rate = 1e-4
+weight_decay = 0.01
+max_epochs = 20
+batch_size = 4
+log_every_n_steps = 20
+# torch lightning
+task = "causal_language_modeling"
+num_workers = 42
+num_devices = 2
+#accelerator = "cpu"
+strategy = "ddp_find_unused_parameters_true"
+# language model options
+is_pretrained = true
+project_dir = "./ags_output"
+lora_config = "./configs/lora/lora_networkwise.toml"
+shortcut_config = "./configs/shortcut/ags_networkwise.toml"
