@@ -11,5 +11,5 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ./configs/opt_plain_cb_350m.toml \
+srun python -m main train --config ./configs/opt_plain_boolq_350m.toml \
 --learning-rate 2e-5
