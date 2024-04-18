@@ -19,8 +19,8 @@ NLP_DATASET_MAPPING = {
     "mrpc": TextEntailmentDatasetMRPC,
     "stsb": TextEntailmentDatasetSTSB,
     "boolq": TextEntailmentDatasetBoolQ,
-    # TODO: CB, COPA, WiC
-    # TODO: Lambada
+    "cb": TextEntailmentDatasetCB,
+    "copa": TextEntailmentDatasetCOPA,
     # LM dataset
     "alpaca": LanguageModelingDatasetAlpaca,
     "alpaca-cleaned": LanguageModelingDatasetAlpacaCleaned,
@@ -67,12 +67,10 @@ def get_nlp_dataset_split(
     #         dataset_cls = TextEntailmentDatasetMRPC
     #     case "boolq":
     #         dataset_cls = TextEntailmentDatasetBoolQ
-    #     # TODO: CB, COPA, WiC
     #     case "alpaca":
     #         dataset_cls = LanguageModelingDatasetAlpaca
     #     case "alpaca-cleaned":
     #         dataset_cls = LanguageModelingDatasetAlpacaCleaned
-    #     # TODO: Lambada
     #     case _:
     #         raise ValueError(f"Unknown dataset {name}, or not supported yet.")
 
