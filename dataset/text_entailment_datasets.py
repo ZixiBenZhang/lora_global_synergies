@@ -270,4 +270,92 @@ class TextEntailmentDatasetBoolQ(TextEntailmentDatasetBase):
         return dataset_dict
 
 
-# TODO: CB, WiC
+@add_dataset_info(
+    name="cb",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation", "pred"),
+    sequence_classification=True,
+    num_classes=3,
+)
+class TextEntailmentDatasetCB(TextEntailmentDatasetBase):
+    """
+    Subset of SuperGLUE
+    """
+
+    sent1_col_name = "premise"
+    sent2_col_name = "hypothesis"
+    label_col_name = "label"
+
+    def _download_dataset(self) -> datasets.DatasetDict:
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset(
+                "super_glue", "cb", cache_dir=self.load_from_saved_path
+            )
+        else:
+            dataset_dict = datasets.load_dataset("super_glue", "cb")
+        return dataset_dict
+
+
+@add_dataset_info(
+    name="copa",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation", "pred"),
+    sequence_classification=True,
+    num_classes=2,
+)
+class TextEntailmentDatasetCOPA(TextEntailmentDatasetBase):
+    """
+    Subset of SuperGLUE
+    """
+
+    sent1_col_name = "prompt"
+    sent2_col_name = "answer"
+    label_col_name = "label"
+
+    def _download_dataset(self) -> datasets.DatasetDict:
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset(
+                "super_glue", "copa", cache_dir=self.load_from_saved_path
+            )
+        else:
+            dataset_dict = datasets.load_dataset("super_glue", "copa")
+        return dataset_dict
+
+    def __getitem__(self, index):
+        if self.data is None:
+            raise ValueError(
+                "Dataset is not setup. Please call `dataset.prepare_data()` + `dataset.setup()` or pass `auto_setup=True` before using the dataset."
+            )
+        datarow = self.data[index]
+        premise = datarow["premise"]
+        choice1 = datarow["choice1"]
+        choice2 = datarow["choice2"]
+        question = datarow["question"]
+        labels = datarow["label"]
+        encoding = self.tokenizer(
+            premise,
+            choice1,
+            choice2,
+            question,
+            add_special_tokens=True,
+            max_length=self.max_token_len,
+            padding="max_length",
+            truncation=True,
+            return_attention_mask=True,
+            return_tensors="pt",
+        )
+        input_ids = encoding["input_ids"].flatten()
+        attention_mask = encoding["attention_mask"].flatten()
+        input_dict = dict(
+            premise=premise,
+            choice1=choice1,
+            choice2=choice2,
+            question=question,
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            labels=torch.tensor([labels]),
+        )
+        if "token_type_ids" in self.tokenizer.model_input_names:
+            input_dict["token_type_ids"] = encoding["token_type_ids"].flatten()
+
+        return input_dict

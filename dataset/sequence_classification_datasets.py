@@ -1,1 +1,0 @@
-# TODO: COPA, Lambada
