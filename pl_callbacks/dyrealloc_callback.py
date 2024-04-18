@@ -352,7 +352,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
             batch,
             batch_idx,
         )
-        if self.ags_mode is not None:
+        if self.ags_mode is not None and self.ags_mode != "off":
             ags_res_val: None | dict[int, dict[str, float]] = self.ags_importance_test(
                 trainer,
                 pl_module,
