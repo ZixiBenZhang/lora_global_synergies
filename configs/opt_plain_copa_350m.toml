@@ -3,7 +3,7 @@ model = "facebook/opt-350m"
 dataset = "copa"
 # training
 training_optimizer = "adamw"
-learning_rate = 1e-5
+learning_rate = 2e-5
 weight_decay = 0.01
 max_epochs = 10
 batch_size = 8
