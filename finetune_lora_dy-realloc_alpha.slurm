@@ -11,4 +11,5 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train-dyrealloc --config ./configs/opt_lora_mrpc_350m_dy-realloc.toml
+srun python -m main train-dyrealloc --config ./configs/opt_lora_mrpc_350m_dy-realloc.toml \
+--importance-test-name alpha_test --realloc-N 1.0

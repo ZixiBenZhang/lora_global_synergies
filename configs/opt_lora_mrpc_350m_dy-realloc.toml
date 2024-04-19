@@ -5,7 +5,7 @@ dataset = "mrpc"
 load_name = "facebook/opt-350m"
 load_type = "hf"
 # reallocation
-importance_test_name = "alpha_test"
+importance_test_name = "constant"
 metric_red_tolerance = 0.005
 imp_limit_test_batches = 32
 realloc_N = 1.0
