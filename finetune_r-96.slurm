@@ -11,7 +11,7 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ./configs/opt_lora_rte_350m.toml \
+srun python -m main train --config ./configs/opt_lora_sst2_350m.toml \
 --num-devices 2 --batch-size 4 \
 --lora-config ./configs/lora/lora_networkwise_r-96.toml \
---learning-rate 4e-4
+--learning-rate 1e-4
