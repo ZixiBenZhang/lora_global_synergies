@@ -22,6 +22,7 @@ from loading.config_load import post_parse_load_config
 from loading.setup_model_and_dataset import setup_model_and_dataset
 from loading.setup_folders import setup_folder
 import actions
+from projectors.shortcut_modules import ShortcutFromIdentity, ShortcutFromZeros
 
 
 def main():
@@ -90,6 +91,8 @@ def main():
                 "fast_dev_run": args.to_debug,
                 "accumulate_grad_batches": args.accumulate_grad_batches,
                 "log_every_n_steps": args.log_every_n_steps,
+                "lora_config": args.lora_config,
+                "shortcut_config": args.shortcut_config,
             }
 
             # Load from a checkpoint!
@@ -275,7 +278,24 @@ def main():
 
 
 def t():
-    print(datasets.get_dataset_split_names("tatsu-lab/alpaca", None))
+    s = ShortcutFromZeros(
+        in_out_features=5,
+        config={
+            "r": 2,
+            "shortcut_alpha": 2,
+            "proj_dropout": 0.0,
+            "projector_name": "test",
+            "disable_projector": False,
+        },
+    )
+    x = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0], requires_grad=True)
+    t = s(x)
+    y = torch.sum(t + x)
+    y.backward()
+    print(t, y)
+    print(x.grad)
+
+    # print(datasets.get_dataset_split_names("tatsu-lab/alpaca", None))
 
     # with open("ags_output/opt_lora_classification_mrpc_2024-02-01/checkpoints/logs_test/importance_08-22.toml", "r") as f:
     #     data = toml.load(f)

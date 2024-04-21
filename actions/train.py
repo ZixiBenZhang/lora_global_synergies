@@ -68,6 +68,7 @@ def train(
         lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval="step")
         # TensorBoard logger
         tb_logger = pl.loggers.TensorBoardLogger(save_dir=save_path, name="logs")
+        tb_logger.log_hyperparams(pl_trainer_args)
         # csv_logger = pl.loggers.CSVLogger(save_dir=save_path, name="csv_logs")
         # wandb_logger = pl.loggers.WandbLogger(save_dir=save_path, name="wandb_logs")
         pl_trainer_args["callbacks"] = [
