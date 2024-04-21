@@ -91,6 +91,9 @@ def main():
                 "fast_dev_run": args.to_debug,
                 "accumulate_grad_batches": args.accumulate_grad_batches,
                 "log_every_n_steps": args.log_every_n_steps,
+            }
+
+            ags_config_paths = {
                 "lora_config": args.lora_config,
                 "shortcut_config": args.shortcut_config,
             }
@@ -119,6 +122,7 @@ def main():
                 "load_name": load_name,
                 "load_type": args.load_type,
                 "resume_training": args.resume_training,
+                "ags_config_paths": ags_config_paths,
             }
 
             logger.info(f"##### WEIGHT DECAY ##### {args.weight_decay}")
