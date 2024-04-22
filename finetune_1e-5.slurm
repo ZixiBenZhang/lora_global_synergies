@@ -11,6 +11,6 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ./configs/roberta-large_mrpc.toml \
+srun python -m main train --config ./configs/opt_plain_cb_350m.toml \
 --learning-rate 1e-5
 
