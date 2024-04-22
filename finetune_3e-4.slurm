@@ -11,5 +11,5 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ./configs/roberta-large_lora_mrpc.toml \
+srun python -m main train --config ./configs/opt_lora_qqp_350m.toml \
 --learning-rate 3e-4
