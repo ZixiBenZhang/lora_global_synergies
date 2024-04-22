@@ -1,6 +1,7 @@
 # basics
 model = "gemma_lora"
 dataset = "mnli"
+backbone_model = "google/gemma-2b"
 # training
 training_optimizer = "adamw"
 learning_rate = 1e-4
