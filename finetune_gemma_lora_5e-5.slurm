@@ -12,6 +12,6 @@
 source ~/torch/bin/activate
 
 srun python -m main train --config ./configs/gemma_lora_mnli.toml \
---load-name "./ags_output/gemma_lora_classification_mnli_2024-04-13/training_ckpts/last_chkpt.ckpt"\
---load-type "pl" --resume-training true \
+--load ./ags_output/gemma_lora_classification_mnli_2024-04-13/training_ckpts/last_chkpt.ckpt \
+--load-type pl --resume-training true \
 --learning-rate 5e-5
