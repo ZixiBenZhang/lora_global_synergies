@@ -5,7 +5,7 @@ load_name = "facebook/opt-350m"
 load_type = "hf"
 # training
 training_optimizer = "adamw"
-learning_rate = 3e-4
+learning_rate = 2e-4
 weight_decay = 0.01
 max_epochs = 20
 batch_size = 4
