@@ -1,5 +1,5 @@
 from os import PathLike
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, GemmaTokenizer
 
 from models.model_info import get_model_info, ModelSource, MANUAL_MODELS
 
@@ -26,6 +26,8 @@ def get_hf_model_tokenizer(name: str, checkpoint: str | PathLike = None):
 def get_manual_model_tokenizer(name: str, checkpoint: str | PathLike = None):
     if name not in MANUAL_MODELS:
         raise ValueError(f"Manual model {name} is not supported")
+    if isinstance(MANUAL_MODELS[name]["tokenizer_cls"], GemmaTokenizer):
+        return AutoTokenizer.from_pretrained(name if checkpoint is None else checkpoint)
     return MANUAL_MODELS[name]["tokenizer_cls"].from_pretrained(
         name if checkpoint is None else checkpoint
     )
