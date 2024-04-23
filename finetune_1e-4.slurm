@@ -6,10 +6,10 @@
 #SBATCH --mem-per-cpu=3850
 #SBATCH --gres=gpu:ampere_a100:2
 #SBATCH --partition=gpu
-#SBATCH --time=40:00:00
+#SBATCH --time=48:00:00
 #SBATCH --account=su114
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ./configs/roberta-large_lora_qqp.toml \
+srun python -m main train --config ./configs/gemma_lora_qqp.toml \
 --learning-rate 1e-4
