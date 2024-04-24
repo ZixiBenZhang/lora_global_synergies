@@ -19,22 +19,22 @@ srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 --num-devices 2 --batch-size 4 \
 --lora-config ./configs/lora/lora_networkwise_r-2.toml \
---learning-rate 4e-4
+--learning-rate 2e-4
 
 srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 --num-devices 2 --batch-size 4 \
 --lora-config ./configs/lora/lora_networkwise_r-3.toml \
---learning-rate 4e-4
+--learning-rate 2e-4
 
 srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 --num-devices 2 --batch-size 4 \
 --lora-config ./configs/lora/lora_networkwise_r-4.toml \
---learning-rate 4e-4
+--learning-rate 2e-4
 
 srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 --num-devices 2 --batch-size 4 \
 --lora-config ./configs/lora/lora_networkwise_r-5.toml \
---learning-rate 4e-4
+--learning-rate 2e-4
 
 srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 --num-devices 2 --batch-size 4 \
@@ -49,34 +49,34 @@ srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 --num-devices 2 --batch-size 4 \
 --lora-config ./configs/lora/lora_networkwise_r-8.toml \
---learning-rate 4e-4
+--learning-rate 2e-4
 
 srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 --num-devices 2 --batch-size 4 \
 --lora-config ./configs/lora/lora_networkwise_r-9.toml \
---learning-rate 4e-4
+--learning-rate 2e-4
 
 srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 --num-devices 2 --batch-size 4 \
 --lora-config ./configs/lora/lora_networkwise_r-10.toml \
---learning-rate 4e-4
+--learning-rate 2e-4
 
 srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 --num-devices 2 --batch-size 4 \
 --lora-config ./configs/lora/lora_networkwise_r-12.toml \
---learning-rate 4e-4
+--learning-rate 2e-4
 
 srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 --num-devices 2 --batch-size 4 \
 --lora-config ./configs/lora/lora_networkwise_r-24.toml \
---learning-rate 4e-4
+--learning-rate 2e-4
 
-srun python -m main train --config ./configs/opt_lora_rte_350m.toml \
+srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 --num-devices 2 --batch-size 4 \
 --lora-config ./configs/lora/lora_networkwise_r-32.toml \
---learning-rate 4e-4
+--learning-rate 2e-4
 
-srun python -m main train --config ./configs/opt_lora_rte_350m.toml \
+srun python -m main train --config ./configs/opt_lora_mrpc_350m.toml \
 --num-devices 2 --batch-size 4 \
 --lora-config ./configs/lora/lora_networkwise_r-96.toml \
---learning-rate 4e-4
+--learning-rate 2e-4
