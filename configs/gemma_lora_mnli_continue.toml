@@ -18,6 +18,6 @@ num_devices = 2
 is_pretrained = true
 project_dir = "./ags_output"
 lora_config = "./configs/lora/lora_networkwise.toml"
-load_name = "./ags_output/gemma_lora_classification_mnli_2024-04-13/training_ckpts/last_chkpt.ckpt"
+load_name = "./ags_output/gemma_lora_classification_mnli_2024-04-22/training_ckpts/last_chkpt.ckpt"
 load_type = "pl"
 resume_training = true

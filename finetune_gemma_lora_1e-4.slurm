@@ -6,10 +6,11 @@
 #SBATCH --mem-per-cpu=3850
 #SBATCH --gres=gpu:ampere_a100:2
 #SBATCH --partition=gpu
-#SBATCH --time=40:00:00
+#SBATCH --time=48:00:00
 #SBATCH --account=su114
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ./configs/gemma_lora_mrpc.toml \
+srun python -m main train --config ./configs/gemma_lora_mnli_continue.toml \
+--load ./ags_output/gemma_lora_classification_mnli_2024-04-22/training_ckpts/last_chkpt.ckpt \
 --learning-rate 1e-4
