@@ -3,15 +3,15 @@ model = "facebook/opt-350m"
 dataset = "rte"
 # training
 training_optimizer = "adamw"
-#learning_rate = 1e-5
+learning_rate = 1e-5
 weight_decay = 0.01
 max_epochs = 10
-batch_size = 4
+batch_size = 8
 log_every_n_steps = 10
 # torch lightning
 task = "classification"
-#num_workers = 0
-num_devices = 4
+num_workers = 42
+num_devices = 2
 #accelerator = "cpu"
 # language model options
 is_pretrained = true
