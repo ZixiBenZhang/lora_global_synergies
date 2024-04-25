@@ -63,22 +63,8 @@ def parse_lora_config(
         case "head":
             # different lora config for different head
             return parse_by_head(config, num_hidden_layers, num_heads)
-        case "clarify":
-            return parse_clarify(config, num_hidden_layers, num_heads)
         case _:
             raise ValueError(f"Unsupported config granularity: {granularity}")
-
-
-def parse_clarify(
-    config: dict, num_hidden_layers: int, num_heads: dict[str, int]
-) -> dict:
-    assert "default" in config, "Must provide default config"
-    default_lc: dict = get_mat_config(
-        config["default"]
-    )  # same config for QKV in all layers
-
-    p_config = {}
-    raise NotImplementedError
 
 
 def parse_by_network(
