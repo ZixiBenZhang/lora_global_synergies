@@ -11,26 +11,26 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ./configs/opt_lora_cb_350m.toml \
+#srun python -m main train --config ./configs/opt_lora_cb_350m.toml \
+#--seed 13
+#
+#srun python -m main train --config ./configs/opt_lora_cb_350m.toml \
+#--seed 42
+#
+#srun python -m main train --config ./configs/opt_lora_cb_350m.toml \
+#--seed 87
+#
+#srun python -m main train --config ./configs/opt_lora_cb_350m.toml \
+#--seed 100
+
+srun python -m main train --config ./configs/opt_plain_cb_350m.toml \
 --seed 13
 
-srun python -m main train --config ./configs/opt_lora_cb_350m.toml \
---seed 42
-
-srun python -m main train --config ./configs/opt_lora_cb_350m.toml \
---seed 87
-
-srun python -m main train --config ./configs/opt_lora_cb_350m.toml \
---seed 100
-
-srun python -m main train --config ./configs/opt_plain_cb_350m.toml \
---seed 13
-
-srun python -m main train --config ./configs/opt_plain_cb_350m.toml \
---seed 42
-
-srun python -m main train --config ./configs/opt_plain_cb_350m.toml \
---seed 87
-
-srun python -m main train --config ./configs/opt_plain_cb_350m.toml \
---seed 100
+#srun python -m main train --config ./configs/opt_plain_cb_350m.toml \
+#--seed 42
+#
+#srun python -m main train --config ./configs/opt_plain_cb_350m.toml \
+#--seed 87
+#
+#srun python -m main train --config ./configs/opt_plain_cb_350m.toml \
+#--seed 100
