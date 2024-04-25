@@ -11,6 +11,6 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ./configs/gemma_lora_mnli_continue.toml \
---load ./ags_output/gemma_lora_classification_mnli_2024-04-22/training_ckpts/last_chkpt.ckpt \
+srun python -m main train --config ./configs/gemma_lora_qqp_continue.toml \
+--load ./ags_output/gemma_lora_classification_qqp_2024-04-23/training_ckpts/last_chkpt-v1.ckpt \
 --learning-rate 1e-4
