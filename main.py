@@ -123,6 +123,7 @@ def main():
                 "load_type": args.load_type,
                 "resume_training": args.resume_training,
                 "ags_config_paths": ags_config_paths,
+                "seed": args.seed,
             }
 
             logger.info(f"##### WEIGHT DECAY ##### {args.weight_decay}")

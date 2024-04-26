@@ -41,6 +41,7 @@ def train(
     load_type,  # model checkpoint's type: ['pt', 'pl']
     resume_training,  # whether resume full training from the checkpoint
     ags_config_paths,  # for logging in Tensorboard
+    seed,  # for logging in Tensorboard
 ):
     if save_path is not None:  # if save_path is None, model won't be saved
         # setup callbacks
@@ -70,6 +71,7 @@ def train(
         # TensorBoard logger
         tb_logger = pl.loggers.TensorBoardLogger(save_dir=save_path, name="logs")
         tb_logger.log_hyperparams(ags_config_paths)
+        tb_logger.log_hyperparams(seed)
         # csv_logger = pl.loggers.CSVLogger(save_dir=save_path, name="csv_logs")
         # wandb_logger = pl.loggers.WandbLogger(save_dir=save_path, name="wandb_logs")
         pl_trainer_args["callbacks"] = [
