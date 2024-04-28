@@ -253,6 +253,11 @@ def main():
                 "ags_mode": args.dyrealloc_ags_mode,
             }
 
+            ags_config_paths = {
+                "lora_config": args.lora_config,
+                "shortcut_config": args.shortcut_config,
+            }
+
             train_dyrealloc_params = {
                 "model": model,
                 "tokenizer": tokenizer,
@@ -274,6 +279,8 @@ def main():
                 "dynamic_reallocation_args": dyrealloc_args,
                 "importance_test_name": args.importance_test_name,
                 "importance_test_args": importance_test_args,
+                "ags_config_paths": ags_config_paths,
+                "seed": args.seed,
             }
 
             logger.info(f"##### WEIGHT DECAY ##### {args.weight_decay}")

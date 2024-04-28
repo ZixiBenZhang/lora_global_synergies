@@ -43,6 +43,8 @@ def train_dynamic_reallocation(
     dynamic_reallocation_args,
     importance_test_name,
     importance_test_args,
+    ags_config_paths,  # for logging in Tensorboard
+    seed,  # for logging in Tensorboard
 ):
     metric_reduction_tolerance = importance_test_args["metric_reduction_tolerance"]
     limit_test_batches = importance_test_args["limit_test_batches"]
@@ -83,6 +85,9 @@ def train_dynamic_reallocation(
         lr_monitor_callback = pl.callbacks.LearningRateMonitor(logging_interval="step")
         # TensorBoard logger
         tb_logger = pl.loggers.TensorBoardLogger(save_dir=save_path, name="logs")
+        tb_logger.log_hyperparams(ags_config_paths)
+        tb_logger.log_hyperparams({"seed": seed})
+        tb_logger.log_hyperparams(dynamic_reallocation_args)
         alpha_tb_logger = pl.loggers.TensorBoardLogger(
             save_dir=save_path, name="alpha_logs"
         )
