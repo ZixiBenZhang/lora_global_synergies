@@ -2,7 +2,7 @@
 #
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=2
-#SBATCH --cpus-per-task=42
+#SBATCH --cpus-per-task=40
 #SBATCH --mem-per-cpu=3850
 #SBATCH --gres=gpu:ampere_a100:2
 #SBATCH --partition=gpu
@@ -11,5 +11,5 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train --config ./configs/opt_lora_cola_350m.toml \
+srun python -m main train --config ./configs/opt_ags_cola_350m.toml \
 --learning-rate 1e-4

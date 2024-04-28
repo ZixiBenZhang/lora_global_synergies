@@ -1,6 +1,6 @@
 # basics
 model = "opt_lora_ags"
-dataset = "stsb"
+dataset = "cola"
 load_name = "facebook/opt-350m"
 load_type = "hf"
 # training
@@ -9,7 +9,7 @@ learning_rate = 1e-4
 weight_decay = 0.01
 max_epochs = 20
 batch_size = 4
-log_every_n_steps = 10
+log_every_n_steps = 20
 # torch lightning
 task = "classification"
 num_workers = 42
