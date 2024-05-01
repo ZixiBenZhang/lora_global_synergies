@@ -1,0 +1,192 @@
+total_reallocation_number = 100
+
+[layer_0]
+q_proj = 0
+v_proj = 3
+residual_1 = 0
+residual_2 = 0
+shortcut_sa = 0
+
+[layer_1]
+q_proj = 0
+v_proj = 87
+residual_1 = 0
+residual_2 = 0
+shortcut_sa = 3
+shortcut_ffn = 0
+
+[layer_2]
+q_proj = 0
+v_proj = 89
+residual_1 = 0
+residual_2 = 0
+shortcut_sa = 4
+shortcut_ffn = 0
+
+[layer_3]
+q_proj = 0
+v_proj = 91
+residual_1 = 0
+residual_2 = 0
+shortcut_sa = 42
+shortcut_ffn = 0
+
+[layer_4]
+q_proj = 0
+v_proj = 91
+residual_1 = 0
+residual_2 = 0
+shortcut_sa = 71
+shortcut_ffn = 56
+
+[layer_5]
+q_proj = 0
+v_proj = 91
+residual_1 = 67
+residual_2 = 52
+shortcut_sa = 8
+shortcut_ffn = 2
+
+[layer_6]
+q_proj = 0
+v_proj = 94
+residual_1 = 4
+residual_2 = 60
+shortcut_sa = 56
+shortcut_ffn = 0
+
+[layer_7]
+q_proj = 2
+v_proj = 91
+residual_1 = 46
+residual_2 = 3
+shortcut_sa = 54
+shortcut_ffn = 5
+
+[layer_8]
+q_proj = 5
+v_proj = 93
+residual_1 = 0
+residual_2 = 60
+shortcut_sa = 69
+shortcut_ffn = 51
+
+[layer_9]
+q_proj = 0
+v_proj = 99
+residual_1 = 44
+residual_2 = 79
+shortcut_sa = 84
+shortcut_ffn = 62
+
+[layer_10]
+q_proj = 87
+v_proj = 100
+residual_1 = 0
+residual_2 = 41
+shortcut_sa = 0
+shortcut_ffn = 74
+
+[layer_11]
+q_proj = 0
+v_proj = 100
+residual_1 = 0
+residual_2 = 0
+shortcut_sa = 0
+shortcut_ffn = 0
+
+[layer_12]
+q_proj = 4
+v_proj = 100
+residual_1 = 0
+residual_2 = 0
+shortcut_sa = 0
+shortcut_ffn = 0
+
+[layer_13]
+q_proj = 0
+v_proj = 99
+residual_1 = 0
+residual_2 = 0
+shortcut_sa = 0
+shortcut_ffn = 0
+
+[layer_14]
+q_proj = 0
+v_proj = 99
+residual_1 = 0
+residual_2 = 0
+shortcut_sa = 0
+shortcut_ffn = 0
+
+[layer_15]
+q_proj = 0
+v_proj = 80
+residual_1 = 0
+residual_2 = 0
+shortcut_sa = 0
+shortcut_ffn = 0
+
+[layer_16]
+q_proj = 0
+v_proj = 69
+residual_1 = 0
+residual_2 = 0
+shortcut_sa = 0
+shortcut_ffn = 0
+
+[layer_17]
+q_proj = 0
+v_proj = 48
+residual_1 = 0
+residual_2 = 0
+shortcut_sa = 95
+shortcut_ffn = 0
+
+[layer_18]
+q_proj = 0
+v_proj = 40
+residual_1 = 53
+residual_2 = 40
+shortcut_sa = 52
+shortcut_ffn = 96
+
+[layer_19]
+q_proj = 0
+v_proj = 19
+residual_1 = 27
+residual_2 = 29
+shortcut_sa = 26
+shortcut_ffn = 47
+
+[layer_20]
+q_proj = 0
+v_proj = 46
+residual_1 = 26
+residual_2 = 8
+shortcut_sa = 26
+shortcut_ffn = 41
+
+[layer_21]
+q_proj = 0
+v_proj = 47
+residual_1 = 12
+residual_2 = 9
+shortcut_sa = 14
+shortcut_ffn = 16
+
+[layer_22]
+q_proj = 0
+v_proj = 29
+residual_1 = 6
+residual_2 = 11
+shortcut_sa = 16
+shortcut_ffn = 7
+
+[layer_23]
+q_proj = 0
+v_proj = 41
+residual_1 = 0
+residual_2 = 2
+shortcut_sa = 0
+shortcut_ffn = 0
