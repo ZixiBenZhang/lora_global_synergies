@@ -10,7 +10,7 @@ importance_test_name = "grad_norm"
 imp_limit_test_batches = 32
 realloc_N = 0.2
 turn_on_percentile = 0.25
-dyrealloc_ags_mode = "separated"
+dyrealloc_ags_mode = "combined"
 # training
 training_optimizer = "adamw"
 learning_rate = 2e-4
