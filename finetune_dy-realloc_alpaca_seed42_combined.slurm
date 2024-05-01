@@ -11,5 +11,5 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train-dyrealloc --config ./configs/opt_ags_alpaca_350m_dy-realloc-combined.toml \
+srun python -m main train-dyrealloc --config ./configs/opt_ags_alpaca_350m_dy-realloc-combined_r-32.toml \
 --learning-rate 1e-4 --seed 42
