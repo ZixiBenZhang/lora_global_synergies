@@ -27,5 +27,5 @@ strategy = "ddp_find_unused_parameters_true"
 # language model options
 is_pretrained = true
 project_dir = "./ags_output"
-lora_config = "./configs/lora/lora_networkwise.toml_r-32"
-shortcut_config = "./configs/shortcut/ags_networkwise.toml_r-32"
+lora_config = "./configs/lora/lora_networkwise_r-32.toml"
+shortcut_config = "./configs/shortcut/ags_networkwise_r-32.toml"
