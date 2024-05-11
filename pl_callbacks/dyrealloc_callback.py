@@ -337,9 +337,9 @@ class DynamicLoraReallocationCallback(pl.Callback):
                     }
                     for proj_name, shortcut in shortcut_modules.items():
                         if (
-                                shortcut is None
-                                or shortcut.active_projector not in shortcut.proj_A.keys()
-                                or shortcut.r[shortcut.active_projector] == 0
+                            shortcut is None
+                            or shortcut.active_projector not in shortcut.proj_A.keys()
+                            or shortcut.r[shortcut.active_projector] == 0
                         ):
                             continue
                         shortcut.disable_projectors = False

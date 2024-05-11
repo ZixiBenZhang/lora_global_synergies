@@ -308,7 +308,7 @@ def get_arg_parser():
     trainer_group = parser.add_argument_group("trainer options")
     trainer_group.add_argument(
         "--optimizer",
-        dest="optimizer",
+        dest="training_optimizer",
         choices=OPTIMIZERS,
         help=f"""
             name of supported optimiser for training. One of

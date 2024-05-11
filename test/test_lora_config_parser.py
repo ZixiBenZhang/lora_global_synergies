@@ -29,7 +29,6 @@ def test_parse_lora_config_networkwise():
                 "adapter_name": "test",
                 "disable_adapter": False,
             },
-
         },
     }
 
@@ -187,7 +186,6 @@ def test_parse_lora_config_layerwise():
                 "adapter_name": "test",
                 "disable_adapter": False,
             },
-
         },
     }
 

@@ -48,7 +48,7 @@ def test_LoraLinear_get_delta_w():
 
     assert torch.allclose(
         lora.get_delta_w("test_lora"),
-        5 / 3 * lora.lora_B["test_lora"].weight @ lora.lora_A["test_lora"].weight
+        5 / 3 * lora.lora_B["test_lora"].weight @ lora.lora_A["test_lora"].weight,
     )
 
 
@@ -70,7 +70,10 @@ def test_LoraLinear_merge():
     w = copy.deepcopy(lora.weight)
     lora.merge()
 
-    assert torch.allclose(w + 5 / 3 * lora.lora_B["test_lora"].weight @ lora.lora_A["test_lora"].weight, lora.weight)
+    assert torch.allclose(
+        w + 5 / 3 * lora.lora_B["test_lora"].weight @ lora.lora_A["test_lora"].weight,
+        lora.weight,
+    )
 
 
 def test_LoraLinear_unmerge():
@@ -115,10 +118,13 @@ def test_LoraLinear_unmerged_forward():
 
     assert torch.allclose(
         res,
-        F.linear(x, lora.weight) + 5 / 3 * F.linear(
+        F.linear(x, lora.weight)
+        + 5
+        / 3
+        * F.linear(
             F.linear(x, lora.lora_A["test_lora"].weight),
             lora.lora_B["test_lora"].weight,
-        )
+        ),
     )
 
 
@@ -144,10 +150,13 @@ def test_LoraLinear_merged_forward():
 
     assert torch.allclose(
         res,
-        F.linear(x, w) + 5 / 3 * F.linear(
+        F.linear(x, w)
+        + 5
+        / 3
+        * F.linear(
             F.linear(x, lora.lora_A["test_lora"].weight),
             lora.lora_B["test_lora"].weight,
-        )
+        ),
     )
 
 
@@ -240,8 +249,14 @@ def test_LoraLinear_set_importance_alpha_forward():
 
     assert torch.allclose(
         res,
-        (F.linear(x, lora.weight) + 5 / 3 * F.linear(
-            F.linear(x, lora.lora_A["test_lora"].weight),
-            lora.lora_B["test_lora"].weight,
-        )) * 0.6
+        (
+            F.linear(x, lora.weight)
+            + 5
+            / 3
+            * F.linear(
+                F.linear(x, lora.lora_A["test_lora"].weight),
+                lora.lora_B["test_lora"].weight,
+            )
+        )
+        * 0.6,
     )

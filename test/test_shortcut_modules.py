@@ -71,10 +71,13 @@ def test_ShortcutFromIdentity_forward():
 
     assert torch.allclose(
         res,
-        x + 5 / 3 * F.linear(
+        x
+        + 5
+        / 3
+        * F.linear(
             F.linear(x, sc.proj_A["test_shortcut"].weight),
             sc.proj_B["test_shortcut"].weight,
-        )
+        ),
     )
 
 
@@ -96,8 +99,10 @@ def test_ShortcutFromZeros_forward():
 
     assert torch.allclose(
         res,
-        5 / 3 * F.linear(
+        5
+        / 3
+        * F.linear(
             F.linear(x, sc.proj_A["test_shortcut"].weight),
             sc.proj_B["test_shortcut"].weight,
-        )
+        ),
     )

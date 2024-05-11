@@ -42,18 +42,24 @@ class PlWrapperBase(pl.LightningModule):
         # train step metrics are logged in every step
         if self.num_classes is not None:
             self.acc_train = Accuracy("multiclass", num_classes=self.num_classes)
-            self.f1_train = F1Score("multiclass", num_classes=self.num_classes, average="macro")
+            self.f1_train = F1Score(
+                "multiclass", num_classes=self.num_classes, average="macro"
+            )
 
         # validation metrics are logged when epoch ends
         if self.num_classes is not None:
             self.acc_val = Accuracy("multiclass", num_classes=self.num_classes)
-            self.f1_val = F1Score("multiclass", num_classes=self.num_classes, average="macro")
+            self.f1_val = F1Score(
+                "multiclass", num_classes=self.num_classes, average="macro"
+            )
         self.loss_val = MeanMetric()
 
         # test metrics are logged when epoch ends
         if self.num_classes is not None:
             self.acc_test = Accuracy("multiclass", num_classes=self.num_classes)
-            self.f1_test = F1Score("multiclass", num_classes=self.num_classes, average="macro")
+            self.f1_test = F1Score(
+                "multiclass", num_classes=self.num_classes, average="macro"
+            )
         self.loss_test = MeanMetric()
 
         self.save_hyperparameters(ignore=["model"])
