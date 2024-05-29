@@ -11,5 +11,5 @@
 
 source ~/torch/bin/activate
 
-srun python -m main train-dyrealloc --config ./configs/opt_ags_boolq_350m.toml \
+srun python -m main train --config ./configs/opt_ags_boolq_350m.toml \
 --learning-rate 2e-4 --seed 42
