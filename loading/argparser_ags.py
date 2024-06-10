@@ -34,7 +34,7 @@ IMP_TEST_NAMES = [
     "alpha_test",
 ]
 DYREALLOC_AGS_MODES = ["off", "combined", "separated"]
-MMLU_MODE = [None, "zs", "fs"]
+MMLU_MODE = ["zs", "fs"]
 
 CLI_DEFAULTS = {
     # Main program arguments
