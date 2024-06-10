@@ -87,7 +87,7 @@ def train(
         pl_trainer_args["logger"] = [tb_logger]
 
     # MMLU validation callback
-    if mmlu_args is not None:
+    if mmlu_mode is not None:
         mmlu_val_callback = MMLUValidationCallback(
             **mmlu_args,
             few_shot=(mmlu_mode == "fs")

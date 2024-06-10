@@ -83,18 +83,17 @@ class MMLUValidationCallback(pl.Callback):
 
     def setup(self, trainer: pl.Trainer, pl_module: pl.LightningModule, stage: str) -> None:
         self._download_dataset()
-        for split_name in self.mmlu_dataset.keys():
-            self.mmlu_dataset[split_name] = self.mmlu_dataset[split_name].map(
-                function=partial(
-                    self._preprocess,
-                    tokenizer=self.tokenizer,
-                    max_length=self.max_token_len,
-                    ignore_id=self.IGNORE_INDEX,
-                ),
-                num_proc=self.num_workers,
-                load_from_cache_file=True,
-                desc="Preprocessing MMLU dataset",
-            )
+        self.mmlu_dataset = self.mmlu_dataset.map(
+            function=partial(
+                self._preprocess,
+                tokenizer=self.tokenizer,
+                max_length=self.max_token_len,
+                ignore_id=self.IGNORE_INDEX,
+            ),
+            num_proc=self.num_workers,
+            load_from_cache_file=True,
+            desc="Preprocessing MMLU dataset",
+        )
 
     def _val_dataloader(self):
         data_collator = None
