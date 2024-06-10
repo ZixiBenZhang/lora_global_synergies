@@ -34,6 +34,7 @@ IMP_TEST_NAMES = [
     "alpha_test",
 ]
 DYREALLOC_AGS_MODES = ["off", "combined", "separated"]
+MMLU_MODE = [None, "zs", "fs"]
 
 CLI_DEFAULTS = {
     # Main program arguments
@@ -53,6 +54,7 @@ CLI_DEFAULTS = {
     "backbone_model": None,
     "lora_config": None,
     "shortcut_config": None,
+    "mmlu_mode": None,
     # Reallocation options
     "importance_test_name": IMP_TEST_NAMES[0],
     "alpha": None,
@@ -200,9 +202,9 @@ def get_arg_parser():
         dest="lora_config",
         type=_valid_filepath,
         help="""
-                path to a configuration file in the TOML format. Manual CLI overrides
-                for arguments have a higher precedence. (default: %(default)s)
-            """,
+            path to a configuration file in the TOML format. Manual CLI overrides
+            for arguments have a higher precedence. (default: %(default)s)
+        """,
         metavar="TOML",
     )
     general_group.add_argument(
@@ -210,10 +212,21 @@ def get_arg_parser():
         dest="shortcut_config",
         type=_valid_filepath,
         help="""
-                path to a configuration file in the TOML format. Manual CLI overrides
-                for arguments have a higher precedence. (default: %(default)s)
-            """,
+            path to a configuration file in the TOML format. Manual CLI overrides
+            for arguments have a higher precedence. (default: %(default)s)
+        """,
         metavar="TOML",
+    )
+    general_group.add_argument(
+        "--mmlu-mode",
+        dest="mmlu_mode",
+        choices=MMLU_MODE,
+        help=f"""
+            Zero-shot / few-shot mode of using MMLU in validation.
+            One of {'(' + '|'.join(MMLU_MODE) + ')'}
+            (default: %(default)s)
+        """,
+        metavar="",
     )
     # Reallocation options
     reallocation_group = parser.add_argument_group("reallocation options")

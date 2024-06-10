@@ -11,6 +11,7 @@ from lora.lora_modules import (
     reset_lora,
 )
 from models.model_info import AgsModelInfo
+from pl_callbacks.val_callback import MMLUValidationCallback
 from projectors.shortcut_modules import (
     update_ags_importance_beta_require_grad,
     update_ags_ln_require_grad,
@@ -44,6 +45,8 @@ def train(
     resume_training,  # whether resume full training from the checkpoint
     ags_config_paths,  # for logging in Tensorboard
     seed,  # for logging in Tensorboard
+    mmlu_mode,  # zero-shot/few-shot for MMLU in validation
+    mmlu_args,  # arguments for MMLUValidationCallback
 ):
     if save_path is not None:  # if save_path is None, model won't be saved
         # setup callbacks
@@ -57,15 +60,15 @@ def train(
         }
         best_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
-            filename="best_chkpt",
+            filename="best_chkpt-{epoch}",
             save_top_k=1,
-            monitor=task_metric[task][0],
-            mode=task_metric[task][1],
+            monitor=task_metric[task][0] if mmlu_mode is None else "mmlu_val_acc",
+            mode=task_metric[task][1] if mmlu_mode is None else "max",
             # save_last=True,
         )
         latest_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
-            filename="last_chkpt",
+            filename="last_chkpt-{epoch}",
             # save_last=True,
         )
         # Monitoring lr for the lr_scheduler
@@ -82,6 +85,14 @@ def train(
             lr_monitor_callback,
         ]
         pl_trainer_args["logger"] = [tb_logger]
+
+    # MMLU validation callback
+    if mmlu_args is not None:
+        mmlu_val_callback = MMLUValidationCallback(
+            **mmlu_args,
+            few_shot=(mmlu_mode == "fs")
+        )
+        pl_trainer_args["callbacks"].append(mmlu_val_callback)
 
     # Validation metrics history, for hyperparameter search
     val_history = ValidationMetricsCallback()

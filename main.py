@@ -16,7 +16,7 @@ import optuna
 from transformers import AutoTokenizer
 
 import importance_testing
-from dataset import get_nlp_dataset_split, get_config_names
+from dataset import get_nlp_dataset_split, get_config_names, LanguageModelingDatasetAlpaca
 from loading.argparser_ags import get_arg_parser, CLI_DEFAULTS
 from loading.config_load import post_parse_load_config
 from loading.setup_model_and_dataset import setup_model_and_dataset
@@ -98,6 +98,15 @@ def main():
                 "shortcut_config": args.shortcut_config,
             }
 
+            mmlu_args = {
+                "batch_size": args.batch_size,
+                "tokenizer": tokenizer,
+                "max_token_len": args.max_token_len,
+                "num_workers": args.num_workers,
+                "load_from_cache_file": not args.disable_dataset_cache,
+                "load_from_saved_path": args.dataset_saved_path,
+            }
+
             # Load from a checkpoint!
             load_name = None
             load_types = ["pt", "pl"]
@@ -124,6 +133,8 @@ def main():
                 "resume_training": args.resume_training,
                 "ags_config_paths": ags_config_paths,
                 "seed": args.seed,
+                "mmlu_mode": args.mmlu_mode,
+                "mmlu_args": mmlu_args,
             }
 
             logger.info(f"##### WEIGHT DECAY ##### {args.weight_decay}")
@@ -290,24 +301,27 @@ def main():
 
 
 def t():
-    s = ShortcutFromZeros(
-        in_out_features=5,
-        config={
-            "r": 2,
-            "shortcut_alpha": 2,
-            "proj_dropout": 0.0,
-            "projector_name": "test",
-            "disable_projector": False,
-        },
-    )
-    x = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0], requires_grad=True)
-    t = s(x)
-    y = torch.sum(t + x)
-    y.backward()
-    print(t, y)
-    print(x.grad)
+    # s = ShortcutFromZeros(
+    #     in_out_features=5,
+    #     config={
+    #         "r": 2,
+    #         "shortcut_alpha": 2,
+    #         "proj_dropout": 0.0,
+    #         "projector_name": "test",
+    #         "disable_projector": False,
+    #     },
+    # )
+    # x = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0], requires_grad=True)
+    # t = s(x)
+    # y = torch.sum(t + x)
+    # y.backward()
+    # print(t, y)
+    # print(x.grad)
 
-    # print(datasets.get_dataset_split_names("tatsu-lab/alpaca", None))
+    d = LanguageModelingDatasetAlpaca("train", AutoTokenizer.from_pretrained("facebook/opt-350m"), 512, 25)
+    d.setup()
+    print(d.data[:5])
+
 
     # with open("ags_output/opt_lora_classification_mrpc_2024-02-01/checkpoints/logs_test/importance_08-22.toml", "r") as f:
     #     data = toml.load(f)
