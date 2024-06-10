@@ -44,7 +44,7 @@ class MMLUValidationCallback(pl.Callback):
             tokenizer("D", add_special_tokens=False).input_ids[0],
         ]
 
-        self.setup()
+        self._setup()
 
     def _download_dataset(self):
         if not self.few_shot:
@@ -83,7 +83,7 @@ class MMLUValidationCallback(pl.Callback):
             labels=target_tokenized,
         )
 
-    def setup(self, trainer: pl.Trainer, pl_module: pl.LightningModule, stage: str) -> None:
+    def _setup(self) -> None:
         self._download_dataset()
         self.mmlu_dataset = self.mmlu_dataset.map(
             function=partial(
