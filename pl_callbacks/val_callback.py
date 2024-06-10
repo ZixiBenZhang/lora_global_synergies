@@ -77,8 +77,8 @@ class MMLUValidationCallback(pl.Callback):
         prompt_len = prompt_tokenized.ne(tokenizer.pad_token_id).sum().item()
         target_tokenized[:prompt_len] = ignore_id
         return dict(
-            input_ids=input_ids,
-            labels=target_tokenized,
+            input_ids=torch.tensor(input_ids),
+            labels=torch.tensor(target_tokenized),
         )
 
     def setup(self, trainer: pl.Trainer, pl_module: pl.LightningModule, stage: str) -> None:
