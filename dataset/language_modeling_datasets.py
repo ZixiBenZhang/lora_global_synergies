@@ -173,9 +173,9 @@ class DataCollatorForCausalLMAlpaca:
         input_ids, labels = tuple(
             [instance[key] for instance in instances] for key in ("input_ids", "labels")
         )
-        input_ids = torch.nn.utils.rnn.pad_sequence(
-            torch.nn.utils.rnn.pack_sequence(input_ids), batch_first=True, padding_value=self.tokenizer.pad_token_id
-        )
+        input_ids = torch.nn.utils.rnn.pad_packed_sequence(
+            torch.nn.utils.rnn.pack_sequence(input_ids, enforce_sorted=False), batch_first=True, padding_value=self.tokenizer.pad_token_id
+        )[0]
         labels = torch.nn.utils.rnn.pad_sequence(
             labels, batch_first=True, padding_value=self.IGNORE_INDEX
         )
