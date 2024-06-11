@@ -62,7 +62,7 @@ class MMLUValidationCallback(pl.Callback):
             return tokenizer(
                 text,
                 return_tensors="pt",
-                padding="longest",
+                padding="max_length",
                 max_length=max_length,
                 truncation=True,
             )
@@ -106,7 +106,7 @@ class MMLUValidationCallback(pl.Callback):
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
-            collate_fn=data_collator,
+            # collate_fn=data_collator,
         )
 
     def _test_dataloader(self):
@@ -120,7 +120,7 @@ class MMLUValidationCallback(pl.Callback):
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
-            collate_fn=data_collator,
+            # collate_fn=data_collator,
         )
 
     def on_validation_epoch_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
