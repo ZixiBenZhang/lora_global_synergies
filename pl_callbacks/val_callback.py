@@ -44,8 +44,6 @@ class MMLUValidationCallback(pl.Callback):
             tokenizer("D", add_special_tokens=False).input_ids[0],
         ]
 
-        self._setup()
-
     def _download_dataset(self):
         if not self.few_shot:
             self.mmlu_dataset = datasets.load_dataset("json", data_files={
@@ -83,7 +81,7 @@ class MMLUValidationCallback(pl.Callback):
             labels=target_tokenized,
         )
 
-    def _setup(self) -> None:
+    def setup(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", stage: str) -> None:
         self._download_dataset()
         self.mmlu_dataset = self.mmlu_dataset.map(
             function=partial(
@@ -131,7 +129,7 @@ class MMLUValidationCallback(pl.Callback):
         loss_mmlu = 0.0
         preds, refs = [], []
         for batch_idx, batch in enumerate(tqdm(data_loader, total=len(data_loader))):
-            # todo: debug: AlpacaCollator taking MMLU inputs
+            # todo: debug: in Collator, input_ids is Tensor before pad_sequence but list when error raised...
             outputs = pl_module.predict_step(batch=batch, batch_idx=batch_idx)
             # loss: (float) batch_size * seq_len
             # logits: (float) batch_size * seq_len * vocab_size
