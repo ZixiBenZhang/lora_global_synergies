@@ -120,6 +120,8 @@ class MMLUValidationCallback(pl.Callback):
         )
 
     def on_validation_epoch_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+        if pl_module.device != "cuda:0":
+            return
         data_loader = self._val_dataloader()
         pl_module.model.eval()
         loss_mmlu = 0.0

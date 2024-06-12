@@ -99,7 +99,7 @@ def main():
             }
 
             mmlu_args = {
-                "batch_size": args.batch_size,
+                "batch_size": args.batch_size * args.num_devices,
                 "tokenizer": tokenizer,
                 "max_token_len": args.max_token_len,
                 "num_workers": args.num_workers,
