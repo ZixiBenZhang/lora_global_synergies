@@ -411,6 +411,11 @@ class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
 class DataCollatorForCausalLM(DataCollatorForLanguageModeling):
 
     def torch_call(self, examples: List[Union[List[int], Any, Dict[str, Any]]]) -> Dict[str, Any]:
-        batch = super().torch_call(examples)
+        batch = self.tokenizer.pad(
+            examples,
+            return_tensors="pt",
+            padding="longest",
+        )
+        batch = super().torch_call(batch)
         batch["attention_mask"] = batch["input_ids"].ne(self.tokenizer.pad_token_id)
         return batch
