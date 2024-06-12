@@ -11,6 +11,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from transformers import PreTrainedTokenizer, DataCollatorForLanguageModeling
 
+from dataset.language_modeling_datasets import DataCollatorForCausalLMAlpaca
+
 
 class MMLUValidationCallback(pl.Callback):
     IGNORE_INDEX = -100
@@ -60,7 +62,7 @@ class MMLUValidationCallback(pl.Callback):
             return tokenizer(
                 text,
                 return_tensors="pt",
-                padding="longest",
+                padding="max_length",
                 max_length=max_length,
                 truncation=True,
             )
@@ -94,9 +96,9 @@ class MMLUValidationCallback(pl.Callback):
         )
 
     def _val_dataloader(self):
-        data_collator = DataCollatorForLanguageModeling(
+        data_collator = DataCollatorForCausalLMAlpaca(
             tokenizer=self.tokenizer,
-            mlm=False,
+            # mlm=False,
         )
         return DataLoader(
             self.mmlu_dataset["validation"].remove_columns(["subject", "input", "output"]),
@@ -107,9 +109,9 @@ class MMLUValidationCallback(pl.Callback):
         )
 
     def _test_dataloader(self):
-        data_collator = DataCollatorForLanguageModeling(
+        data_collator = DataCollatorForCausalLMAlpaca(
             tokenizer=self.tokenizer,
-            mlm=False,
+            # mlm=False,
         )
         return DataLoader(
             self.mmlu_dataset["test"].remove_columns(["subject", "input", "output"]),
