@@ -1,16 +1,14 @@
 import copy
 from functools import partial
 
+import datasets
 import evaluate
 import numpy as np
 import pytorch_lightning as pl
-import datasets
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from transformers import PreTrainedTokenizer
-
-from dataset.language_modeling_datasets import DataCollatorForCausalLMAlpaca
+from transformers import PreTrainedTokenizer, DataCollatorForLanguageModeling
 
 
 class MMLUValidationCallback(pl.Callback):
@@ -35,7 +33,6 @@ class MMLUValidationCallback(pl.Callback):
         self.load_from_saved_path = load_from_saved_path
 
         self.mmlu_dataset = None
-        self.data_collator_cls = DataCollatorForCausalLMAlpaca
 
         self.abcd_idx = [
             tokenizer("A", add_special_tokens=False).input_ids[0],
@@ -62,7 +59,7 @@ class MMLUValidationCallback(pl.Callback):
             return tokenizer(
                 text,
                 return_tensors="pt",
-                padding="max_length",
+                padding="longest",
                 max_length=max_length,
                 truncation=True,
             )
@@ -96,31 +93,29 @@ class MMLUValidationCallback(pl.Callback):
         )
 
     def _val_dataloader(self):
-        data_collator = None
-        if self.data_collator_cls is not None:
-            data_collator = self.data_collator_cls(
-                tokenizer=self.tokenizer
-            )
+        data_collator = DataCollatorForLanguageModeling(
+            tokenizer=self.tokenizer,
+            mlm=False,
+        )
         return DataLoader(
             self.mmlu_dataset["validation"],
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
-            # collate_fn=data_collator,
+            collate_fn=data_collator,
         )
 
     def _test_dataloader(self):
-        data_collator = None
-        if self.data_collator_cls is not None:
-            data_collator = self.data_collator_cls(
-                tokenizer=self.tokenizer
-            )
+        data_collator = DataCollatorForLanguageModeling(
+            tokenizer=self.tokenizer,
+            mlm=False,
+        )
         return DataLoader(
             self.mmlu_dataset["test"],
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
-            # collate_fn=data_collator,
+            collate_fn=data_collator,
         )
 
     def on_validation_epoch_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
