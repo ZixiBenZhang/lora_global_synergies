@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import partial
 import logging
 from itertools import chain
-from typing import Dict, Sequence, List, Any, Union
+from typing import Dict, Sequence, List, Any, Union, Mapping
 
 import datasets
 import torch
@@ -13,6 +13,7 @@ from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 import transformers
 from transformers import DataCollatorForLanguageModeling
+from transformers.data.data_collator import pad_without_fast_tokenizer_warning, _torch_collate_batch
 
 from dataset.dataset_info_util import add_dataset_info
 
@@ -174,6 +175,9 @@ class DataCollatorForCausalLMAlpaca:
         input_ids, labels = tuple(
             [instance[key] for instance in instances] for key in ("input_ids", "labels")
         )
+        if not isinstance(input_ids[0], torch.Tensor):
+            input_ids = [torch.as_tensor(x) for x in input_ids]
+            labels = [torch.as_tensor(y) for y in labels]
         input_ids = torch.nn.utils.rnn.pad_sequence(
             input_ids, batch_first=True, padding_value=self.tokenizer.pad_token_id
         )
@@ -410,12 +414,38 @@ class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
 @dataclass
 class DataCollatorForCausalLM(DataCollatorForLanguageModeling):
 
+    def _torch_call(self, examples, pad_token):
+        # Handle dict or lists with proper padding and conversion to tensor.
+        if isinstance(examples[0], Mapping):
+            batch = pad_without_fast_tokenizer_warning(
+                self.tokenizer,
+                examples,
+                return_tensors="pt",
+                pad_to_multiple_of=self.pad_to_multiple_of,
+                padding="longest",
+
+            )
+        else:
+            batch = {
+                "input_ids": _torch_collate_batch(examples, self.tokenizer, pad_to_multiple_of=self.pad_to_multiple_of)
+            }
+
+        # If special token mask has been preprocessed, pop it from the dict.
+        special_tokens_mask = batch.pop("special_tokens_mask", None)
+        if self.mlm:
+            batch["input_ids"], batch["labels"] = self.torch_mask_tokens(
+                batch["input_ids"], special_tokens_mask=special_tokens_mask
+            )
+        else:
+            labels = batch["input_ids"].clone()
+            if self.tokenizer.pad_token_id is not None:
+                labels[labels == self.tokenizer.pad_token_id] = -100
+            batch["labels"] = labels
+        return batch
+
     def torch_call(self, examples: List[Union[List[int], Any, Dict[str, Any]]]) -> Dict[str, Any]:
-        batch = self.tokenizer.pad(
-            examples,
-            return_tensors="pt",
-            padding="longest",
-        )
-        batch = super().torch_call(batch)
+
+
+
         batch["attention_mask"] = batch["input_ids"].ne(self.tokenizer.pad_token_id)
         return batch
