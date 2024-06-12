@@ -418,42 +418,31 @@ class DataCollatorForCausalLM(object):
 
     def __call__(self, instances: Sequence[Dict]) -> Dict[str, torch.Tensor]:
         # Extract elements
-        sources = [f"{self.tokenizer.bos_token}{example['input']}" for example in instances]
-        targets = [f"{example['output']}{self.tokenizer.eos_token}" for example in instances]
-        # Tokenize
-        tokenized_sources_with_prompt = self.tokenizer(
-            sources,
-            max_length=self.source_max_len,
-            truncation=True,
-            add_special_tokens=False,
-        )
-        tokenized_targets = self.tokenizer(
-            targets,
-            max_length=self.target_max_len,
-            truncation=True,
-            add_special_tokens=False,
-        )
-        # Build the input and labels for causal LM
-        input_ids = []
-        labels = []
-        for tokenized_source, tokenized_target in zip(
-                tokenized_sources_with_prompt['input_ids'],
-                tokenized_targets['input_ids']
-        ):
-            if not self.predict_with_generate:
-                input_ids.append(torch.tensor(tokenized_source + tokenized_target))
-                if not self.train_on_source:
-                    labels.append(
-                        torch.tensor(
-                            [self.IGNORE_INDEX for _ in range(len(tokenized_source))] + copy.deepcopy(tokenized_target))
-                    )
-                else:
-                    labels.append(torch.tensor(copy.deepcopy(tokenized_source + tokenized_target)))
-            else:
-                input_ids.append(torch.tensor(tokenized_source))
+        sources = [example["input_ids"] for example in instances]
+        targets = [example["labels"] for example in instances]
+
+        # # Build the input and labels for causal LM
+        # input_ids = []
+        # labels = []
+        # for tokenized_source, tokenized_target in zip(
+        #     sources,
+        #     targets,
+        # ):
+        #     if not self.predict_with_generate:
+        #         input_ids.append(torch.tensor(tokenized_source + tokenized_target))
+        #         if not self.train_on_source:
+        #             labels.append(
+        #                 torch.tensor(
+        #                     [self.IGNORE_INDEX for _ in range(len(tokenized_source))] + copy.deepcopy(tokenized_target))
+        #             )
+        #         else:
+        #             labels.append(torch.tensor(copy.deepcopy(tokenized_source + tokenized_target)))
+        #     else:
+        #         input_ids.append(torch.tensor(tokenized_source))
+
         # Apply padding
-        input_ids = pad_sequence(input_ids, batch_first=True, padding_value=self.tokenizer.pad_token_id)
-        labels = pad_sequence(labels, batch_first=True,
+        input_ids = pad_sequence(sources, batch_first=True, padding_value=self.tokenizer.pad_token_id)
+        labels = pad_sequence(targets, batch_first=True,
                               padding_value=self.IGNORE_INDEX) if not self.predict_with_generate else None
         data_dict = {
             'input_ids': input_ids,
