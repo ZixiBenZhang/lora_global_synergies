@@ -68,8 +68,8 @@ class MMLUValidationCallback(pl.Callback):
         prompt = example["input"]
         target = example["output"]
 
-        prompt_tokenized = _tokenize(prompt + " ", tokenizer, max_length)["input_ids"][0]
-        target_tokenized = _tokenize(prompt + " " + target, tokenizer, max_length)["input_ids"][0]
+        prompt_tokenized = _tokenize(prompt, tokenizer, max_length)["input_ids"][0]
+        target_tokenized = _tokenize(prompt + target, tokenizer, max_length)["input_ids"][0]
         input_ids = copy.deepcopy(target_tokenized)
 
         prompt_len = prompt_tokenized.ne(tokenizer.pad_token_id).sum().item()
@@ -79,7 +79,7 @@ class MMLUValidationCallback(pl.Callback):
             labels=target_tokenized,
         )
 
-    def setup(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", stage: str) -> None:
+    def setup(self, trainer: pl.Trainer, pl_module: pl.LightningModule, stage: str) -> None:
         self._download_dataset()
         self.mmlu_dataset: DatasetDict = self.mmlu_dataset.map(
             function=partial(
@@ -99,7 +99,7 @@ class MMLUValidationCallback(pl.Callback):
             mlm=False,
         )
         return DataLoader(
-            self.mmlu_dataset["validation"].remove_columns("subject"),
+            self.mmlu_dataset["validation"].remove_columns(["subject", "input", "output"]),
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
@@ -112,7 +112,7 @@ class MMLUValidationCallback(pl.Callback):
             mlm=False,
         )
         return DataLoader(
-            self.mmlu_dataset["test"].remove_columns("subject"),
+            self.mmlu_dataset["test"].remove_columns(["subject", "input", "output"]),
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
@@ -125,7 +125,6 @@ class MMLUValidationCallback(pl.Callback):
         loss_mmlu = 0.0
         preds, refs = [], []
         for batch_idx, batch in enumerate(tqdm(data_loader, total=len(data_loader))):
-            # todo: debug: in Collator, input_ids is Tensor before pad_sequence but list when error raised...
             outputs = pl_module.predict_step(batch=batch, batch_idx=batch_idx)
             # loss: (float) batch_size * seq_len
             # logits: (float) batch_size * seq_len * vocab_size
