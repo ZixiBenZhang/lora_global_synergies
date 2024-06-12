@@ -98,7 +98,7 @@ class MMLUValidationCallback(pl.Callback):
             mlm=False,
         )
         return DataLoader(
-            self.mmlu_dataset["validation"],
+            self.mmlu_dataset["validation"][["input", "output"]],
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
@@ -142,7 +142,7 @@ class MMLUValidationCallback(pl.Callback):
 
         results = {'mmlu_loss': loss_mmlu / len(data_loader)}
 
-        subject = self.mmlu_dataset['subject']
+        subject = self.mmlu_dataset["validation"]['subject']
         subjects = {s: {'refs': [], 'preds': []} for s in set(subject)}
         for s, p, r in zip(subject, preds, refs):
             subjects[s]['preds'].append(p)
