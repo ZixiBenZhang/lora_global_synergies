@@ -6,6 +6,7 @@ import evaluate
 import numpy as np
 import pytorch_lightning as pl
 import torch
+from datasets import DatasetDict
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from transformers import PreTrainedTokenizer, DataCollatorForLanguageModeling
@@ -80,7 +81,7 @@ class MMLUValidationCallback(pl.Callback):
 
     def setup(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", stage: str) -> None:
         self._download_dataset()
-        self.mmlu_dataset = self.mmlu_dataset.map(
+        self.mmlu_dataset: DatasetDict = self.mmlu_dataset.map(
             function=partial(
                 self._preprocess,
                 tokenizer=self.tokenizer,
@@ -98,7 +99,7 @@ class MMLUValidationCallback(pl.Callback):
             mlm=False,
         )
         return DataLoader(
-            self.mmlu_dataset["validation"][["input", "output"]],
+            self.mmlu_dataset["validation"].remove_columns("subject"),
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
@@ -111,7 +112,7 @@ class MMLUValidationCallback(pl.Callback):
             mlm=False,
         )
         return DataLoader(
-            self.mmlu_dataset["test"],
+            self.mmlu_dataset["test"].remove_columns("subject"),
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
