@@ -11,6 +11,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from transformers import PreTrainedTokenizer, DataCollatorForLanguageModeling
 
+from dataset.language_modeling_datasets import DataCollatorForCausalLM
+
 
 class MMLUValidationCallback(pl.Callback):
     IGNORE_INDEX = -100
@@ -60,7 +62,7 @@ class MMLUValidationCallback(pl.Callback):
             return tokenizer(
                 text,
                 return_tensors="pt",
-                padding="max_length",
+                padding="longest",
                 max_length=max_length,
                 truncation=True,
             )
@@ -94,9 +96,12 @@ class MMLUValidationCallback(pl.Callback):
         )
 
     def _val_dataloader(self):
-        data_collator = DataCollatorForLanguageModeling(
+        data_collator = DataCollatorForCausalLM(
             tokenizer=self.tokenizer,
-            mlm=False,
+            source_max_len=self.max_token_len,
+            target_max_len=self.max_token_len,
+            train_on_source=False,
+            predict_with_generate=False,
         )
         return DataLoader(
             self.mmlu_dataset["validation"].remove_columns(["subject", "input", "output"]),
@@ -119,14 +124,15 @@ class MMLUValidationCallback(pl.Callback):
             collate_fn=data_collator,
         )
 
-    def on_validation_epoch_end(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+    def on_validation_epoch_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
         if pl_module.device != "cuda:0":
             return
         data_loader = self._val_dataloader()
         pl_module.model.eval()
         loss_mmlu = 0.0
         preds, refs = [], []
-        for batch_idx, batch in enumerate(tqdm(data_loader, total=len(data_loader))):
+        for batch_idx, batch in enumerate(tqdm(data_loader, total=len(data_loader), desc="Validating MMLU")):
+            # batch["attention_mask"] = batch["input_ids"].ne(self.tokenizer.pad_token_id)
             outputs = pl_module.predict_step(batch=batch, batch_idx=batch_idx)
             # loss: (float) batch_size * seq_len
             # logits: (float) batch_size * seq_len * vocab_size
