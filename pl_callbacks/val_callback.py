@@ -98,10 +98,7 @@ class MMLUValidationCallback(pl.Callback):
     def _val_dataloader(self):
         data_collator = DataCollatorForCausalLM(
             tokenizer=self.tokenizer,
-            source_max_len=self.max_token_len,
-            target_max_len=self.max_token_len,
-            train_on_source=False,
-            predict_with_generate=False,
+            mlm=False,
         )
         return DataLoader(
             self.mmlu_dataset["validation"].remove_columns(["subject", "input", "output"]),
@@ -112,7 +109,7 @@ class MMLUValidationCallback(pl.Callback):
         )
 
     def _test_dataloader(self):
-        data_collator = DataCollatorForLanguageModeling(
+        data_collator = DataCollatorForCausalLM(
             tokenizer=self.tokenizer,
             mlm=False,
         )

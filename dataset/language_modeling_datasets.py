@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import partial
 import logging
 from itertools import chain
-from typing import Dict, Sequence
+from typing import Dict, Sequence, List, Any, Union
 
 import datasets
 import torch
@@ -12,6 +12,7 @@ from huggingface_hub import snapshot_download, hf_hub_download
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 import transformers
+from transformers import DataCollatorForLanguageModeling
 
 from dataset.dataset_info_util import add_dataset_info
 
@@ -407,47 +408,9 @@ class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
 
 
 @dataclass
-class DataCollatorForCausalLM(object):
-    IGNORE_INDEX = -100
+class DataCollatorForCausalLM(DataCollatorForLanguageModeling):
 
-    tokenizer: transformers.PreTrainedTokenizer
-    source_max_len: int
-    target_max_len: int
-    train_on_source: bool
-    predict_with_generate: bool
-
-    def __call__(self, instances: Sequence[Dict]) -> Dict[str, torch.Tensor]:
-        # Extract elements
-        sources = [example["input_ids"] for example in instances]
-        targets = [example["labels"] for example in instances]
-
-        # # Build the input and labels for causal LM
-        # input_ids = []
-        # labels = []
-        # for tokenized_source, tokenized_target in zip(
-        #     sources,
-        #     targets,
-        # ):
-        #     if not self.predict_with_generate:
-        #         input_ids.append(torch.tensor(tokenized_source + tokenized_target))
-        #         if not self.train_on_source:
-        #             labels.append(
-        #                 torch.tensor(
-        #                     [self.IGNORE_INDEX for _ in range(len(tokenized_source))] + copy.deepcopy(tokenized_target))
-        #             )
-        #         else:
-        #             labels.append(torch.tensor(copy.deepcopy(tokenized_source + tokenized_target)))
-        #     else:
-        #         input_ids.append(torch.tensor(tokenized_source))
-
-        # Apply padding
-        input_ids = pad_sequence(sources, batch_first=True, padding_value=self.tokenizer.pad_token_id)
-        labels = pad_sequence(targets, batch_first=True,
-                              padding_value=self.IGNORE_INDEX) if not self.predict_with_generate else None
-        data_dict = {
-            'input_ids': input_ids,
-            'attention_mask': input_ids.ne(self.tokenizer.pad_token_id),
-        }
-        if labels is not None:
-            data_dict['labels'] = labels
-        return data_dict
+    def torch_call(self, examples: List[Union[List[int], Any, Dict[str, Any]]]) -> Dict[str, Any]:
+        batch = super().torch_call(examples)
+        batch["attention_mask"] = batch["input_ids"].ne(self.tokenizer.pad_token_id)
+        return batch
