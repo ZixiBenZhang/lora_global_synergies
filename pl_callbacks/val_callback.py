@@ -212,11 +212,11 @@ class MMLUValidationCallback(pl.Callback):
 
         results = {'mmlu_loss': loss_mmlu / len(data_loader)}
 
-        subject = SUBJECTS[self.mmlu_dataset["validation"]['subject']]
-        subjects = {s: {'refs': [], 'preds': []} for s in set(subject)}
+        subject = self.mmlu_dataset["validation"]['subject']
+        subjects = {SUBJECTS[s]: {'refs': [], 'preds': []} for s in set(subject)}
         for s, p, r in zip(subject, preds, refs):
-            subjects[s]['preds'].append(p)
-            subjects[s]['refs'].append(r)
+            subjects[SUBJECTS[s]]['preds'].append(p)
+            subjects[SUBJECTS[s]]['refs'].append(r)
 
         accuracy = evaluate.load("accuracy")
         subject_scores = []
