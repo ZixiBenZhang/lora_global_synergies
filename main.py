@@ -16,7 +16,11 @@ import optuna
 from transformers import AutoTokenizer
 
 import importance_testing
-from dataset import get_nlp_dataset_split, get_config_names, LanguageModelingDatasetAlpaca
+from dataset import (
+    get_nlp_dataset_split,
+    get_config_names,
+    LanguageModelingDatasetAlpaca,
+)
 from loading.argparser_ags import get_arg_parser, CLI_DEFAULTS
 from loading.config_load import post_parse_load_config
 from loading.setup_model_and_dataset import setup_model_and_dataset
@@ -318,10 +322,11 @@ def t():
     # print(t, y)
     # print(x.grad)
 
-    d = LanguageModelingDatasetAlpaca("train", AutoTokenizer.from_pretrained("facebook/opt-350m"), 512, 25)
+    d = LanguageModelingDatasetAlpaca(
+        "train", AutoTokenizer.from_pretrained("facebook/opt-350m"), 512, 25
+    )
     d.setup()
     print(d.data[:5])
-
 
     # with open("ags_output/opt_lora_classification_mrpc_2024-02-01/checkpoints/logs_test/importance_08-22.toml", "r") as f:
     #     data = toml.load(f)

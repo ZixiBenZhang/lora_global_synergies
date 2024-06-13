@@ -85,7 +85,7 @@ class MMLUValidationCallback(pl.Callback):
         num_workers: int = None,
         load_from_cache_file: bool = True,
         load_from_saved_path: str = None,
-        few_shot: bool = True
+        few_shot: bool = True,
     ):
         self.few_shot = few_shot
         self.batch_size = batch_size
@@ -106,15 +106,21 @@ class MMLUValidationCallback(pl.Callback):
 
     def _download_dataset(self):
         if not self.few_shot:
-            self.mmlu_dataset = datasets.load_dataset("json", data_files={
-                'validation': 'data/mmlu/zero_shot_mmlu_val.json',
-                'test': 'data/mmlu/zero_shot_mmlu_test.json',
-            })
+            self.mmlu_dataset = datasets.load_dataset(
+                "json",
+                data_files={
+                    "validation": "data/mmlu/zero_shot_mmlu_val.json",
+                    "test": "data/mmlu/zero_shot_mmlu_test.json",
+                },
+            )
         else:
-            self.mmlu_dataset = datasets.load_dataset("json", data_files={
-                'validation': 'data/mmlu/five_shot_mmlu_val.json',
-                'test': 'data/mmlu/five_shot_mmlu_test.json',
-            })
+            self.mmlu_dataset = datasets.load_dataset(
+                "json",
+                data_files={
+                    "validation": "data/mmlu/five_shot_mmlu_val.json",
+                    "test": "data/mmlu/five_shot_mmlu_test.json",
+                },
+            )
 
     @staticmethod
     def _preprocess(example, tokenizer, max_length, ignore_id):
@@ -131,7 +137,9 @@ class MMLUValidationCallback(pl.Callback):
         target = example["output"]
 
         prompt_tokenized = _tokenize(prompt, tokenizer, max_length)["input_ids"][0]
-        target_tokenized = _tokenize(prompt + target, tokenizer, max_length)["input_ids"][0]
+        target_tokenized = _tokenize(prompt + target, tokenizer, max_length)[
+            "input_ids"
+        ][0]
         input_ids = copy.deepcopy(target_tokenized)
 
         prompt_len = prompt_tokenized.ne(tokenizer.pad_token_id).sum().item()
@@ -141,7 +149,9 @@ class MMLUValidationCallback(pl.Callback):
             labels=target_tokenized,
         )
 
-    def setup(self, trainer: pl.Trainer, pl_module: pl.LightningModule, stage: str) -> None:
+    def setup(
+        self, trainer: pl.Trainer, pl_module: pl.LightningModule, stage: str
+    ) -> None:
         self._download_dataset()
         self.mmlu_dataset: DatasetDict = self.mmlu_dataset.map(
             function=partial(
@@ -160,7 +170,9 @@ class MMLUValidationCallback(pl.Callback):
             tokenizer=self.tokenizer,
         )
         return DataLoader(
-            self.mmlu_dataset["validation"].remove_columns(["subject", "input", "output"]),
+            self.mmlu_dataset["validation"].remove_columns(
+                ["subject", "input", "output"]
+            ),
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
@@ -179,14 +191,18 @@ class MMLUValidationCallback(pl.Callback):
             collate_fn=data_collator,
         )
 
-    def on_validation_epoch_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+    def on_validation_epoch_start(
+        self, trainer: pl.Trainer, pl_module: pl.LightningModule
+    ) -> None:
         if torch.cuda.current_device() != 0:
             return
         data_loader = self._val_dataloader()
         pl_module.model.eval()
         loss_mmlu = 0.0
         preds, refs = [], []
-        for batch_idx, batch in enumerate(tqdm(data_loader, total=len(data_loader), desc="Validating MMLU")):
+        for batch_idx, batch in enumerate(
+            tqdm(data_loader, total=len(data_loader), desc="Validating MMLU")
+        ):
             input_ids = batch["input_ids"].to(pl_module.model.device)
             attention_mask = batch["attention_mask"].to(pl_module.model.device)
             labels = batch["labels"].to(pl_module.model.device)
@@ -207,27 +223,26 @@ class MMLUValidationCallback(pl.Callback):
                 logit_abcd = logit[label_non_zero_ids[0][0] - 1][self.abcd_idx]
                 preds.append(torch.argmax(logit_abcd).item())
             labels = labels[labels != self.IGNORE_INDEX].view(-1, 1)[:, 0]
-            refs += [self.abcd_idx.index(label) for label in labels.tolist()]
+            refs += [self.abcd_idx.index(label) if label != 4 else 4 for label in labels.tolist()]
             loss_mmlu += loss.item()
 
-        results = {'mmlu_loss': loss_mmlu / len(data_loader)}
+        results = {"mmlu_loss": loss_mmlu / len(data_loader)}
 
-        subject = self.mmlu_dataset["validation"]['subject']
-        subjects = {SUBJECTS[s]: {'refs': [], 'preds': []} for s in set(subject)}
+        subject = self.mmlu_dataset["validation"]["subject"]
+        subjects = {SUBJECTS[s]: {"refs": [], "preds": []} for s in set(subject)}
         for s, p, r in zip(subject, preds, refs):
-            subjects[SUBJECTS[s]]['preds'].append(p)
-            subjects[SUBJECTS[s]]['refs'].append(r)
+            subjects[SUBJECTS[s]]["preds"].append(p)
+            subjects[SUBJECTS[s]]["refs"].append(r)
 
         accuracy = evaluate.load("accuracy")
         subject_scores = []
         for s in subjects:
             subject_score = accuracy.compute(
-                references=subjects[s]['refs'],
-                predictions=subjects[s]['preds']
-            )['accuracy']
-            results[f'mmlu_val_acc_{s}'] = subject_score
+                references=subjects[s]["refs"], predictions=subjects[s]["preds"]
+            )["accuracy"]
+            results[f"mmlu_val_acc_{s}"] = subject_score
             subject_scores.append(subject_score)
-        results[f'mmlu_val_acc'] = accuracy.compute(
+        results[f"mmlu_val_acc"] = accuracy.compute(
             references=refs,
             predictions=preds,
         )["accuracy"]

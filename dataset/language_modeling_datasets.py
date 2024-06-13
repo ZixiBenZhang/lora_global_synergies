@@ -13,7 +13,10 @@ from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 import transformers
 from transformers import DataCollatorForLanguageModeling
-from transformers.data.data_collator import pad_without_fast_tokenizer_warning, _torch_collate_batch
+from transformers.data.data_collator import (
+    pad_without_fast_tokenizer_warning,
+    _torch_collate_batch,
+)
 
 from dataset.dataset_info_util import add_dataset_info
 

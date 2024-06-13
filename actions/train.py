@@ -60,7 +60,7 @@ def train(
         }
         best_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
-            filename=f"best_chkpt-{mmlu_mode}"+"-{epoch}",
+            filename=f"best_chkpt-{mmlu_mode}" + "-{epoch}",
             save_top_k=1 if mmlu_mode is None else -1,
             monitor=task_metric[task][0],
             mode=task_metric[task][1],
@@ -68,7 +68,7 @@ def train(
         )
         latest_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
-            filename=f"last_chkpt-{mmlu_mode}"+"-{epoch}",
+            filename=f"last_chkpt-{mmlu_mode}" + "-{epoch}",
             # save_last=True,
         )
         # Monitoring lr for the lr_scheduler
@@ -89,8 +89,7 @@ def train(
     # MMLU validation callback
     if mmlu_mode is not None:
         mmlu_val_callback = MMLUValidationCallback(
-            **mmlu_args,
-            few_shot=(mmlu_mode == "fs")
+            **mmlu_args, few_shot=(mmlu_mode == "fs")
         )
         pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
 
