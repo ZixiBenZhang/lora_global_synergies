@@ -13,7 +13,7 @@ from transformers import (
     OPTForSequenceClassification,
     OPTForCausalLM,
     GemmaConfig,
-    GemmaTokenizer,
+    GemmaTokenizer, AutoTokenizer,
 )
 
 from models.configuration_gemma_lora import GemmaLoraConfig
@@ -324,7 +324,7 @@ MANUAL_MODELS = {
     },
     "llama3_lora_ags": {
         "config_cls": LlamaLoraAgsConfig,
-        "tokenizer_cls": LlamaTokenizer,
+        "tokenizer_cls": AutoTokenizer,
         "info": AgsModelInfo(
             "llama3_lora_ags",
             model_source="manual",
