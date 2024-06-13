@@ -39,7 +39,7 @@ lora_dropout = 0.0
 adapter_name = "ags-network"
 disable_adapter = true
 
-[all_layers.up]
+[all_layers.w1]
 # disabled
 r = 0
 lora_alpha = 16
@@ -55,7 +55,7 @@ lora_dropout = 0.0
 adapter_name = "ags-network"
 disable_adapter = true
 
-[all_layers.down]
+[all_layers.w2]
 # disabled
 r = 0
 lora_alpha = 16

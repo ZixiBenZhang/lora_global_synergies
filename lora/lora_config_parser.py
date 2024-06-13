@@ -103,6 +103,8 @@ def parse_by_network(
         p_config[layer_entry]["w1"] = create_a_mat_config(all_layer_w1_lc, default_lc)
         all_layer_w2_lc: dict = config.get("all_layers", {}).get("w2", None)
         p_config[layer_entry]["w2"] = create_a_mat_config(all_layer_w2_lc, default_lc)
+        all_layer_gate_lc: dict = config.get("all_layers", {}).get("gate", None)
+        p_config[layer_entry]["gate"] = create_a_mat_config(all_layer_gate_lc, default_lc)
 
     p_config["default"] = default_lc
     return p_config
@@ -144,6 +146,8 @@ def parse_by_layer(
         p_config[layer_entry]["w1"] = create_a_mat_config(layer_w1_lc, default_lc)
         layer_w2_lc: dict = config.get(layer_entry, {}).get("w2", None)
         p_config[layer_entry]["w2"] = create_a_mat_config(layer_w2_lc, default_lc)
+        layer_gate_lc: dict = config.get(layer_entry, {}).get("gate", None)
+        p_config[layer_entry]["gate"] = create_a_mat_config(layer_gate_lc, default_lc)
 
     p_config["default"] = default_lc
     return p_config
