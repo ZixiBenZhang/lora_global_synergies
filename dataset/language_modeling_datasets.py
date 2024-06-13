@@ -251,6 +251,7 @@ class LanguageModelingDatasetAlpaca(LanguageModelingDatasetBase):
             special_tokens_dict["bos_token"] = "<s>"
         if self.tokenizer.unk_token is None:
             special_tokens_dict["unk_token"] = "<unk>"
+        self.tokenizer.add_special_tokens(special_tokens_dict)
 
         dataset_dict.map(
             function=partial(
