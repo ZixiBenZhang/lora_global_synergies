@@ -17,6 +17,7 @@ from transformers import (
 )
 
 from models.configuration_gemma_lora import GemmaLoraConfig
+from models.configuration_llama_lora_ags import LlamaLoraAgsConfig
 from models.configuration_opt_lora import OPTLoraConfig
 from models.configuration_opt_lora_ags import (
     OPTLoraAgsConfig,
@@ -26,6 +27,7 @@ from models.modeling_gemma_lora import (
     GemmaLoraForSequenceClassification,
     GemmaLoraForCausalLM,
 )
+from models.modeling_llama_lora_ags import LlamaLoraAgsForSequenceClassification, LlamaLoraAgsForCausalLM
 from models.modeling_opt_lora import (
     OPTLoraForSequenceClassification,
     OPTLoraForCausalLM,
@@ -319,6 +321,21 @@ MANUAL_MODELS = {
         ),
         "sequence_classification": OPTLoraAgsForSequenceClassification,
         "causal_LM": OPTLoraAgsForCausalLM,
+    },
+    "llama3_lora_ags": {
+        "config_cls": LlamaLoraAgsConfig,
+        "tokenizer_cls": LlamaTokenizer,
+        "info": AgsModelInfo(
+            "llama3_lora_ags",
+            model_source="manual",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+            is_lora=True,
+            is_ags=True,
+        ),
+        "sequence_classification": LlamaLoraAgsForSequenceClassification,
+        "causal_LM": LlamaLoraAgsForCausalLM,
     },
 }
 
