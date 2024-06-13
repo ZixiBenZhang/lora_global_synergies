@@ -230,6 +230,6 @@ class MMLUValidationCallback(pl.Callback):
         results[f'mmlu_val_acc'] = accuracy.compute(
             references=refs,
             predictions=preds,
-        )
+        )["accuracy"]
 
         pl_module.log_dict(results)
