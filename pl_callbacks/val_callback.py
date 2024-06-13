@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from transformers import PreTrainedTokenizer, DataCollatorForLanguageModeling
 
-from dataset.language_modeling_datasets import DataCollatorForCausalLM, DataCollatorForCausalLMAlpaca
+from dataset.language_modeling_datasets import DataCollatorForCausalLMAlpaca
 
 
 class MMLUValidationCallback(pl.Callback):
@@ -98,7 +98,6 @@ class MMLUValidationCallback(pl.Callback):
     def _val_dataloader(self):
         data_collator = DataCollatorForCausalLMAlpaca(
             tokenizer=self.tokenizer,
-            # mlm=False,
         )
         return DataLoader(
             self.mmlu_dataset["validation"].remove_columns(["subject", "input", "output"]),
@@ -109,9 +108,8 @@ class MMLUValidationCallback(pl.Callback):
         )
 
     def _test_dataloader(self):
-        data_collator = DataCollatorForCausalLM(
+        data_collator = DataCollatorForCausalLMAlpaca(
             tokenizer=self.tokenizer,
-            mlm=False,
         )
         return DataLoader(
             self.mmlu_dataset["test"].remove_columns(["subject", "input", "output"]),
@@ -122,26 +120,31 @@ class MMLUValidationCallback(pl.Callback):
         )
 
     def on_validation_epoch_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
-        if pl_module.device != "cuda:0":
+        if torch.cuda.current_device() != 0:
             return
         data_loader = self._val_dataloader()
         pl_module.model.eval()
         loss_mmlu = 0.0
         preds, refs = [], []
         for batch_idx, batch in enumerate(tqdm(data_loader, total=len(data_loader), desc="Validating MMLU")):
-            # batch["attention_mask"] = batch["input_ids"].ne(self.tokenizer.pad_token_id)
-            outputs = pl_module.predict_step(batch=batch, batch_idx=batch_idx)
+            input_ids = batch["input_ids"].to(pl_module.model.device)
+            attention_mask = batch["attention_mask"].to(pl_module.model.device)
+            labels = batch["labels"].to(pl_module.model.device)
+
+            outputs = pl_module.forward(input_ids, attention_mask, labels)
+            loss, logits = outputs["loss"], outputs["logits"]
+
             # loss: (float) batch_size * seq_len
             # logits: (float) batch_size * seq_len * vocab_size
             # labels: (int) batch_size * seq_len
-            loss, logits, labels = outputs["loss"], outputs["logits"], batch["labels"]
             for i, logit in enumerate(logits):
-                label_non_zero_id = (labels[i] != self.IGNORE_INDEX).nonzero()[0][0]
-                logit_abcd = logit[label_non_zero_id - 1][self.abcd_idx]
+                label_non_zero_ids = (labels[i] != self.IGNORE_INDEX).nonzero()
+                if len(label_non_zero_ids) == 0:  # answer was truncated
+                    preds.append(5)  # regard as wrong prediction
+                    continue
+                logit_abcd = logit[label_non_zero_ids[0][0] - 1][self.abcd_idx]
                 preds.append(torch.argmax(logit_abcd).item())
-            # There are two tokens, the output, and eos token.
-            # todo: to be tested, is view(-1,2) needed?
-            labels = labels[labels != self.IGNORE_INDEX].view(-1, 2)[:, 0]
+            labels = labels[labels != self.IGNORE_INDEX].view(-1, 1)[:, 0]
             refs += [self.abcd_idx.index(label) for label in labels.tolist()]
             loss_mmlu += loss.item()
 

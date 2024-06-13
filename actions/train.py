@@ -66,6 +66,7 @@ def train(
             mode=task_metric[task][1] if mmlu_mode is None else "max",
             # save_last=True,
         )
+        # todo: debugged, to be checked: can't monitor ”mmlu_val_acc“
         latest_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
             filename="last_chkpt-{epoch}",
@@ -92,7 +93,7 @@ def train(
             **mmlu_args,
             few_shot=(mmlu_mode == "fs")
         )
-        pl_trainer_args["callbacks"].append(mmlu_val_callback)
+        pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
 
     # Validation metrics history, for hyperparameter search
     val_history = ValidationMetricsCallback()
