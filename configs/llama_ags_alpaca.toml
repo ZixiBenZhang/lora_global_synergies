@@ -10,7 +10,6 @@ weight_decay = 0.01
 max_epochs = 2
 batch_size = 8
 log_every_n_steps = 20
-mmlu_mode = "zs"
 # torch lightning
 task = "causal_language_modeling"
 num_workers = 42

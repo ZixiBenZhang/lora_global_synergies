@@ -85,19 +85,24 @@ class LlamaLoraAgsMLP(nn.Module):
         self.config = config
         self.hidden_size = config.hidden_size
         self.intermediate_size = config.intermediate_size
-        self.gate_proj = nn.Linear(self.hidden_size, self.intermediate_size, bias=config.mlp_bias)
         layer_lora_config = config.lora_config[f"model_layer_{layer_idx}"]
         self.up_proj = LoraLinear(
             self.hidden_size,
             self.intermediate_size,
             bias=config.mlp_bias,
-            config=layer_lora_config["w1"],
+            config=layer_lora_config["up"],
+        )
+        self.gate_proj = LoraLinear(
+            self.hidden_size,
+            self.intermediate_size,
+            bias=config.mlp_bias,
+            config=layer_lora_config["gate"]
         )
         self.down_proj = LoraLinear(
             self.intermediate_size,
             self.hidden_size,
             bias=config.mlp_bias,
-            config=layer_lora_config["w2"],
+            config=layer_lora_config["down"],
         )
         self.act_fn = ACT2FN[config.hidden_act]
 
