@@ -12,4 +12,4 @@
 source ~/torch/bin/activate
 
 srun python -m main train --config ./configs/opt_lora_alpaca-mmlu-zs_350m.toml \
---learning-rate 1e-4 --max-token-len 2048 --seed 0
+--learning-rate 1e-4 --max-token-len 1024 --seed 0
