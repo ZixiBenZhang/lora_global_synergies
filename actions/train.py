@@ -60,16 +60,15 @@ def train(
         }
         best_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
-            filename="best_chkpt-{epoch}",
-            save_top_k=1,
-            monitor=task_metric[task][0] if mmlu_mode is None else "mmlu_val_acc",
-            mode=task_metric[task][1] if mmlu_mode is None else "max",
+            filename=f"best_chkpt-{mmlu_mode}"+"-{epoch}",
+            save_top_k=1 if mmlu_mode is None else -1,
+            monitor=task_metric[task][0],
+            mode=task_metric[task][1],
             # save_last=True,
         )
-        # todo: debugged, to be checked: can't monitor ”mmlu_val_acc“
         latest_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
-            filename="last_chkpt-{epoch}",
+            filename=f"last_chkpt-{mmlu_mode}"+"-{epoch}",
             # save_last=True,
         )
         # Monitoring lr for the lr_scheduler

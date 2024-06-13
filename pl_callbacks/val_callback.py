@@ -13,6 +13,66 @@ from transformers import PreTrainedTokenizer, DataCollatorForLanguageModeling
 
 from dataset.language_modeling_datasets import DataCollatorForCausalLMAlpaca
 
+SUBJECTS = {
+    "abstract_algebra": "stem",
+    "anatomy": "stem",
+    "astronomy": "stem",
+    "business_ethics": "other",
+    "clinical_knowledge": "other",
+    "college_biology": "stem",
+    "college_chemistry": "stem",
+    "college_computer_science": "stem",
+    "college_mathematics": "stem",
+    "college_medicine": "other",
+    "college_physics": "stem",
+    "computer_security": "stem",
+    "conceptual_physics": "stem",
+    "econometrics": "social_sciences",
+    "electrical_engineering": "stem",
+    "elementary_mathematics": "stem",
+    "formal_logic": "humanities",
+    "global_facts": "other",
+    "high_school_biology": "stem",
+    "high_school_chemistry": "stem",
+    "high_school_computer_science": "stem",
+    "high_school_european_history": "humanities",
+    "high_school_geography": "social_sciences",
+    "high_school_government_and_politics": "social_sciences",
+    "high_school_macroeconomics": "social_sciences",
+    "high_school_mathematics": "stem",
+    "high_school_microeconomics": "social_sciences",
+    "high_school_physics": "stem",
+    "high_school_psychology": "social_sciences",
+    "high_school_statistics": "stem",
+    "high_school_us_history": "humanities",
+    "high_school_world_history": "humanities",
+    "human_aging": "other",
+    "human_sexuality": "social_sciences",
+    "international_law": "humanities",
+    "jurisprudence": "humanities",
+    "logical_fallacies": "humanities",
+    "machine_learning": "stem",
+    "management": "other",
+    "marketing": "other",
+    "medical_genetics": "other",
+    "miscellaneous": "other",
+    "moral_disputes": "humanities",
+    "moral_scenarios": "humanities",
+    "nutrition": "other",
+    "philosophy": "humanities",
+    "prehistory": "humanities",
+    "professional_accounting": "other",
+    "professional_law": "humanities",
+    "professional_medicine": "other",
+    "professional_psychology": "social_sciences",
+    "public_relations": "social_sciences",
+    "security_studies": "social_sciences",
+    "sociology": "social_sciences",
+    "us_foreign_policy": "social_sciences",
+    "virology": "other",
+    "world_religions": "humanities",
+}
+
 
 class MMLUValidationCallback(pl.Callback):
     IGNORE_INDEX = -100
@@ -140,7 +200,9 @@ class MMLUValidationCallback(pl.Callback):
             for i, logit in enumerate(logits):
                 label_non_zero_ids = (labels[i] != self.IGNORE_INDEX).nonzero()
                 if len(label_non_zero_ids) == 0:  # answer was truncated
-                    preds.append(5)  # regard as wrong prediction
+                    # regard as wrong prediction
+                    preds.append(5)
+                    labels[i][0] = 4
                     continue
                 logit_abcd = logit[label_non_zero_ids[0][0] - 1][self.abcd_idx]
                 preds.append(torch.argmax(logit_abcd).item())
@@ -150,7 +212,7 @@ class MMLUValidationCallback(pl.Callback):
 
         results = {'mmlu_loss': loss_mmlu / len(data_loader)}
 
-        subject = self.mmlu_dataset["validation"]['subject']
+        subject = SUBJECTS[self.mmlu_dataset["validation"]['subject']]
         subjects = {s: {'refs': [], 'preds': []} for s in set(subject)}
         for s, p, r in zip(subject, preds, refs):
             subjects[s]['preds'].append(p)
@@ -158,13 +220,16 @@ class MMLUValidationCallback(pl.Callback):
 
         accuracy = evaluate.load("accuracy")
         subject_scores = []
-        for subject in subjects:
+        for s in subjects:
             subject_score = accuracy.compute(
-                references=subjects[subject]['refs'],
-                predictions=subjects[subject]['preds']
+                references=subjects[s]['refs'],
+                predictions=subjects[s]['preds']
             )['accuracy']
-            results[f'mmlu_val_acc_{subject}'] = subject_score
+            results[f'mmlu_val_acc_{s}'] = subject_score
             subject_scores.append(subject_score)
-        results[f'mmlu_val_acc'] = np.mean(subject_scores)
+        results[f'mmlu_val_acc'] = accuracy.compute(
+            references=refs,
+            predictions=preds,
+        )
 
         pl_module.log_dict(results)
