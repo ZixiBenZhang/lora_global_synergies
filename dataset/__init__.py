@@ -197,7 +197,7 @@ def get_split_names(
                 )
     elif path == "alpaca":
         # validation set split from training set by LanguageModelingDatasetAlpaca
-        return ["train", "validation"]
+        return ["train", "validation", "test"]
     elif path == "alpaca-cleaned":
         return ["train", "validation"]
     elif path == "lambada":
