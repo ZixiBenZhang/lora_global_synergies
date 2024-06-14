@@ -248,3 +248,59 @@ class MMLUValidationCallback(pl.Callback):
         )["accuracy"]
 
         pl_module.log_dict(results)
+
+    def on_test_epoch_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+        if torch.cuda.current_device() != 0:
+            return
+        data_loader = self._test_dataloader()
+        pl_module.model.eval()
+        loss_mmlu = 0.0
+        preds, refs = [], []
+        for batch_idx, batch in enumerate(
+            tqdm(data_loader, total=len(data_loader), desc="Testing MMLU")
+        ):
+            input_ids = batch["input_ids"].to(pl_module.model.device)
+            attention_mask = batch["attention_mask"].to(pl_module.model.device)
+            labels = batch["labels"].to(pl_module.model.device)
+
+            outputs = pl_module.forward(input_ids, attention_mask, labels)
+            loss, logits = outputs["loss"], outputs["logits"]
+
+            # loss: (float) batch_size * seq_len
+            # logits: (float) batch_size * seq_len * vocab_size
+            # labels: (int) batch_size * seq_len
+            for i, logit in enumerate(logits):
+                label_non_zero_ids = (labels[i] != self.IGNORE_INDEX).nonzero()
+                if len(label_non_zero_ids) == 0:  # answer was truncated
+                    # regard as wrong prediction
+                    preds.append(5)
+                    labels[i][0] = 4
+                    continue
+                logit_abcd = logit[label_non_zero_ids[0][0] - 1][self.abcd_idx]
+                preds.append(torch.argmax(logit_abcd).item())
+            labels = labels[labels != self.IGNORE_INDEX].view(-1, 1)[:, 0]
+            refs += [self.abcd_idx.index(label) if label != 4 else 4 for label in labels.tolist()]
+            loss_mmlu += loss.item()
+
+        results = {"mmlu_loss": loss_mmlu / len(data_loader)}
+
+        subject = self.mmlu_dataset["test"]["subject"]
+        subjects = {SUBJECTS[s]: {"refs": [], "preds": []} for s in set(subject)}
+        for s, p, r in zip(subject, preds, refs):
+            subjects[SUBJECTS[s]]["preds"].append(p)
+            subjects[SUBJECTS[s]]["refs"].append(r)
+
+        accuracy = evaluate.load("accuracy")
+        subject_scores = []
+        for s in subjects:
+            subject_score = accuracy.compute(
+                references=subjects[s]["refs"], predictions=subjects[s]["preds"]
+            )["accuracy"]
+            results[f"mmlu_test_acc_{s}"] = subject_score
+            subject_scores.append(subject_score)
+        results[f"mmlu_test_acc"] = accuracy.compute(
+            references=refs,
+            predictions=preds,
+        )["accuracy"]
+
+        pl_module.log_dict(results)

@@ -156,6 +156,20 @@ def main():
                 "strategy": args.strategy,
             }
 
+            ags_config_paths = {
+                "lora_config": args.lora_config,
+                "shortcut_config": args.shortcut_config,
+            }
+
+            mmlu_args = {
+                "batch_size": args.batch_size * args.num_devices,
+                "tokenizer": tokenizer,
+                "max_token_len": args.max_token_len,
+                "num_workers": args.num_workers,
+                "load_from_cache_file": not args.disable_dataset_cache,
+                "load_from_saved_path": args.dataset_saved_path,
+            }
+
             # The checkpoint must be present, except when the model is pretrained.
             if args.load_name is None and not args.is_pretrained:
                 raise ValueError("expected checkpoint via --load, got None")
@@ -175,7 +189,10 @@ def main():
                 "save_path": os.path.join(output_dir, "checkpoints"),
                 "load_name": args.load_name,
                 "load_type": args.load_type,
-                "alpha": args.alpha,
+                "ags_config_paths": ags_config_paths,
+                "seed": args.seed,
+                "mmlu_mode": args.mmlu_mode,
+                "mmlu_args": mmlu_args,
             }
 
             actions.test(**test_params)

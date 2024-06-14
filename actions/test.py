@@ -9,6 +9,7 @@ from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger
 
 import pl_model_wrapper
+from pl_callbacks.val_callback import MMLUValidationCallback
 from tools.checkpoint_load import load_model_chkpt
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,10 @@ def test(
     save_path,  # path for saving checkpoints
     load_name,  # path to the saved checkpoint
     load_type,  # model checkpoint's type: ['pt', 'pl']
-    alpha,  # coefficient alpha for alpha testing
+    ags_config_paths,  # for logging in Tensorboard
+    seed,  # for logging in Tensorboard
+    mmlu_mode,  # zero-shot/few-shot for MMLU in validation
+    mmlu_args,  # arguments for MMLUValidationCallback
 ):
     t = time.strftime("%H-%M")
 
@@ -37,8 +41,17 @@ def test(
         if not os.path.isdir(save_path):
             os.makedirs(save_path)
         tb_logger = TensorBoardLogger(save_dir=save_path, name="logs_test")
+        tb_logger.log_hyperparams(ags_config_paths)
+        tb_logger.log_hyperparams({"seed": seed})
         pl_trainer_args["callbacks"] = []
         pl_trainer_args["logger"] = tb_logger
+
+    # MMLU validation callback
+    if mmlu_mode is not None:
+        mmlu_val_callback = MMLUValidationCallback(
+            **mmlu_args, few_shot=(mmlu_mode == "fs")
+        )
+        pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
 
     if auto_requeue is not None:
         plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
@@ -57,10 +70,8 @@ def test(
         )
     model = load_model_chkpt(load_name, load_type=load_type, model=model)
 
-    # if load_type != "pl":
-    #     raise ValueError("Load-type pl is required for resuming training. Please use --load-type pl.")
     logger.warning(
-        f"Restore model state from pl checkpoint {load_name}. Entered hyperparameter configuration ignored."
+        f"Running test from pl checkpoint {load_name}. Entered hyperparameter configuration ignored."
     )
 
     pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)

@@ -197,7 +197,7 @@ class DataCollatorForCausalLMAlpaca:
 @add_dataset_info(
     name="alpaca",
     dataset_source="hf_datasets",
-    available_splits=("train", "validation"),
+    available_splits=("train", "validation", "test"),
     causal_LM=True,
     data_collator_cls=DataCollatorForCausalLMAlpaca,
 )
@@ -272,6 +272,7 @@ class LanguageModelingDatasetAlpaca(LanguageModelingDatasetBase):
             {
                 "train": dataset_dict["train"],
                 "validation": dataset_dict["test"],
+                "test": dataset_dict["test"],
             }
         )
         dataset_dict = dataset_dict.map(
