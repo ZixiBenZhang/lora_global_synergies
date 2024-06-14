@@ -47,7 +47,7 @@ def run_evaluate_harness_downstream(
         model,
         tasks=eval_config["datasets"],
         num_fewshot=eval_config.get("num_fewshot", 0),
-        no_cache=eval_config.get("no_cache", True),
+        use_cache=not eval_config.get("no_cache", False),
         batch_size=eval_config.get("batch_size", None),
     )
 
