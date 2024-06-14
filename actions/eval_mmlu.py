@@ -23,6 +23,7 @@ def run_evaluate_harness_downstream(
         save_path,  # path for saving checkpoints
         eval_config: dict,
 ):
+    logger.warning("Running MMLU testing")
     # Load model from checkpoint
     if load_name is None:
         raise ValueError(
