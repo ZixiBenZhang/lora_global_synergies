@@ -6,10 +6,10 @@ from transformers import (
     RobertaTokenizer,
     OPTConfig,
     GPT2Tokenizer,
-    LlamaConfig,
-    LlamaTokenizer,
-    LlamaForSequenceClassification,
-    LlamaForCausalLM,
+    # LlamaConfig,
+    # LlamaTokenizer,
+    # LlamaForSequenceClassification,
+    # LlamaForCausalLM,
     OPTForSequenceClassification,
     OPTForCausalLM,
     GemmaConfig,
@@ -239,19 +239,19 @@ HF_NLP_MODELS = {
 }
 
 MANUAL_MODELS = {
-    "llama_plain": {
-        "config_cls": LlamaConfig,
-        "tokenizer_cls": LlamaTokenizer,
-        "info": AgsModelInfo(
-            "llama_plain",
-            model_source="manual",
-            task_type="nlp",
-            sequence_classification=True,
-            causal_LM=True,
-        ),
-        "sequence_classification": LlamaForSequenceClassification,
-        "causal_LM": LlamaForCausalLM,
-    },
+    # "llama_plain": {
+    #     "config_cls": LlamaConfig,
+    #     "tokenizer_cls": LlamaTokenizer,
+    #     "info": AgsModelInfo(
+    #         "llama_plain",
+    #         model_source="manual",
+    #         task_type="nlp",
+    #         sequence_classification=True,
+    #         causal_LM=True,
+    #     ),
+    #     "sequence_classification": LlamaForSequenceClassification,
+    #     "causal_LM": LlamaForCausalLM,
+    # },
     "opt_plain": {
         "config_cls": OPTConfig,
         "tokenizer_cls": GPT2Tokenizer,

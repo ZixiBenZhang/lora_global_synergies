@@ -4,7 +4,6 @@ datasets
 evaluate
 lightning
 tensorboard
-optuna
 tabulate
 toml
 sentencepiece
