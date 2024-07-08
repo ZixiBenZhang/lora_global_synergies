@@ -166,9 +166,25 @@ class DynamicLoraReallocationCallback(pl.Callback):
         self.num_devices = trainer.num_devices
 
     def _get_importance_test(self) -> Callable:
-        raise ValueError(
-            f"Importance test for Lora-only Llama is not supported"
-        )
+        match self.importance_test_name:
+            case "alpha_test":
+                raise NotImplementedError
+            case "constant":
+                return self._const_test
+            case "grad_norm":
+                return self._grad_norm_test
+            case "snip":
+                return self._snip_test
+            case "synflow":
+                return self._synflow_test
+            case "fisher":
+                raise NotImplementedError
+            case "jacob_cov":
+                raise NotImplementedError
+            case _:
+                raise ValueError(
+                    f"Unsupported importance test {self.importance_test_name}"
+                )
 
     def _get_ags_importance_test(self) -> Callable:
         match self.importance_test_name:
