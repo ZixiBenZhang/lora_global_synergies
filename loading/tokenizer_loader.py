@@ -1,7 +1,10 @@
+import logging
 from os import PathLike
 from transformers import AutoTokenizer
 
 from models.model_info import get_model_info, ModelSource, MANUAL_MODELS
+
+logger = logging.getLogger(__name__)
 
 
 def get_tokenizer(name: str, checkpoint: str | PathLike = None):
@@ -20,7 +23,11 @@ def get_tokenizer(name: str, checkpoint: str | PathLike = None):
 
 
 def get_hf_model_tokenizer(name: str, checkpoint: str | PathLike = None):
-    return AutoTokenizer.from_pretrained(name if checkpoint is None else checkpoint)
+    tokenizer = AutoTokenizer.from_pretrained(name if checkpoint is None else checkpoint)
+    if "llama" in name:
+        tokenizer.pad_token = tokenizer.eos_token
+        logger.warning("Setting pad_token as eos_token")
+    return tokenizer
 
 
 def get_manual_model_tokenizer(name: str, checkpoint: str | PathLike = None):
