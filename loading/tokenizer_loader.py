@@ -33,6 +33,10 @@ def get_hf_model_tokenizer(name: str, checkpoint: str | PathLike = None):
 def get_manual_model_tokenizer(name: str, checkpoint: str | PathLike = None):
     if name not in MANUAL_MODELS:
         raise ValueError(f"Manual model {name} is not supported")
-    return MANUAL_MODELS[name]["tokenizer_cls"].from_pretrained(
+    tokenizer = MANUAL_MODELS[name]["tokenizer_cls"].from_pretrained(
         name if checkpoint is None else checkpoint
     )
+    if "llama" in name:
+        tokenizer.pad_token = tokenizer.eos_token
+        logger.warning("Setting pad_token as eos_token")
+    return tokenizer
