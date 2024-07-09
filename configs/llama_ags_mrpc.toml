@@ -1,5 +1,5 @@
 # basics
-model = "llama3_lora_ags"
+model = "llama_lora_ags"
 dataset = "mrpc"
 load_name = "meta-llama/Meta-Llama-3-8B"
 load_type = "hf"

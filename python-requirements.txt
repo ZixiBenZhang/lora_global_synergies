@@ -7,3 +7,5 @@ tensorboard
 tabulate
 toml
 sentencepiece
+wandb
+lm_eval
