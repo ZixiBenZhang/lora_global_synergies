@@ -216,7 +216,6 @@ class MMLUValidationCallback(pl.Callback):
             # loss: (float) batch_size * seq_len
             # logits: (float) batch_size * seq_len * vocab_size
             # labels: (int) batch_size * seq_len
-            logger.warning(self.abcd_idx)
             for i, logit in enumerate(logits):
                 label_non_zero_ids = (labels[i] != self.IGNORE_INDEX).nonzero()
                 if len(label_non_zero_ids) == 0:  # if answer was truncated
