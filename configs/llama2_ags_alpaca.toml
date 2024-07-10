@@ -1,0 +1,22 @@
+# basics
+model = "llama_lora_ags"
+dataset = "alpaca"
+load_name = "meta-llama/Llama-2-7b-hf"
+load_type = "hf"
+# training
+training_optimizer = "adamw"
+learning_rate = 1e-4
+weight_decay = 0.01
+max_epochs = 2
+batch_size = 8
+log_every_n_steps = 20
+# torch lightning
+task = "causal_language_modeling"
+num_workers = 42
+num_devices = 2
+#accelerator = "cpu"
+# language model options
+is_pretrained = true
+project_dir = "./ags_output"
+lora_config = "./configs/lora/lora-llama_networkwise.toml"
+shortcut_config = "./configs/shortcut/ags_networkwise.toml"
