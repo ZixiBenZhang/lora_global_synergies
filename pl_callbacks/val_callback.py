@@ -101,10 +101,10 @@ class MMLUValidationCallback(pl.Callback):
         self.mmlu_dataset = None
 
         self.abcd_idx = [
-            tokenizer("A", add_special_tokens=False).input_ids[0],
-            tokenizer("B", add_special_tokens=False).input_ids[0],
-            tokenizer("C", add_special_tokens=False).input_ids[0],
-            tokenizer("D", add_special_tokens=False).input_ids[0],
+            tokenizer.convert_tokens_to_ids("A"),
+            tokenizer.convert_tokens_to_ids("B"),
+            tokenizer.convert_tokens_to_ids("C"),
+            tokenizer.convert_tokens_to_ids("D"),
         ]
 
     def _download_dataset(self):
@@ -219,7 +219,7 @@ class MMLUValidationCallback(pl.Callback):
             logger.warning(self.abcd_idx)
             for i, logit in enumerate(logits):
                 label_non_zero_ids = (labels[i] != self.IGNORE_INDEX).nonzero()
-                if len(label_non_zero_ids) == 0:  # answer was truncated
+                if len(label_non_zero_ids) == 0:  # if answer was truncated
                     # regard as wrong prediction
                     preds.append(5)
                     labels[i][0] = 4
