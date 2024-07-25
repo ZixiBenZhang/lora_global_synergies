@@ -13,8 +13,8 @@ log_every_n_steps = 20
 mmlu_mode = "fs"
 # torch lightning
 task = "causal_language_modeling"
-num_workers = 7
-num_devices = 1
+num_workers = 32
+num_devices = 4
 #accelerator = "cpu"
 # language model options
 is_pretrained = true
