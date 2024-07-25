@@ -2,6 +2,7 @@ import copy
 import logging
 import math
 import os
+import time
 
 import torch
 import pytorch_lightning as pl
@@ -50,6 +51,8 @@ def train_dynamic_reallocation(
     ags_config_paths,  # for logging in Tensorboard
     seed,  # for logging in Tensorboard
 ):
+    t = time.strftime("%H-%M")
+
     metric_reduction_tolerance = importance_test_args["metric_reduction_tolerance"]
     limit_test_batches = importance_test_args["limit_test_batches"]
     realloc_N = dynamic_reallocation_args[
@@ -74,7 +77,7 @@ def train_dynamic_reallocation(
         }
         best_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
-            filename="best_chkpt",
+            filename=f"best_chkpt-{t}",
             save_top_k=1,
             monitor=task_metric[task][0],
             mode=task_metric[task][1],
@@ -82,7 +85,7 @@ def train_dynamic_reallocation(
         )
         latest_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
-            filename="last_chkpt",
+            filename=f"last_chkpt-{t}",
             # save_last=True,
         )
         # Monitoring lr for the lr_scheduler

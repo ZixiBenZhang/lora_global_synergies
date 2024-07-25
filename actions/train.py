@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 
 import torch
 import pytorch_lightning as pl
@@ -48,6 +49,8 @@ def train(
     mmlu_mode,  # zero-shot/few-shot for MMLU in validation
     mmlu_args,  # arguments for MMLUValidationCallback
 ):
+    t = time.strftime("%H-%M")
+
     if save_path is not None:  # if save_path is None, model won't be saved
         # setup callbacks
         if not os.path.isdir(save_path):
@@ -60,7 +63,7 @@ def train(
         }
         best_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
-            filename=f"best_chkpt-{mmlu_mode}" + "-{epoch}",
+            filename=f"best_chkpt-{mmlu_mode}" + "-{epoch}-" + t,
             save_top_k=1 if mmlu_mode is None else -1,
             monitor=task_metric[task][0],
             mode=task_metric[task][1],
@@ -68,7 +71,7 @@ def train(
         )
         latest_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
-            filename=f"last_chkpt-{mmlu_mode}" + "-{epoch}",
+            filename=f"last_chkpt-{mmlu_mode}" + "-{epoch}-" + t,
             # save_last=True,
         )
         # Monitoring lr for the lr_scheduler
