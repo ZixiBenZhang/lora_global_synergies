@@ -19,6 +19,6 @@ num_devices = 4
 #accelerator = "cpu"
 # language model options
 is_pretrained = true
-max_token_len = 1024
+max_token_len = 512
 project_dir = "./ags_output"
 lora_config = "./configs/lora/lora-llama_networkwise.toml"
