@@ -337,7 +337,7 @@ MANUAL_MODELS = {
     },
     "llama_lora": {
         "config_cls": LlamaLoraConfig,
-        "tokenizer_cls": AutoTokenizer,
+        "tokenizer_cls": LlamaTokenizer,
         "info": AgsModelInfo(
             "llama_lora",
             model_source="manual",
@@ -352,7 +352,7 @@ MANUAL_MODELS = {
     },
     "llama_lora_ags": {
         "config_cls": LlamaLoraAgsConfig,
-        "tokenizer_cls": AutoTokenizer,
+        "tokenizer_cls": LlamaTokenizer,
         "info": AgsModelInfo(
             "llama_lora_ags",
             model_source="manual",
