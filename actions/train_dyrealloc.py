@@ -16,6 +16,7 @@ from lora.lora_modules import (
 )
 from models.model_info import AgsModelInfo
 from pl_callbacks.dyrealloc_callback import DynamicLoraReallocationCallback
+from pl_callbacks.val_callback import MMLUValidationCallback
 from projectors.shortcut_modules import (
     update_ags_importance_beta_require_grad,
     reset_shortcut,
@@ -112,15 +113,15 @@ def train_dynamic_reallocation(
         alpha_pl_trainer_args["logger"] = [alpha_tb_logger]
 
     # MMLU validation callback
-    mmlu_val = None
+    # mmlu_val = None
     if mmlu_mode is not None:
-        # mmlu_val_callback = MMLUValidationCallback(
-        #     **mmlu_args, few_shot=(mmlu_mode == "fs")
-        # )
-        # pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
+        mmlu_val_callback = MMLUValidationCallback(
+            **mmlu_args, few_shot=(mmlu_mode == "fs")
+        )
+        pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
 
-        mmlu_val_getter, _ = setup_mmlu(**mmlu_args, few_shot=(mmlu_mode == "fs"))
-        mmlu_val = mmlu_val_getter()
+        # mmlu_val_getter, _ = setup_mmlu(**mmlu_args, few_shot=(mmlu_mode == "fs"))
+        # mmlu_val = mmlu_val_getter()
 
     if auto_requeue is not None:
         plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
@@ -221,7 +222,6 @@ def train_dynamic_reallocation(
         trainer.fit(
             pl_model,
             datamodule=data_module,
-            val_dataloaders=mmlu_val,
             ckpt_path=load_name,
         )
     else:
@@ -264,19 +264,9 @@ def train_dynamic_reallocation(
             eta_min=eta_min,  # for building lr scheduler
             epochs=pl_trainer_args["max_epochs"],
             optimizer=optimizer,
-        ) if mmlu_mode is None else wrapper_pl_model(
-            model,
-            dataset_info=dataset_info,
-            learning_rate=learning_rate,
-            weight_decay=weight_decay,
-            lr_scheduler=lr_scheduler,  # for building lr scheduler
-            eta_min=eta_min,  # for building lr scheduler
-            epochs=pl_trainer_args["max_epochs"],
-            optimizer=optimizer,
-            tokenizer=tokenizer,
         )
 
         trainer = pl.Trainer(**pl_trainer_args)
-        trainer.fit(pl_model, datamodule=data_module, val_dataloaders=mmlu_val)
+        trainer.fit(pl_model, datamodule=data_module)
 
     dynamic_reallocation_callback.save_reallocation_history()
