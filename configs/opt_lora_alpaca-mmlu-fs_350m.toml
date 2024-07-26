@@ -7,14 +7,14 @@ load_type = "hf"
 training_optimizer = "adamw"
 learning_rate = 1e-4
 weight_decay = 0.01
-max_epochs = 20
+max_epochs = 2
 batch_size = 4
 log_every_n_steps = 20
 mmlu_mode = "fs"
 # torch lightning
 task = "causal_language_modeling"
 num_workers = 42
-num_devices = 2
+num_devices = 1
 #accelerator = "cpu"
 # language model options
 is_pretrained = true
