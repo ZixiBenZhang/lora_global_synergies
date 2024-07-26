@@ -257,9 +257,9 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                     "k_proj": decoder_layer.self_attn.k_proj,
                     "v_proj": decoder_layer.self_attn.v_proj,
                     "o_proj": decoder_layer.self_attn.o_proj,
-                    "up_proj": decoder_layer.up_proj,
-                    "gate_proj": decoder_layer.gate_proj,
-                    "down_proj": decoder_layer.down_proj,
+                    "up_proj": decoder_layer.mlp.up_proj,
+                    "gate_proj": decoder_layer.mlp.gate_proj,
+                    "down_proj": decoder_layer.mlp.down_proj,
                 }
                 for proj_name, lora in lora_modules.items():
                     if (
@@ -389,9 +389,9 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                         "k_proj": decoder_layer.self_attn.k_proj,
                         "v_proj": decoder_layer.self_attn.v_proj,
                         "o_proj": decoder_layer.self_attn.o_proj,
-                        "up_proj": decoder_layer.up_proj,
-                        "gate_proj": decoder_layer.gate_proj,
-                        "down_proj": decoder_layer.down_proj,
+                        "up_proj": decoder_layer.mlp.up_proj,
+                        "gate_proj": decoder_layer.mlp.gate_proj,
+                        "down_proj": decoder_layer.mlp.down_proj,
                     }
                     for proj_name, lora in lora_modules.items():
                         if (
@@ -527,9 +527,9 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                         "k_proj": decoder_layer.self_attn.k_proj,
                         "v_proj": decoder_layer.self_attn.v_proj,
                         "o_proj": decoder_layer.self_attn.o_proj,
-                        "up_proj": decoder_layer.up_proj,
-                        "gate_proj": decoder_layer.gate_proj,
-                        "down_proj": decoder_layer.down_proj,
+                        "up_proj": decoder_layer.mlp.up_proj,
+                        "gate_proj": decoder_layer.mlp.gate_proj,
+                        "down_proj": decoder_layer.mlp.down_proj,
                     }
                     for proj_name, lora in lora_modules.items():
                         if (
@@ -627,9 +627,9 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                         "k_proj": decoder_layer.self_attn.k_proj,
                         "v_proj": decoder_layer.self_attn.v_proj,
                         "o_proj": decoder_layer.self_attn.o_proj,
-                        "up_proj": decoder_layer.up_proj,
-                        "gate_proj": decoder_layer.gate_proj,
-                        "down_proj": decoder_layer.down_proj,
+                        "up_proj": decoder_layer.mlp.up_proj,
+                        "gate_proj": decoder_layer.mlp.gate_proj,
+                        "down_proj": decoder_layer.mlp.down_proj,
                     }
 
                     for proj_name, lora in lora_modules.items():
@@ -674,9 +674,9 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                     "k_proj": decoder_layer.self_attn.k_proj,
                     "v_proj": decoder_layer.self_attn.v_proj,
                     "o_proj": decoder_layer.self_attn.o_proj,
-                    "up_proj": decoder_layer.up_proj,
-                    "gate_proj": decoder_layer.gate_proj,
-                    "down_proj": decoder_layer.down_proj,
+                    "up_proj": decoder_layer.mlp.up_proj,
+                    "gate_proj": decoder_layer.mlp.gate_proj,
+                    "down_proj": decoder_layer.mlp.down_proj,
                 }
                 for proj_name, lora in lora_modules.items():
                     if (
@@ -760,9 +760,9 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                 "k_proj": decoder_layer.self_attn.k_proj,
                 "v_proj": decoder_layer.self_attn.v_proj,
                 "o_proj": decoder_layer.self_attn.o_proj,
-                "up_proj": decoder_layer.up_proj,
-                "gate_proj": decoder_layer.gate_proj,
-                "down_proj": decoder_layer.down_proj,
+                "up_proj": decoder_layer.mlp.up_proj,
+                "gate_proj": decoder_layer.mlp.gate_proj,
+                "down_proj": decoder_layer.mlp.down_proj,
             }
             for proj_name, lora in lora_modules.items():
                 if (
@@ -989,9 +989,9 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                 "k_proj": decoder_layer.self_attn.k_proj,
                 "v_proj": decoder_layer.self_attn.v_proj,
                 "o_proj": decoder_layer.self_attn.o_proj,
-                "up_proj": decoder_layer.up_proj,
-                "gate_proj": decoder_layer.gate_proj,
-                "down_proj": decoder_layer.down_proj,
+                "up_proj": decoder_layer.mlp.up_proj,
+                "gate_proj": decoder_layer.mlp.gate_proj,
+                "down_proj": decoder_layer.mlp.down_proj,
             }
             original_forward[decoder_layer.layer_idx] = {}
             for proj_name, lora in lora_modules.items():
@@ -1039,9 +1039,9 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                 "k_proj": decoder_layer.self_attn.k_proj,
                 "v_proj": decoder_layer.self_attn.v_proj,
                 "o_proj": decoder_layer.self_attn.o_proj,
-                "up_proj": decoder_layer.up_proj,
-                "gate_proj": decoder_layer.gate_proj,
-                "down_proj": decoder_layer.down_proj,
+                "up_proj": decoder_layer.mlp.up_proj,
+                "gate_proj": decoder_layer.mlp.gate_proj,
+                "down_proj": decoder_layer.mlp.down_proj,
             }
             for proj_name, lora in lora_modules.items():
                 if (
@@ -1068,9 +1068,9 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                 "k_proj": decoder_layer.self_attn.k_proj,
                 "v_proj": decoder_layer.self_attn.v_proj,
                 "o_proj": decoder_layer.self_attn.o_proj,
-                "up_proj": decoder_layer.up_proj,
-                "gate_proj": decoder_layer.gate_proj,
-                "down_proj": decoder_layer.down_proj,
+                "up_proj": decoder_layer.mlp.up_proj,
+                "gate_proj": decoder_layer.mlp.gate_proj,
+                "down_proj": decoder_layer.mlp.down_proj,
             }
             for proj_name, lora in lora_modules.items():
                 if (
@@ -1171,9 +1171,9 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                 "k_proj": decoder_layer.self_attn.k_proj,
                 "v_proj": decoder_layer.self_attn.v_proj,
                 "o_proj": decoder_layer.self_attn.o_proj,
-                "up_proj": decoder_layer.up_proj,
-                "gate_proj": decoder_layer.gate_proj,
-                "down_proj": decoder_layer.down_proj,
+                "up_proj": decoder_layer.mlp.up_proj,
+                "gate_proj": decoder_layer.mlp.gate_proj,
+                "down_proj": decoder_layer.mlp.down_proj,
             }
             for proj_name, lora in lora_modules.items():
                 if (
