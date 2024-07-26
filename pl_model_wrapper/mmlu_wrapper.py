@@ -123,10 +123,10 @@ class NLPMMLULanguageModelingModelWrapper(NLPLanguageModelingModelWrapper):
         }
 
         self.abcd_idx = [
-            tokenizer.convert_tokens_to_ids("A"),
-            tokenizer.convert_tokens_to_ids("B"),
-            tokenizer.convert_tokens_to_ids("C"),
-            tokenizer.convert_tokens_to_ids("D"),
+            tokenizer.encode(" A")[1],
+            tokenizer.encode(" B")[1],
+            tokenizer.encode(" C")[1],
+            tokenizer.encode(" D")[1],
         ]
 
     def forward(self, input_ids, attention_mask=None, labels=None):

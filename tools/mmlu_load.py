@@ -52,7 +52,7 @@ def setup_mmlu(
         target = example["output"]
 
         prompt_tokenized = _tokenize(prompt, tokenizer, max_length)["input_ids"][0]
-        target_tokenized = _tokenize(prompt + target, tokenizer, max_length)[
+        target_tokenized = _tokenize(prompt + " " + target, tokenizer, max_length)[
             "input_ids"
         ][0]
         input_ids = copy.deepcopy(target_tokenized)
