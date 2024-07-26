@@ -3,21 +3,28 @@ model = "llama_lora_ags"
 dataset = "alpaca"
 load_name = "meta-llama/Meta-Llama-3-8B"
 load_type = "hf"
+precision = "16"
+# dyrealloc
+metric_red_tolerance = 0.025
+alpha_test_batch_num = 32
+realloc_N = 1.0
+turn_on_percentile = 0.33
 # training
 training_optimizer = "adamw"
 learning_rate = 1e-4
 weight_decay = 0.01
 max_epochs = 2
-batch_size = 1
+batch_size = 4
 log_every_n_steps = 20
 mmlu_mode = "zs"
 # torch lightning
 task = "causal_language_modeling"
-num_workers = 7
+num_workers = 11
 num_devices = 1
 #accelerator = "cpu"
 # language model options
 is_pretrained = true
+max_token_len = 512
 project_dir = "./ags_output"
 lora_config = "./configs/lora/lora-llama_networkwise.toml"
 shortcut_config = "./configs/shortcut/ags_networkwise.toml"
