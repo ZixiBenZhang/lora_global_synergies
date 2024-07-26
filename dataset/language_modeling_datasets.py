@@ -414,3 +414,33 @@ class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
             input_ids=torch.tensor(data_row["input_ids"]),
             labels=torch.tensor(data_row["labels"]),
         )
+
+
+class DataCollatorForCausalLMMMLU:
+    """Collate examples for supervised fine-tuning."""
+
+    tokenizer: transformers.PreTrainedTokenizer
+    IGNORE_INDEX = -100
+
+    def __init__(self, tokenizer):
+        self.tokenizer = tokenizer
+
+    def __call__(self, instances: list[Dict]) -> Dict[str, torch.Tensor]:
+        input_ids, labels, subjects = tuple(
+            [instance[key] for instance in instances] for key in ("input_ids", "labels", "subject")
+        )
+        if not isinstance(input_ids[0], torch.Tensor):
+            input_ids = [torch.as_tensor(x) for x in input_ids]
+            labels = [torch.as_tensor(y) for y in labels]
+        input_ids = torch.nn.utils.rnn.pad_sequence(
+            input_ids, batch_first=True, padding_value=self.tokenizer.pad_token_id
+        )
+        labels = torch.nn.utils.rnn.pad_sequence(
+            labels, batch_first=True, padding_value=self.IGNORE_INDEX
+        )
+        return dict(
+            input_ids=input_ids,
+            labels=labels,
+            attention_mask=input_ids.ne(self.tokenizer.pad_token_id),
+            subject=subjects,
+        )

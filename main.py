@@ -109,7 +109,7 @@ def main():
                 "max_token_len": args.max_token_len,
                 "num_workers": args.num_workers,
                 "load_from_cache_file": not args.disable_dataset_cache,
-                "load_from_saved_path": args.dataset_saved_path,
+                # "load_from_saved_path": args.dataset_saved_path,
             }
 
             # Load from a checkpoint!
@@ -169,7 +169,7 @@ def main():
                 "max_token_len": args.max_token_len,
                 "num_workers": args.num_workers,
                 "load_from_cache_file": not args.disable_dataset_cache,
-                "load_from_saved_path": args.dataset_saved_path,
+                # "load_from_saved_path": args.dataset_saved_path,
             }
 
             # The checkpoint must be present, except when the model is pretrained.
@@ -322,6 +322,15 @@ def main():
                 "shortcut_config": args.shortcut_config,
             }
 
+            mmlu_args = {
+                "batch_size": args.batch_size * args.num_devices,
+                "tokenizer": tokenizer,
+                "max_token_len": args.max_token_len,
+                "num_workers": args.num_workers,
+                "load_from_cache_file": not args.disable_dataset_cache,
+                # "load_from_saved_path": args.dataset_saved_path,
+            }
+
             train_dyrealloc_params = {
                 "model": model,
                 "tokenizer": tokenizer,
@@ -345,6 +354,8 @@ def main():
                 "importance_test_args": importance_test_args,
                 "ags_config_paths": ags_config_paths,
                 "seed": args.seed,
+                "mmlu_mode": args.mmlu_mode,
+                "mmlu_args": mmlu_args,
             }
 
             logger.info(f"##### WEIGHT DECAY ##### {args.weight_decay}")

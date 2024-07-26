@@ -21,6 +21,7 @@ from projectors.shortcut_modules import (
 from tools.checkpoint_load import load_model_chkpt
 import pl_model_wrapper
 from pl_callbacks.metrics_callback import ValidationMetricsCallback
+from tools.mmlu_load import setup_mmlu
 from tools.trainable_param_printer import print_trainable_parameters
 
 logger = logging.getLogger(__name__)
@@ -90,11 +91,15 @@ def train(
         pl_trainer_args["logger"] = [tb_logger]
 
     # MMLU validation callback
+    mmlu_val = None
     if mmlu_mode is not None:
-        mmlu_val_callback = MMLUValidationCallback(
-            **mmlu_args, few_shot=(mmlu_mode == "fs")
-        )
-        pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
+        # mmlu_val_callback = MMLUValidationCallback(
+        #     **mmlu_args, few_shot=(mmlu_mode == "fs")
+        # )
+        # pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
+
+        mmlu_val_getter, _ = setup_mmlu(**mmlu_args, few_shot=(mmlu_mode == "fs"))
+        mmlu_val = mmlu_val_getter()
 
     # Validation metrics history, for hyperparameter search
     val_history = ValidationMetricsCallback()
@@ -107,7 +112,7 @@ def train(
     pl_trainer_args["plugins"] = plugins
 
     wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
-        model_info, task
+        model_info, task if mmlu_mode is None else task + "-mmlu"
     )
 
     if resume_training:
@@ -159,6 +164,7 @@ def train(
         trainer.fit(
             pl_model,
             datamodule=data_module,
+            val_dataloaders=mmlu_val,
             ckpt_path=load_name,
         )
     else:
@@ -201,10 +207,20 @@ def train(
             eta_min=eta_min,  # for building lr scheduler
             epochs=pl_trainer_args["max_epochs"],
             optimizer=optimizer,
+        ) if mmlu_mode is None else wrapper_pl_model(
+            model,
+            dataset_info=dataset_info,
+            learning_rate=learning_rate,
+            weight_decay=weight_decay,
+            lr_scheduler=lr_scheduler,  # for building lr scheduler
+            eta_min=eta_min,  # for building lr scheduler
+            epochs=pl_trainer_args["max_epochs"],
+            optimizer=optimizer,
+            tokenizer=tokenizer,
         )
 
         trainer = pl.Trainer(**pl_trainer_args)
-        trainer.fit(pl_model, datamodule=data_module)
+        trainer.fit(pl_model, datamodule=data_module, val_dataloaders=mmlu_val)
 
     val_metric = val_history.val_history_metrics["val_loss_epoch"]
     best_perf = min(val_metric)

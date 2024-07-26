@@ -11,6 +11,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 import pl_model_wrapper
 from pl_callbacks.val_callback import MMLUValidationCallback
 from tools.checkpoint_load import load_model_chkpt
+from tools.mmlu_load import setup_mmlu
 
 logger = logging.getLogger(__name__)
 
@@ -47,11 +48,15 @@ def test(
         pl_trainer_args["logger"] = tb_logger
 
     # MMLU validation callback
+    mmlu_test = None
     if mmlu_mode is not None:
-        mmlu_val_callback = MMLUValidationCallback(
-            **mmlu_args, few_shot=(mmlu_mode == "fs")
-        )
-        pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
+        # mmlu_val_callback = MMLUValidationCallback(
+        #     **mmlu_args, few_shot=(mmlu_mode == "fs")
+        # )
+        # pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
+
+        _, mmlu_test_getter = setup_mmlu(**mmlu_args, few_shot=(mmlu_mode == "fs"))
+        mmlu_test = mmlu_test_getter()
 
     if auto_requeue is not None:
         plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
@@ -60,27 +65,48 @@ def test(
     pl_trainer_args["plugins"] = plugins
 
     wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
-        model_info, task
+        model_info, task if mmlu_mode is None else task + "-mmlu"
     )
 
     # load model from pl checkpoint
     if load_name is None:
-        raise ValueError(
-            "Path to checkpoint required for resuming training. Please use --load PATH."
+        # raise ValueError(
+        #     "Path to checkpoint required for resuming training. Please use --load PATH."
+        # )
+        pl_model: pl.LightningModule = wrapper_pl_model(
+            model,
+            dataset_info=dataset_info,
+        ) if mmlu_mode is None else wrapper_pl_model(
+            model,
+            dataset_info=dataset_info,
+            tokenizer=tokenizer,
         )
-    model = load_model_chkpt(load_name, load_type=load_type, model=model)
-
-    logger.warning(
-        f"Running test from pl checkpoint {load_name}. Entered hyperparameter configuration ignored."
-    )
-
-    pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
-
-    logger.warning(f"Resuming hyperparameters: {pl_model.hparams}")
+    else:
+        if load_type == "pl":
+            model = load_model_chkpt(load_name, load_type=load_type, model=model)
+            logger.warning(
+                f"Running test from pl checkpoint {load_name}. Entered hyperparameter configuration ignored."
+            )
+            pl_model: pl.LightningModule = wrapper_pl_model.load_from_checkpoint(
+                load_name, model=model
+            )
+            logger.warning(f"Resuming hyperparameters: {pl_model.hparams}")
+        else:
+            pl_model: pl.LightningModule = wrapper_pl_model(
+                model,
+                dataset_info=dataset_info,
+            ) if mmlu_mode is None else wrapper_pl_model(
+                model,
+                dataset_info=dataset_info,
+                tokenizer=tokenizer,
+            )
 
     trainer = pl.Trainer(**pl_trainer_args)
 
-    if dataset_info.test_split_available:
+    if mmlu_mode is not None:
+        # Testing MMLU
+        trainer.test(pl_model, dataloaders=mmlu_test)
+    elif dataset_info.test_split_available:
         # Testing
         trainer.test(pl_model, datamodule=data_module)
     elif dataset_info.pred_split_available:
