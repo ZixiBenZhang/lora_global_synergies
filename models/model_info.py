@@ -238,6 +238,17 @@ HF_NLP_MODELS = {
             causal_LM=True,
         ),
     },
+    "meta-llama/Meta-Llama-3-8B": {
+        "config_cls": LlamaConfig,
+        "tokenizer_cls": LlamaTokenizer,
+        "info": AgsModelInfo(
+            "meta-llama/Meta-Llama-3-8B",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
+    },
 }
 
 MANUAL_MODELS = {
