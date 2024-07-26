@@ -334,7 +334,7 @@ MANUAL_MODELS = {
             sequence_classification=True,
             causal_LM=True,
             is_lora=True,
-            is_ags=True,
+            is_ags=False,
         ),
         "sequence_classification": LlamaLoraForSequenceClassification,
         "causal_LM": LlamaLoraForCausalLM,
