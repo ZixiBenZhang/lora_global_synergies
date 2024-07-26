@@ -4,15 +4,14 @@ from functools import partial
 
 import datasets
 import evaluate
-import numpy as np
 import pytorch_lightning as pl
 import torch
 from datasets import DatasetDict
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from transformers import PreTrainedTokenizer, DataCollatorForLanguageModeling
+from transformers import PreTrainedTokenizer
 
-from dataset.language_modeling_datasets import DataCollatorForCausalLMAlpaca
+from dataset.language_modeling_datasets import DataCollatorForCausalLMAlpaca, DataCollatorForCausalLMMMLU
 
 SUBJECTS = {
     "abstract_algebra": "stem",
@@ -87,7 +86,7 @@ class MMLUValidationCallback(pl.Callback):
         max_token_len: int,  # for tokenizing
         num_workers: int = None,
         load_from_cache_file: bool = True,
-        load_from_saved_path: str = None,
+        # load_from_saved_path: str = None,
         few_shot: bool = True,
     ):
         self.few_shot = few_shot
@@ -96,7 +95,7 @@ class MMLUValidationCallback(pl.Callback):
         self.max_token_len = max_token_len
         self.num_workers = num_workers
         self.load_from_cache_file = load_from_cache_file
-        self.load_from_saved_path = load_from_saved_path
+        # self.load_from_saved_path = load_from_saved_path
 
         self.mmlu_dataset = None
 
@@ -164,17 +163,17 @@ class MMLUValidationCallback(pl.Callback):
                 ignore_id=self.IGNORE_INDEX,
             ),
             num_proc=self.num_workers,
-            load_from_cache_file=True,
+            load_from_cache_file=self.load_from_cache_file,
             desc="Preprocessing MMLU dataset",
         )
 
     def _val_dataloader(self):
-        data_collator = DataCollatorForCausalLMAlpaca(
+        data_collator = DataCollatorForCausalLMMMLU(
             tokenizer=self.tokenizer,
         )
         return DataLoader(
             self.mmlu_dataset["validation"].remove_columns(
-                ["subject", "input", "output"]
+                ["input", "output"]
             ),
             batch_size=self.batch_size,
             shuffle=False,
@@ -183,11 +182,11 @@ class MMLUValidationCallback(pl.Callback):
         )
 
     def _test_dataloader(self):
-        data_collator = DataCollatorForCausalLMAlpaca(
+        data_collator = DataCollatorForCausalLMMMLU(
             tokenizer=self.tokenizer,
         )
         return DataLoader(
-            self.mmlu_dataset["test"].remove_columns(["subject", "input", "output"]),
+            self.mmlu_dataset["test"].remove_columns(["input", "output"]),
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
@@ -226,7 +225,10 @@ class MMLUValidationCallback(pl.Callback):
                 logit_abcd = logit[label_non_zero_ids[0][0] - 1][self.abcd_idx]
                 preds.append(torch.argmax(logit_abcd).item())
             labels = labels[labels != self.IGNORE_INDEX].view(-1, 1)[:, 0]
-            refs += [self.abcd_idx.index(label) if label != 4 else 4 for label in labels.tolist()]
+            refs += [
+                self.abcd_idx.index(label) if label != 4 else 4
+                for label in labels.tolist()
+            ]
             loss_mmlu += loss.item()
 
         results = {"mmlu_loss": loss_mmlu / len(data_loader)}
@@ -252,7 +254,9 @@ class MMLUValidationCallback(pl.Callback):
 
         pl_module.log_dict(results)
 
-    def on_test_epoch_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+    def on_test_epoch_start(
+        self, trainer: pl.Trainer, pl_module: pl.LightningModule
+    ) -> None:
         if torch.cuda.current_device() != 0:
             return
         data_loader = self._test_dataloader()
@@ -282,7 +286,10 @@ class MMLUValidationCallback(pl.Callback):
                 logit_abcd = logit[label_non_zero_ids[0][0] - 1][self.abcd_idx]
                 preds.append(torch.argmax(logit_abcd).item())
             labels = labels[labels != self.IGNORE_INDEX].view(-1, 1)[:, 0]
-            refs += [self.abcd_idx.index(label) if label != 4 else 4 for label in labels.tolist()]
+            refs += [
+                self.abcd_idx.index(label) if label != 4 else 4
+                for label in labels.tolist()
+            ]
             loss_mmlu += loss.item()
 
         results = {"mmlu_loss": loss_mmlu / len(data_loader)}
