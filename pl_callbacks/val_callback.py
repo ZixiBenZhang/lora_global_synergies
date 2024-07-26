@@ -173,7 +173,7 @@ class MMLUValidationCallback(pl.Callback):
             tokenizer=self.tokenizer,
         )
         return DataLoader(
-            self.mmlu_dataset["validation"].select(range(32)).remove_columns(
+            self.mmlu_dataset["validation"].remove_columns(
                 ["subject", "input", "output"]
             ),
             batch_size=self.batch_size,
@@ -216,7 +216,6 @@ class MMLUValidationCallback(pl.Callback):
             # loss: (float) batch_size * seq_len
             # logits: (float) batch_size * seq_len * vocab_size
             # labels: (int) batch_size * seq_len
-            logger.warning(loss)
             for i, logit in enumerate(logits):
                 label_non_zero_ids = (labels[i] != self.IGNORE_INDEX).nonzero()
                 if len(label_non_zero_ids) == 0:  # if answer was truncated
@@ -225,7 +224,6 @@ class MMLUValidationCallback(pl.Callback):
                     labels[i][0] = 4
                     continue
                 logit_abcd = logit[label_non_zero_ids[0][0] - 1][self.abcd_idx]
-                logger.warning(logit_abcd)
                 preds.append(torch.argmax(logit_abcd).item())
             labels = labels[labels != self.IGNORE_INDEX].view(-1, 1)[:, 0]
             refs += [self.abcd_idx.index(label) if label != 4 else 4 for label in labels.tolist()]
