@@ -240,7 +240,7 @@ HF_NLP_MODELS = {
     },
     "meta-llama/Meta-Llama-3-8B": {
         "config_cls": LlamaConfig,
-        "tokenizer_cls": LlamaTokenizer,
+        "tokenizer_cls": AutoTokenizer,
         "info": AgsModelInfo(
             "meta-llama/Meta-Llama-3-8B",
             model_source="hf_transformers",
@@ -337,7 +337,7 @@ MANUAL_MODELS = {
     },
     "llama_lora": {
         "config_cls": LlamaLoraConfig,
-        "tokenizer_cls": LlamaTokenizer,
+        "tokenizer_cls": AutoTokenizer,
         "info": AgsModelInfo(
             "llama_lora",
             model_source="manual",
@@ -352,7 +352,7 @@ MANUAL_MODELS = {
     },
     "llama_lora_ags": {
         "config_cls": LlamaLoraAgsConfig,
-        "tokenizer_cls": LlamaTokenizer,
+        "tokenizer_cls": AutoTokenizer,
         "info": AgsModelInfo(
             "llama_lora_ags",
             model_source="manual",
