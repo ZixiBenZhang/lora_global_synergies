@@ -1,0 +1,25 @@
+# basics
+model = "llama_lora"
+dataset = "alpaca"
+backbone_model = "meta-llama/Meta-Llama-3-8B"
+load_name = "./ags_output/llama_lora_causal_language_modeling_alpaca-mmlu_2024-07-26/training_ckpts/last_chkpt-zs-epoch=1-13-27.ckpt"
+load_type = "pl"
+precision = "16"
+# training (useless)
+training_optimizer = "adamw"
+learning_rate = 1e-4
+weight_decay = 0.01
+max_epochs = 2
+batch_size = 4
+log_every_n_steps = 20
+mmlu_mode = "fs"
+# torch lightning
+task = "causal_language_modeling"
+num_workers = 11
+num_devices = 1
+#accelerator = "cpu"
+# language model options
+is_pretrained = true
+max_token_len = 4096
+project_dir = "./ags_output"
+lora_config = "./configs/lora/lora-llama_networkwise.toml"
