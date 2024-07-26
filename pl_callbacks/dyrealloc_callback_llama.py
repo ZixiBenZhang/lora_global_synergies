@@ -666,7 +666,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         # constant score of every lora module
         with torch.no_grad():
             res_val = {}
-            for decoder_layer in model.model.decoder.layers:
+            for decoder_layer in model.model.layers:
                 decoder_layer: LlamaLoraAgsDecoderLayer
                 layer_idx = decoder_layer.layer_idx
                 lora_modules: dict[str, LoraLinear] = {
@@ -982,7 +982,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         # keep original forward of all lora
         original_forward = {}
 
-        for decoder_layer in reversed(model.model.decoder.layers):
+        for decoder_layer in reversed(model.model.layers):
             decoder_layer: LlamaLoraAgsDecoderLayer
             lora_modules: dict[str, LoraLinear] = {
                 "q_proj": decoder_layer.self_attn.q_proj,
@@ -1031,7 +1031,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
 
         # calculate score of every lora module
         grads_abs = {}
-        for decoder_layer in model.model.decoder.layers:
+        for decoder_layer in model.model.layers:
             decoder_layer: LlamaLoraAgsDecoderLayer
             layer_idx = decoder_layer.layer_idx
             lora_modules: dict[str, LoraLinear] = {
@@ -1061,7 +1061,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
 
         # recover requires_grad and forward, reset grads
         set_require_grad(model, original_require_grad)
-        for decoder_layer in reversed(model.model.decoder.layers):
+        for decoder_layer in reversed(model.model.layers):
             decoder_layer: LlamaLoraAgsDecoderLayer
             lora_modules: dict[str, LoraLinear] = {
                 "q_proj": decoder_layer.self_attn.q_proj,
@@ -1132,7 +1132,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         self.alpha_pl_module.zero_grad()
         example_input = next(iter(dataloader))
         input_dim = list(example_input["input_ids"].shape) + [
-            model.model.decoder.embed_tokens.weight.shape[1]
+            model.model.embed_tokens.weight.shape[1]
         ]
         inputs = torch.ones(input_dim).float().to("cuda")
         attention_mask = example_input["attention_mask"]
@@ -1163,7 +1163,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
 
         # calculate score of every lora module
         grads_abs = {}
-        for decoder_layer in model.model.decoder.layers:
+        for decoder_layer in model.model.layers:
             decoder_layer: LlamaLoraAgsDecoderLayer
             layer_idx = decoder_layer.layer_idx
             lora_modules: dict[str, LoraLinear] = {

@@ -5,10 +5,12 @@ load_name = "meta-llama/Meta-Llama-3-8B"
 load_type = "hf"
 precision = "16"
 # dyrealloc
-metric_red_tolerance = 0.025
-alpha_test_batch_num = 32
+importance_test_name = "grad_norm"
+#metric_red_tolerance = 0.025
+imp_limit_test_batches = 32
 realloc_N = 1.0
 turn_on_percentile = 0.33
+dyrealloc_ags_mode = "combined"
 # training
 training_optimizer = "adamw"
 learning_rate = 1e-4
@@ -22,6 +24,7 @@ task = "causal_language_modeling"
 num_workers = 11
 num_devices = 1
 #accelerator = "cpu"
+strategy = "ddp_find_unused_parameters_true"
 # language model options
 is_pretrained = true
 max_token_len = 512
