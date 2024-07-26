@@ -12,6 +12,7 @@
 #SBATCH --time=20:00:00
 
 source ~/rds/hpc-work/torch/bin/activate
+export HF_HOME=~/rds/hpc-work/lora_global_synergies/cache
 huggingface-cli login --token $HUGGINGFACE_TOKEN
 
 python -m main train --config ./configs/llama_lora_alpaca-mmlu-fs.toml
