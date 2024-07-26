@@ -155,7 +155,7 @@ def train_dynamic_reallocation(
             optimizer=optimizer,
         )
 
-    dyrealloc_callback = get_dyrealloc_callback(dataset_info)
+    dyrealloc_callback = get_dyrealloc_callback(model_info)
     dynamic_reallocation_callback = dyrealloc_callback(
         importance_test_name=importance_test_name,
         N=realloc_N,

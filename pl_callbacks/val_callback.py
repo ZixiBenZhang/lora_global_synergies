@@ -172,8 +172,9 @@ class MMLUValidationCallback(pl.Callback):
         data_collator = DataCollatorForCausalLMAlpaca(
             tokenizer=self.tokenizer,
         )
+        self.mmlu_dataset: DatasetDict
         return DataLoader(
-            self.mmlu_dataset["validation"].remove_columns(
+            self.mmlu_dataset["validation"].select(range(32)).remove_columns(
                 ["subject", "input", "output"]
             ),
             batch_size=self.batch_size,
@@ -216,7 +217,7 @@ class MMLUValidationCallback(pl.Callback):
             # loss: (float) batch_size * seq_len
             # logits: (float) batch_size * seq_len * vocab_size
             # labels: (int) batch_size * seq_len
-            logger.warning(loss[:4])
+            logger.warning(loss)
             for i, logit in enumerate(logits):
                 label_non_zero_ids = (labels[i] != self.IGNORE_INDEX).nonzero()
                 if len(label_non_zero_ids) == 0:  # if answer was truncated
