@@ -16,6 +16,7 @@ from lora.lora_modules import (
 )
 from models.model_info import AgsModelInfo
 from pl_callbacks.dyrealloc_callback import DynamicLoraReallocationCallback
+from pl_callbacks.dyrealloc_callback_llama import DynamicLoraReallocationForLlamaCallback
 from pl_callbacks.val_callback import MMLUValidationCallback
 from projectors.shortcut_modules import (
     update_ags_importance_beta_require_grad,
@@ -131,7 +132,7 @@ def train_dynamic_reallocation(
     alpha_pl_trainer_args["plugins"] = plugins
 
     wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
-        model_info, task if mmlu_mode is None else task + "-mmlu"
+        model_info, task
     )
 
     # Dynamic reallocation callback
@@ -154,7 +155,8 @@ def train_dynamic_reallocation(
             optimizer=optimizer,
         )
 
-    dynamic_reallocation_callback = DynamicLoraReallocationCallback(
+    dyrealloc_callback = get_dyrealloc_callback(dataset_info)
+    dynamic_reallocation_callback = dyrealloc_callback(
         importance_test_name=importance_test_name,
         N=realloc_N,
         data_module=data_module,
@@ -270,3 +272,10 @@ def train_dynamic_reallocation(
         trainer.fit(pl_model, datamodule=data_module)
 
     dynamic_reallocation_callback.save_reallocation_history()
+
+
+def get_dyrealloc_callback(model_info: AgsModelInfo):
+    if "llama" in model_info.name:
+        return DynamicLoraReallocationForLlamaCallback
+    else:
+        return DynamicLoraReallocationCallback

@@ -46,7 +46,7 @@ LORA_NAME_HASH = {
 }
 
 
-class DynamicLoraReallocationCallback(pl.Callback):
+class DynamicLoraReallocationForLlamaCallback(pl.Callback):
     def __init__(
         self,
         importance_test_name: str,
