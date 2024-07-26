@@ -218,7 +218,6 @@ class NLPMMLULanguageModelingModelWrapper(NLPLanguageModelingModelWrapper):
         loss = outputs["loss"]
         logits = outputs["logits"]
 
-        logger.warning(loss)
 
         # loss: (float) batch_size * seq_len
         # logits: (float) batch_size * seq_len * vocab_size
@@ -232,7 +231,6 @@ class NLPMMLULanguageModelingModelWrapper(NLPLanguageModelingModelWrapper):
                 labels[i][0] = 4
                 continue
             logit_abcd = logit[label_non_zero_ids[0][0] - 1][self.abcd_idx]
-            logger.warning(logit_abcd.detach())
             preds.append(torch.argmax(logit_abcd).item())
         labels = labels[labels != self.IGNORE_INDEX].view(-1, 1)[:, 0]
         refs = [

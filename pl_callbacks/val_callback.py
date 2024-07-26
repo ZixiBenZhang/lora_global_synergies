@@ -101,10 +101,10 @@ class MMLUValidationCallback(pl.Callback):
         self.mmlu_dataset = None
 
         self.abcd_idx = [
-            tokenizer.convert_tokens_to_ids("A"),
-            tokenizer.convert_tokens_to_ids("B"),
-            tokenizer.convert_tokens_to_ids("C"),
-            tokenizer.convert_tokens_to_ids("D"),
+            tokenizer.encode(" A")[1],
+            tokenizer.encode(" B")[1],
+            tokenizer.encode(" C")[1],
+            tokenizer.encode(" D")[1],
         ]
 
     def _download_dataset(self):
@@ -140,7 +140,7 @@ class MMLUValidationCallback(pl.Callback):
         target = example["output"]
 
         prompt_tokenized = _tokenize(prompt, tokenizer, max_length)["input_ids"][0]
-        target_tokenized = _tokenize(prompt + target, tokenizer, max_length)[
+        target_tokenized = _tokenize(prompt + " " + target, tokenizer, max_length)[
             "input_ids"
         ][0]
         input_ids = copy.deepcopy(target_tokenized)
