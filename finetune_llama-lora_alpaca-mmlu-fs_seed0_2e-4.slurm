@@ -12,5 +12,6 @@
 #SBATCH --time=20:00:00
 
 source ~/rds/hpc-work/torch/bin/activate
+huggingface-cli login --token $HUGGINGFACE_TOKEN
 
 python -m main train --config ./configs/llama_lora_alpaca-mmlu-fs.toml --learning-rate 2e-4
