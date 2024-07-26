@@ -87,7 +87,7 @@ class MMLUValidationCallback(pl.Callback):
         max_token_len: int,  # for tokenizing
         num_workers: int = None,
         load_from_cache_file: bool = True,
-        load_from_saved_path: str = None,
+        # load_from_saved_path: str = None,
         few_shot: bool = True,
     ):
         self.few_shot = few_shot
@@ -96,7 +96,7 @@ class MMLUValidationCallback(pl.Callback):
         self.max_token_len = max_token_len
         self.num_workers = num_workers
         self.load_from_cache_file = load_from_cache_file
-        self.load_from_saved_path = load_from_saved_path
+        # self.load_from_saved_path = load_from_saved_path
 
         self.mmlu_dataset = None
 
@@ -164,7 +164,7 @@ class MMLUValidationCallback(pl.Callback):
                 ignore_id=self.IGNORE_INDEX,
             ),
             num_proc=self.num_workers,
-            load_from_cache_file=True,
+            load_from_cache_file=self.load_from_cache_file,
             desc="Preprocessing MMLU dataset",
         )
 
@@ -172,7 +172,6 @@ class MMLUValidationCallback(pl.Callback):
         data_collator = DataCollatorForCausalLMAlpaca(
             tokenizer=self.tokenizer,
         )
-        self.mmlu_dataset: DatasetDict
         return DataLoader(
             self.mmlu_dataset["validation"].select(range(32)).remove_columns(
                 ["subject", "input", "output"]
