@@ -12,6 +12,7 @@ LOAD_TYPE = [
     "pl",  # PyTorch Lightning checkpoint
     "hf",  # HuggingFace's checkpoint directory saved by 'save_pretrained'
 ]
+PRECISION = ["64", "32", "16", "bf16"]
 OPTIMIZERS = ["adam", "sgd", "adamw"]
 SCHEDULERS = ["none", "cosine_annealing"]
 LOG_LEVELS = ["debug", "info", "warning", "error", "critical"]
@@ -52,6 +53,7 @@ CLI_DEFAULTS = {
     "log_level": LOG_LEVELS[1],
     "seed": 0,
     "backbone_model": None,
+    "precision": "32",
     "lora_config": None,
     "shortcut_config": None,
     "mmlu_mode": None,
@@ -196,6 +198,16 @@ def get_arg_parser():
         default=None,
         help="backbone model name; it's only effective when --load is used",
         metavar="MODEL_NAME",
+    )
+    general_group.add_argument(
+        "--precision",
+        dest="precision",
+        choices=PRECISION,
+        help=f"""
+            Precision of the model.
+            One of {'(' + '|'.join(PRECISION) + ')'}
+            (default: %(default)s)
+        """,
     )
     general_group.add_argument(
         "--lora-config",

@@ -95,6 +95,7 @@ def main():
                 "fast_dev_run": args.to_debug,
                 "accumulate_grad_batches": args.accumulate_grad_batches,
                 "log_every_n_steps": args.log_every_n_steps,
+                "precision": args.precision,
             }
 
             ags_config_paths = {
@@ -154,6 +155,7 @@ def main():
                 "num_nodes": args.num_nodes,
                 "accelerator": args.accelerator,
                 "strategy": args.strategy,
+                "precision": args.precision,
             }
 
             ags_config_paths = {
@@ -198,33 +200,33 @@ def main():
             actions.test(**test_params)
             logger.info("Testing is completed")
 
-        case "test-mmlu":
-            logger.info(f"Testing model {args.model!r} on MMLU...")
-
-            # The checkpoint must be present, except when the model is pretrained.
-            if args.load_name is None and not args.is_pretrained:
-                raise ValueError("expected checkpoint via --load, got None")
-
-            if args.mmlu_mode is None:
-                raise ValueError("expected MMLU mode zs/fs via --mmlu-mode, got None")
-
-            eval_config = {
-                "datasets": "mmlu",
-                "num_fewshot": 5 if args.mmlu_mode == "fs" else 0,
-                "no_cache": args.disable_dataset_cache,
-                "batch_size": args.batch_size,
-            }
-
-            test_params = {
-                "model": model,
-                "load_name": args.load_name,
-                "load_type": args.load_type,
-                "save_path": os.path.join(output_dir, "checkpoints"),
-                "eval_config": eval_config,
-            }
-
-            actions.run_evaluate_harness_downstream(**test_params)
-            logger.info("Testing on MMLU is completed")
+        # case "test-mmlu":
+        #     logger.info(f"Testing model {args.model!r} on MMLU...")
+        #
+        #     # The checkpoint must be present, except when the model is pretrained.
+        #     if args.load_name is None and not args.is_pretrained:
+        #         raise ValueError("expected checkpoint via --load, got None")
+        #
+        #     if args.mmlu_mode is None:
+        #         raise ValueError("expected MMLU mode zs/fs via --mmlu-mode, got None")
+        #
+        #     eval_config = {
+        #         "datasets": "mmlu",
+        #         "num_fewshot": 5 if args.mmlu_mode == "fs" else 0,
+        #         "no_cache": args.disable_dataset_cache,
+        #         "batch_size": args.batch_size,
+        #     }
+        #
+        #     test_params = {
+        #         "model": model,
+        #         "load_name": args.load_name,
+        #         "load_type": args.load_type,
+        #         "save_path": os.path.join(output_dir, "checkpoints"),
+        #         "eval_config": eval_config,
+        #     }
+        #
+        #     actions.run_evaluate_harness_downstream(**test_params)
+        #     logger.info("Testing on MMLU is completed")
 
         case "imp-test":
             logger.info(f"Conducting importance test on model {args.model!r}...")
@@ -239,6 +241,7 @@ def main():
                 "fast_dev_run": args.to_debug,
                 "accumulate_grad_batches": args.accumulate_grad_batches,
                 "log_every_n_steps": args.log_every_n_steps,
+                "precision": args.precision,
             }
 
             # Load from a checkpoint!
@@ -292,6 +295,7 @@ def main():
                 "fast_dev_run": args.to_debug,
                 "accumulate_grad_batches": args.accumulate_grad_batches,
                 "log_every_n_steps": args.log_every_n_steps,
+                "precision": args.precision,
             }
 
             # Load from a checkpoint!
