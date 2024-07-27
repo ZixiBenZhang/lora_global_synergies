@@ -2,7 +2,7 @@
 model = "llama_lora"
 dataset = "alpaca"
 backbone_model = "meta-llama/Meta-Llama-3-8B"
-load_name = "./ags_output/llama_lora_causal_language_modeling_alpaca-mmlu_2024-07-27/training_ckpts/last_chkpt-zs-epoch=1-15-59.ckpt"
+load_name = "./ags_output/llama_lora_causal_language_modeling_alpaca-mmlu_2024-07-27/training_ckpts/last_chkpt-fs-epoch=1-15-59.ckpt"
 load_type = "pl"
 precision = "16"
 # training (useless)
