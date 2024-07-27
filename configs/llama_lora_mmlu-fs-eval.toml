@@ -16,7 +16,7 @@ mmlu_mode = "fs"
 # torch lightning
 task = "causal_language_modeling"
 num_workers = 11
-num_devices = 1
+num_devices = 4
 #accelerator = "cpu"
 # language model options
 is_pretrained = true
