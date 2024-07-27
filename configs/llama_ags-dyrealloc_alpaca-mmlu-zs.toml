@@ -8,12 +8,12 @@ precision = "16"
 importance_test_name = "grad_norm"
 #metric_red_tolerance = 0.025
 imp_limit_test_batches = 32
-realloc_N = 1.0
+realloc_N = 0.5
 turn_on_percentile = 0.33
 dyrealloc_ags_mode = "combined"
 # training
 training_optimizer = "adamw"
-learning_rate = 1e-4
+learning_rate = 5e-6
 weight_decay = 0.01
 max_epochs = 2
 batch_size = 4
