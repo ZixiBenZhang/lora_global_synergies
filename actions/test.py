@@ -143,7 +143,7 @@ def set_dyrealloc_enabling(model: torch.nn.Module, realloc_hist_path: str):
 
     history = toml.load(realloc_hist_path)
     keys = list(history.keys())
-    last_key = keys[0].split("_")[0] + np.argmax([int(key.split("_")[1]) for key in keys])
+    last_key = keys[0].split("_")[0] + str(np.max([int(key.split("_")[1]) for key in keys]))
     last_decision = history[last_key]["turn_on"]
 
     turn_on = []
