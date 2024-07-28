@@ -3,14 +3,19 @@ import os
 import pickle
 import time
 
+import numpy as np
 import pytorch_lightning as pl
+import toml
 import torch
 from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger
 
 import pl_model_wrapper
 from lora.lora_modules import LoraLinear
+from models.modeling_llama_lora_ags import LlamaLoraAgsForCausalLM, LlamaLoraAgsForSequenceClassification, \
+    LlamaLoraAgsForQuestionAnswering
 from pl_callbacks.val_callback import MMLUValidationCallback
+from projectors.shortcut_modules import ShortcutBase
 from tools.checkpoint_load import load_model_chkpt
 from tools.mmlu_load import setup_mmlu
 
@@ -36,6 +41,7 @@ def test(
     seed,  # for logging in Tensorboard
     mmlu_mode,  # zero-shot/few-shot for MMLU in validation
     mmlu_args,  # arguments for MMLUValidationCallback
+    realloc_hist_path,  # toml path of dyrealloc history
 ):
     t = time.strftime("%H-%M")
 
@@ -104,11 +110,8 @@ def test(
                 tokenizer=tokenizer,
             )
 
-    for name, module in model.named_modules():
-        if isinstance(module, LoraLinear):
-            print(name, module.disable_adapters)
-            if not module.disable_adapters:
-                print(module.lora_B[module.active_adapter].weight)
+    if realloc_hist_path is not None:
+        set_dyrealloc_enabling(model, realloc_hist_path)
 
     trainer = pl.Trainer(**pl_trainer_args)
 
@@ -129,3 +132,33 @@ def test(
         raise ValueError(
             f"Test or pred split not available for dataset {data_module.name}"
         )
+
+
+def set_dyrealloc_enabling(model: torch.nn.Module, realloc_hist_path: str):
+    assert isinstance(model, (LlamaLoraAgsForCausalLM, LlamaLoraAgsForSequenceClassification, LlamaLoraAgsForQuestionAnswering)), "Loading dyrealloc final turn-on is only supported for Llama models"
+
+    history = toml.load(realloc_hist_path)
+    keys = list(history.keys())
+    last_key = keys[0].split("_")[0] + np.argmax([int(key.split("_")[1]) for key in keys])
+    last_decision = history[last_key]["turn_on"]
+
+    turn_on = []
+    for entry in last_decision:
+        layer_idx, proj_name, _, decision = entry
+        if decision:
+            turn_on.append((layer_idx, proj_name))
+
+    for name, module in model.named_modules():
+        if not isinstance(module, (LoraLinear, ShortcutBase)):
+            continue
+        _, _, layer_idx, _, proj_name = name.split(".")
+        if (layer_idx, proj_name) in turn_on:
+            if isinstance(module, LoraLinear):
+                module.disable_adapters = False
+            else:
+                module.disable_projectors = False
+        else:
+            if isinstance(module, LoraLinear):
+                module.disable_adapters = True
+            else:
+                module.disable_projectors = True

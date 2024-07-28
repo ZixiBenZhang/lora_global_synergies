@@ -57,6 +57,7 @@ CLI_DEFAULTS = {
     "lora_config": None,
     "shortcut_config": None,
     "mmlu_mode": None,
+    "realloc_hist_path": None,
     # Reallocation options
     "importance_test_name": IMP_TEST_NAMES[0],
     "alpha": None,
@@ -239,6 +240,15 @@ def get_arg_parser():
             (default: %(default)s)
         """,
         metavar="",
+    )
+    general_group.add_argument(
+        "--realloc-hist-path",
+        dest="realloc_hist_path",
+        type=_valid_filepath,
+        help="""
+            path to a dy-realloc's reallocation history file in the TOML format. (default: %(default)s)
+        """,
+        metavar="TOML",
     )
     # Reallocation options
     reallocation_group = parser.add_argument_group("reallocation options")

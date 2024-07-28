@@ -195,6 +195,7 @@ def main():
                 "seed": args.seed,
                 "mmlu_mode": args.mmlu_mode,
                 "mmlu_args": mmlu_args,
+                "realloc_hist_path": args.realloc_hist_path,
             }
 
             actions.test(**test_params)
