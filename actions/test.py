@@ -149,7 +149,7 @@ def set_dyrealloc_enabling(model: torch.nn.Module, realloc_hist_path: str):
     turn_on = []
     for entry in last_decision:
         layer_idx, proj_name, _, decision = entry
-        if decision:
+        if bool(decision):
             turn_on.append((layer_idx, proj_name))
 
     for name, module in model.named_modules():
