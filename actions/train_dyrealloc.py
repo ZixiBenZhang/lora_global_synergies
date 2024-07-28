@@ -114,15 +114,17 @@ def train_dynamic_reallocation(
         alpha_pl_trainer_args["logger"] = [alpha_tb_logger]
 
     # MMLU validation callback
-    # mmlu_val = None
+    mmlu_test_zs = mmlu_test_fs = None
     if mmlu_mode is not None:
         mmlu_val_callback = MMLUValidationCallback(
             **mmlu_args, few_shot=(mmlu_mode == "fs")
         )
         pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
 
-        # mmlu_val_getter, _ = setup_mmlu(**mmlu_args, few_shot=(mmlu_mode == "fs"))
-        # mmlu_val = mmlu_val_getter()
+        _, mmlu_test_getter = setup_mmlu(**mmlu_args, few_shot=False)
+        mmlu_test_zs = mmlu_test_getter()
+        _, mmlu_test_getter = setup_mmlu(**mmlu_args, few_shot=True)
+        mmlu_test_fs = mmlu_test_getter()
 
     if auto_requeue is not None:
         plugins = [SLURMEnvironment(auto_requeue=auto_requeue)]
@@ -272,6 +274,9 @@ def train_dynamic_reallocation(
         trainer.fit(pl_model, datamodule=data_module)
 
     dynamic_reallocation_callback.save_reallocation_history()
+
+    trainer.test(pl_model, dataloaders=mmlu_test_zs)
+    trainer.test(pl_model, dataloaders=mmlu_test_fs)
 
 
 def get_dyrealloc_callback(model_info: AgsModelInfo):
