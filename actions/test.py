@@ -108,7 +108,7 @@ def test(
         if isinstance(module, LoraLinear):
             print(name, module.disable_adapters)
             if not module.disable_adapters:
-                print(module.lora_B[module.active_adapter])
+                print(module.lora_B[module.active_adapter].weight)
 
     trainer = pl.Trainer(**pl_trainer_args)
 
