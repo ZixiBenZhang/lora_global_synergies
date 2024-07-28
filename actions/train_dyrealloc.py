@@ -83,7 +83,7 @@ def train_dynamic_reallocation(
         }
         best_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
-            filename=f"best_chkpt-{t}",
+            filename=f"best_chkpt-{mmlu_mode}" + "-{epoch}-" + t,
             save_top_k=1,
             monitor=task_metric[task][0],
             mode=task_metric[task][1],
@@ -91,7 +91,7 @@ def train_dynamic_reallocation(
         )
         latest_checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=save_path,
-            filename=f"last_chkpt-{t}",
+            filename=f"last_chkpt-{mmlu_mode}" + "-{epoch}-" + t,
             # save_last=True,
         )
         # Monitoring lr for the lr_scheduler
