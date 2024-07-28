@@ -1,8 +1,8 @@
 # basics
-model = "llama_lora"
+model = "llama_lora_ags"
 dataset = "alpaca"
 backbone_model = "meta-llama/Meta-Llama-3-8B"
-load_name = "./ags_output/llama_lora_causal_language_modeling_alpaca-mmlu_2024-07-27/training_ckpts/last_chkpt-fs-epoch=1-15-59.ckpt"
+load_name = "./ags_output/llama_lora_ags_causal_language_modeling_alpaca-mmlu_2024-07-27/dyrealloc_ckpts/last_chkpt-22-04.ckpt"
 load_type = "pl"
 precision = "16"
 # training (useless)
@@ -18,8 +18,10 @@ task = "causal_language_modeling"
 num_workers = 11
 num_devices = 1
 #accelerator = "cpu"
+strategy = "ddp_find_unused_parameters_true"
 # language model options
 is_pretrained = true
 max_token_len = 4096
 project_dir = "./ags_output"
 lora_config = "./configs/lora/lora-llama_networkwise.toml"
+shortcut_config = "./configs/shortcut/ags_networkwise.toml"
