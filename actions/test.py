@@ -87,7 +87,7 @@ def test(
             logger.warning(
                 f"Running test from pl checkpoint {load_name}. Entered hyperparameter configuration ignored."
             )
-            pl_model: pl.LightningModule = wrapper_pl_model.load_from_checkpoint(
+            pl_model: pl.LightningModule = wrapper_pl_model(
                 model,
                 dataset_info=dataset_info,
                 tokenizer=tokenizer,
