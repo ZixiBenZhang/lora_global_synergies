@@ -165,8 +165,10 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         )
         self.num_devices = trainer.num_devices
 
-    def _get_importance_test(self) -> Callable:
-        match self.importance_test_name:
+    def _get_importance_test(self, test_name=None) -> Callable:
+        if test_name is None:
+            test_name = self.importance_test_name
+        match test_name:
             case "alpha_test":
                 raise NotImplementedError
             case "constant":
@@ -186,12 +188,14 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                     f"Unsupported importance test {self.importance_test_name}"
                 )
 
-    def _get_ags_importance_test(self) -> Callable:
-        match self.importance_test_name:
+    def _get_ags_importance_test(self, test_name=None) -> Callable:
+        if test_name is None:
+            test_name = self.importance_test_name
+        match test_name:
             case "alpha_test":
                 pass
             case "constant":
-                pass
+                return self._const_ags_test
             case "grad_norm":
                 return self._grad_norm_ags_test
             case "snip":
@@ -288,14 +292,25 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
 
         # Get alpha importance of lora modules
         # format: {layer_idx: {proj: alpha}}
-        res_val: dict[int, dict[str, float]] = self.importance_test(
+        # Force CONSTANT for first half epochs
+        importance_test = self._get_importance_test(
+            test_name="constant"
+            if pl_module.current_epoch < trainer.max_epochs/2
+            else None
+        )
+        res_val: dict[int, dict[str, float]] = importance_test(
             trainer,
             pl_module,
             batch,
             batch_idx,
         )
         if self.ags_mode is not None and self.ags_mode != "off":
-            ags_res_val: None | dict[int, dict[str, float]] = self.ags_importance_test(
+            ags_importance_test = self._get_ags_importance_test(
+                test_name="constant"
+                if pl_module.current_epoch < trainer.max_epochs/2
+                else None
+            )
+            ags_res_val: None | dict[int, dict[str, float]] = ags_importance_test(
                 trainer,
                 pl_module,
                 batch,
@@ -682,6 +697,47 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                     if (
                         lora.active_adapter not in lora.lora_A.keys()
                         or lora.r[lora.active_adapter] == 0
+                    ):
+                        continue
+
+                    if layer_idx not in res_val:
+                        res_val[layer_idx] = {}
+                    res_val[layer_idx][proj_name] = 1.0
+
+        return res_val
+
+    def _const_ags_test(
+        self,
+        trainer: pl.Trainer,
+        pl_module: PlWrapperBase,
+        batch: Any,
+        batch_idx: int,
+    ) -> dict[int, dict[str, float]]:
+        model = self.alpha_pl_module.model
+        assert (
+            type(model) is LlamaLoraAgsForCausalLM
+            or type(model) is LlamaLoraAgsForSequenceClassification
+            or type(model) is LlamaLoraAgsForQuestionAnswering
+        )
+        model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering
+
+        # constant score of every lora module
+        with torch.no_grad():
+            res_val = {}
+            for decoder_layer in model.model.layers:
+                decoder_layer: LlamaLoraAgsDecoderLayer
+                layer_idx = decoder_layer.layer_idx
+                shortcut_modules: dict[str, ShortcutBase] = {
+                    "residual_1": decoder_layer.residual_1,
+                    "residual_2": decoder_layer.residual_2,
+                    "shortcut_sa": decoder_layer.shortcut_sa,
+                    "shortcut_ffn": decoder_layer.shortcut_ffn,
+                }
+                for proj_name, shortcut in shortcut_modules.items():
+                    if (
+                            shortcut is None
+                            or shortcut.active_projector not in shortcut.proj_A.keys()
+                            or shortcut.r[shortcut.active_projector] == 0
                     ):
                         continue
 
