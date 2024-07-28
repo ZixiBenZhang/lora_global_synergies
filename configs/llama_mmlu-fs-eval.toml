@@ -1,7 +1,9 @@
 # basics
-model = "meta-llama/Meta-Llama-3-8B"
+model = "llama_lora"
 dataset = "alpaca"
-#precision = "16"
+load_name = "meta-llama/Meta-Llama-3-8B"
+load_type = "hf"
+precision = "16"
 # training (useless)
 training_optimizer = "adamw"
 learning_rate = 1e-4
@@ -19,3 +21,4 @@ num_devices = 1
 is_pretrained = true
 max_token_len = 4096
 project_dir = "./ags_output"
+lora_config = "./configs/lora/lora-llama_networkwise.toml"
