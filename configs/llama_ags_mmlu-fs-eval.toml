@@ -13,7 +13,7 @@ max_epochs = 2
 batch_size = 1
 log_every_n_steps = 20
 mmlu_mode = "fs"
-realloc_hist_path = "./ags_output/llama_lora_ags_causal_language_modeling_alpaca-mmlu_2024-07-28/dyrealloc_ckpts/reallocation_history_grad-norm_12-49-58.toml"
+realloc_hist_path = "./ags_output/llama_lora_ags_causal_language_modeling_alpaca-mmlu_2024-07-28/dyrealloc_ckpts/reallocation_history_grad-norm_12-49-58_converted.toml"
 # torch lightning
 task = "causal_language_modeling"
 num_workers = 11

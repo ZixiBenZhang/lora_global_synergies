@@ -37,7 +37,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--path",
         dest="path",
-        default="../ags_output/opt_lora_ags_causal_language_modeling_alpaca_2024-05-01/dyrealloc_ckpts/reallocation_history_grad-norm_22-27-34.toml"
     )
 
     args = parser.parse_args()
