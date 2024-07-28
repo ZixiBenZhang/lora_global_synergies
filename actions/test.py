@@ -157,7 +157,7 @@ def set_dyrealloc_enabling(model: torch.nn.Module, realloc_hist_path: str):
         if not isinstance(module, (LoraLinear, ShortcutBase)):
             continue
         t = name.split(".")
-        layer_idx, proj_name = t[3], t[-1]
+        layer_idx, proj_name = t[2], t[-1]
         print(layer_idx, proj_name, (layer_idx, proj_name) in turn_on)
         if (layer_idx, proj_name) in turn_on:
             if isinstance(module, LoraLinear):
