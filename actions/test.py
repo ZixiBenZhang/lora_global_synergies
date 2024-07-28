@@ -107,6 +107,7 @@ def test(
     for name, module in model.named_modules():
         if isinstance(module, LoraLinear):
             print(name, module.disable_adapters)
+            print(module.lora_B[module.active_adapter])
 
     trainer = pl.Trainer(**pl_trainer_args)
 
