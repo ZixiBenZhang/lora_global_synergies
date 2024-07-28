@@ -13,7 +13,7 @@ turn_on_percentile = 0.33
 dyrealloc_ags_mode = "combined"
 # training
 training_optimizer = "adamw"
-learning_rate = 5e-6
+learning_rate = 1e-5
 weight_decay = 0.01
 max_epochs = 2
 batch_size = 4
