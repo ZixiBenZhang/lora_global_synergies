@@ -113,6 +113,10 @@ def test(
     if realloc_hist_path is not None:
         set_dyrealloc_enabling(model, realloc_hist_path)
 
+    for name, module in model.named_modules():
+        if isinstance(module, LoraLinear):
+            print(name, module.disable_adapters)
+
     trainer = pl.Trainer(**pl_trainer_args)
 
     if mmlu_mode is not None:
