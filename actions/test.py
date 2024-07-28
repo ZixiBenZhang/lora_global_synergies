@@ -115,7 +115,7 @@ def test(
 
     for name, module in model.named_modules():
         if isinstance(module, (LoraLinear, ShortcutBase)):
-            print(name, module.disable_adapters)
+            print(name, module.disable_adapters if isinstance(module, LoraLinear) else module.disable_projectors)
 
     trainer = pl.Trainer(**pl_trainer_args)
 
