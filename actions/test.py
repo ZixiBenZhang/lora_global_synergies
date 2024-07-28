@@ -9,6 +9,7 @@ from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger
 
 import pl_model_wrapper
+from lora.lora_modules import LoraLinear
 from pl_callbacks.val_callback import MMLUValidationCallback
 from tools.checkpoint_load import load_model_chkpt
 from tools.mmlu_load import setup_mmlu
@@ -102,6 +103,10 @@ def test(
                 dataset_info=dataset_info,
                 tokenizer=tokenizer,
             )
+
+    for name, module in model.named_modules():
+        if isinstance(module, LoraLinear):
+            print(module.disable_adapters)
 
     trainer = pl.Trainer(**pl_trainer_args)
 
