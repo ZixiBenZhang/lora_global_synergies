@@ -114,7 +114,7 @@ def test(
         set_dyrealloc_enabling(model, realloc_hist_path)
 
     for name, module in model.named_modules():
-        if isinstance(module, LoraLinear):
+        if isinstance(module, (LoraLinear, ShortcutBase)):
             print(name, module.disable_adapters)
 
     trainer = pl.Trainer(**pl_trainer_args)
