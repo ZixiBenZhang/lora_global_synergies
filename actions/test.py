@@ -155,7 +155,8 @@ def set_dyrealloc_enabling(model: torch.nn.Module, realloc_hist_path: str):
     for name, module in model.named_modules():
         if not isinstance(module, (LoraLinear, ShortcutBase)):
             continue
-        _, _, layer_idx, _, proj_name = name.split(".")
+        t = name.split(".")
+        layer_idx, proj_name = t[3], t[-1]
         if (layer_idx, proj_name) in turn_on:
             if isinstance(module, LoraLinear):
                 module.disable_adapters = False
