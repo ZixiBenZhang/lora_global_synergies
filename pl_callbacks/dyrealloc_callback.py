@@ -413,10 +413,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 reallocation: list[list[int]] = alpha_list.tolist()
                 reallocation = [
                     [
-                        int(layer_id),
+                        str(int(layer_id)),
                         list(LORA_NAME_HASH.keys())[int(proj_hash)],
-                        alpha,
-                        ([layer_id, proj_hash] in turn_on),
+                        str(alpha),
+                        str(([layer_id, proj_hash] in turn_on)),
                     ]
                     for layer_id, proj_hash, alpha in reallocation
                 ]
@@ -549,10 +549,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 ).tolist()
                 reallocation = [
                     [
-                        int(layer_id),
+                        str(int(layer_id)),
                         list(LORA_NAME_HASH.keys())[int(proj_hash)],
-                        alpha,
-                        ([layer_id, proj_hash] in turn_on),
+                        str(alpha),
+                        str(([layer_id, proj_hash] in turn_on)),
                     ]
                     for layer_id, proj_hash, alpha in reallocation
                 ]
@@ -648,10 +648,10 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 reallocation: list[list[int]] = alpha_list.tolist()
                 reallocation = [
                     [
-                        int(layer_id),
+                        str(int(layer_id)),
                         list(LORA_NAME_HASH.keys())[int(proj_hash)],
-                        alpha,
-                        ([layer_id, proj_hash] in turn_on),
+                        str(alpha),
+                        str(([layer_id, proj_hash] in turn_on)),
                     ]
                     for layer_id, proj_hash, alpha in reallocation
                 ]
