@@ -1,32 +1,19 @@
 import logging
 import os
-import sys
-from pprint import pprint
 
-import toml
-import torch
-import transformers
 import datasets
-from datasets import load_dataset
-import evaluate
 import pytorch_lightning as pl
-from torch.utils.data import DataLoader
-from torchmetrics.text.rouge import ROUGEScore
-import optuna
+import transformers
 from transformers import AutoTokenizer
 
-import importance_testing
+import actions
 from dataset import (
-    get_nlp_dataset_split,
-    get_config_names,
     LanguageModelingDatasetAlpaca,
 )
 from loading.argparser_ags import get_arg_parser, CLI_DEFAULTS
 from loading.config_load import post_parse_load_config
-from loading.setup_model_and_dataset import setup_model_and_dataset
 from loading.setup_folders import setup_folder
-import actions
-from projectors.shortcut_modules import ShortcutFromIdentity, ShortcutFromZeros
+from loading.setup_model_and_dataset import setup_model_and_dataset
 
 
 def main():
@@ -44,28 +31,23 @@ def main():
         case "debug":
             transformers.logging.set_verbosity_debug()
             datasets.logging.set_verbosity_debug()
-            optuna.logging.set_verbosity(optuna.logging.DEBUG)
             logger.setLevel(logging.DEBUG)
         case "info":
             transformers.logging.set_verbosity_warning()
             datasets.logging.set_verbosity_warning()
             # mute optuna's logger by default since it's too verbose
-            optuna.logging.set_verbosity(optuna.logging.WARNING)
             logger.setLevel(logging.INFO)
         case "warning":
             transformers.logging.set_verbosity_warning()
             datasets.logging.set_verbosity_warning()
-            optuna.logging.set_verbosity(optuna.logging.WARNING)
             logger.setLevel(logging.WARNING)
         case "error":
             transformers.logging.set_verbosity_error()
             datasets.logging.set_verbosity_error()
-            optuna.logging.set_verbosity(optuna.logging.ERROR)
             logger.setLevel(logging.ERROR)
         case "critical":
             transformers.logging.set_verbosity(transformers.logging.CRITICAL)
             datasets.logging.set_verbosity(datasets.logging.CRITICAL)
-            optuna.logging.set_verbosity(optuna.logging.CRITICAL)
             logger.setLevel(logging.CRITICAL)
 
     args = post_parse_load_config(args, CLI_DEFAULTS)
