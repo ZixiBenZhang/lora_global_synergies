@@ -275,11 +275,11 @@ def train_dynamic_reallocation(
 
     dynamic_reallocation_callback.save_reallocation_history()
 
-    if mmlu_mode is not None:
-        trainer.test(pl_model, dataloaders=mmlu_test_zs)
-        trainer.test(pl_model, dataloaders=mmlu_test_fs)
-    else:
-        trainer.test(pl_model, datamodule=data_module)
+    # if mmlu_mode is not None:
+    #     trainer.test(pl_model, dataloaders=mmlu_test_zs)
+    #     trainer.test(pl_model, dataloaders=mmlu_test_fs)
+    # else:
+    #     trainer.test(pl_model, datamodule=data_module)
 
 
 def get_dyrealloc_callback(model_info: AgsModelInfo):
