@@ -1,7 +1,7 @@
 from .dataset_info_util import AgsDatasetInfo
 from .language_modeling_datasets import (
     LanguageModelingDatasetAlpacaCleaned,
-    LanguageModelingDatasetAlpaca,
+    LanguageModelingDatasetAlpaca, LanguageModelingDatasetWikitext2,
 )
 from .text_entailment_datasets import *
 from .sentiment_analysis_datasets import *
@@ -24,6 +24,7 @@ NLP_DATASET_MAPPING = {
     # LM dataset
     "alpaca": LanguageModelingDatasetAlpaca,
     "alpaca-cleaned": LanguageModelingDatasetAlpacaCleaned,
+    "wikitext-2-v1": LanguageModelingDatasetWikitext2,
 }
 
 
@@ -201,6 +202,8 @@ def get_split_names(
     elif path == "alpaca-cleaned":
         return ["train", "validation"]
     elif path == "lambada":
+        return ["train", "validation", "test"]
+    elif path == "wikitext-2-v1":
         return ["train", "validation", "test"]
     else:
         if load_from_saved_path is None:

@@ -416,6 +416,100 @@ class LanguageModelingDatasetAlpacaCleaned(LanguageModelingDatasetBase):
         )
 
 
+@add_dataset_info(
+    name="wikitext-2-v1",
+    dataset_source="hf_datasets",
+    available_splits=("train", "validation", "test"),
+    causal_LM=True,
+    data_collator_cls=DataCollatorForCausalLMAlpaca,
+)
+class LanguageModelingDatasetWikitext2(LanguageModelingDatasetBase):
+    IGNORE_INDEX = -100
+
+    def _download_dataset(self) -> hf_datasets.DatasetDict:
+        if self.load_from_cache_file and self.load_from_saved_path is not None:
+            dataset_dict = datasets.load_dataset(
+                "Salesforce/wikitext", "wikitext-2-v1", cache_dir=self.load_from_saved_path
+            )
+        else:
+            dataset_dict = hf_datasets.load_dataset("Salesforce/wikitext", "wikitext-2-v1")
+        return dataset_dict
+
+    @staticmethod
+    def _preprocess(example, tokenizer, max_length, ignore_id):
+        def _tokenize(text, tokenizer, max_length):
+            return tokenizer(
+                text,
+                return_tensors="pt",
+                padding="longest",
+                max_length=max_length,
+                truncation=True,
+            )
+
+        target = example["text"]
+
+        target_tokenized = _tokenize(target, tokenizer, max_length)["input_ids"][0]
+        input_ids = copy.deepcopy(target_tokenized)
+
+        return dict(
+            input_ids=input_ids,
+            labels=target_tokenized,
+        )
+
+    def prepare_data(self):
+        dataset_dict = self._download_dataset()
+
+        # Add special tokens
+        special_tokens_dict = {}
+        if self.tokenizer.pad_token is None:
+            special_tokens_dict["pad_token"] = "[PAD]"
+        if self.tokenizer.eos_token is None:
+            special_tokens_dict["eos_token"] = "</s>"
+        if self.tokenizer.bos_token is None:
+            special_tokens_dict["bos_token"] = "<s>"
+        if self.tokenizer.unk_token is None:
+            special_tokens_dict["unk_token"] = "<unk>"
+        # self.tokenizer.add_special_tokens(special_tokens_dict)
+
+        dataset_dict.map(
+            function=partial(
+                self._preprocess,
+                tokenizer=self.tokenizer,
+                max_length=self.max_token_len,
+                ignore_id=self.IGNORE_INDEX,
+            ),
+            num_proc=self.num_workers,
+            load_from_cache_file=self.load_from_cache_file,
+            desc="Preprocessing dataset",
+        )
+
+    def setup(self):
+        dataset_dict = self._download_dataset()
+        dataset_dict = dataset_dict.map(
+            function=partial(
+                self._preprocess,
+                tokenizer=self.tokenizer,
+                max_length=self.max_token_len,
+                ignore_id=self.IGNORE_INDEX,
+            ),
+            num_proc=self.num_workers,
+            load_from_cache_file=True,
+            desc="Preprocessing dataset",
+        )
+        self.data = dataset_dict[self.split]
+
+    def __getitem__(self, index):
+        if self.data is None:
+            raise ValueError(
+                "Dataset is not setup. Please call `dataset.prepare_data()` + `dataset.setup()` or pass `auto_setup=True` before using the dataset."
+            )
+        data_row = self.data[index]
+        return dict(
+            input_ids=torch.tensor(data_row["input_ids"]),
+            labels=torch.tensor(data_row["labels"]),
+        )
+
+
 class DataCollatorForCausalLMMMLU:
     """Collate examples for supervised fine-tuning."""
 
