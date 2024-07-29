@@ -15,5 +15,5 @@ source ~/rds/hpc-work/torch/bin/activate
 export HF_HOME=~/rds/hpc-work/lora_global_synergies/cache
 huggingface-cli login --token $HUGGINGFACE_TOKEN
 
-python -m main train-dyrealloc --config ./configs/llama_ags-dyrealloc_alpaca-mmlu-zs.toml \
+python -m main train-dyrealloc --config ./configs/llama_ags-dyrealloc_alpaca-mmlu-zs_r-64.toml \
 --batch-size 1 --num-devices 4 --learning-rate 5e-6
