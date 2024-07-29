@@ -279,7 +279,7 @@ def train_dynamic_reallocation(
     #     trainer.test(pl_model, dataloaders=mmlu_test_zs)
     #     trainer.test(pl_model, dataloaders=mmlu_test_fs)
     # else:
-    #     trainer.test(pl_model, datamodule=data_module)
+    trainer.test(pl_model, datamodule=data_module)
 
 
 def get_dyrealloc_callback(model_info: AgsModelInfo):
