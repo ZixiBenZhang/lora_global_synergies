@@ -1,0 +1,24 @@
+# basics
+model = "llama_lora"
+dataset = "wikitext-2-v1"
+load_name = "meta-llama/Meta-Llama-3-8B"
+load_type = "hf"
+precision = "16"
+# training
+training_optimizer = "adamw"
+learning_rate = 1e-5
+weight_decay = 0.01
+max_epochs = 2
+batch_size = 4
+log_every_n_steps = 20
+#mmlu_mode = "zs"
+# torch lightning
+task = "causal_language_modeling"
+num_workers = 11
+num_devices = 1
+#accelerator = "cpu"
+# language model options
+is_pretrained = true
+max_token_len = 512
+project_dir = "./ags_output"
+lora_config = "./configs/lora/lora-llama_networkwise_r-64.toml"
