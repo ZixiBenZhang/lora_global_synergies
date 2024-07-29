@@ -211,4 +211,6 @@ def train(
         trainer = pl.Trainer(**pl_trainer_args)
         trainer.fit(pl_model, datamodule=data_module)
 
-    trainer.validate(pl_model, datamodule=data_module)
+    mmlu_val_getter, _ = setup_mmlu(**mmlu_args, few_shot=True)
+    mmlu_val = mmlu_val_getter()
+    trainer.validate(pl_model, dataloaders=mmlu_val)
