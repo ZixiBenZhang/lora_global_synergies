@@ -28,5 +28,5 @@ strategy = "ddp_find_unused_parameters_true"
 is_pretrained = true
 max_token_len = 512
 project_dir = "./ags_output"
-lora_config = "./configs/lora/lora-llama_networkwise.toml"
-shortcut_config = "./configs/shortcut/ags_networkwise.toml"
+lora_config = "./configs/lora/lora-llama_networkwise_r-64.toml"
+shortcut_config = "./configs/shortcut/ags_networkwise_r-64.toml"
