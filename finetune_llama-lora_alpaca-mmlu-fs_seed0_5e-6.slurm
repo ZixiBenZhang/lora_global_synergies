@@ -2,7 +2,7 @@
 #
 #SBATCH -A MULLINS-SL2-GPU
 #SBATCH -p ampere
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:1
 #SBATCH --nodes=1
 ##SBATCH --ntasks=56
 #! How much memory in MB is required _per node_? Not setting this
@@ -15,4 +15,4 @@ source ~/rds/hpc-work/torch/bin/activate
 export HF_HOME=~/rds/hpc-work/lora_global_synergies/cache
 huggingface-cli login --token $HUGGINGFACE_TOKEN
 
-python -m main train --config ./configs/llama_lora_alpaca-mmlu-fs.toml --learning-rate 5e-6
+python -m main train --config ./configs/llama_lora_alpaca-mmlu-zs_r-64.toml --learning-rate 5e-6
