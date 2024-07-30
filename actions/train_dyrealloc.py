@@ -194,10 +194,10 @@ def train_dynamic_reallocation(
 
         trainable_params = []
         if model_info.is_lora:
-            reset_lora(model)
+            # reset_lora(model)
             trainable_params.append("lora_")
         if model_info.is_ags:
-            reset_shortcut(model)
+            # reset_shortcut(model)
             trainable_params.append("proj_")
         #     trainable_params.append("shortcut_ln_")
 
