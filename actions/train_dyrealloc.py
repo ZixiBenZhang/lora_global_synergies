@@ -181,7 +181,7 @@ def train_dynamic_reallocation(
             raise ValueError(
                 "Path to checkpoint required for resuming training. Please use --load PATH."
             )
-        model = load_model_chkpt(load_name, load_type=load_type, model=model)
+        # model = load_model_chkpt(load_name, load_type=load_type, model=model)
 
         if load_type != "pl":
             raise ValueError(
@@ -218,16 +218,7 @@ def train_dynamic_reallocation(
         # update_ags_ln_require_grad(model, require_grad=False)
         print_trainable_parameters(model)
 
-        pl_model = wrapper_pl_model(
-            model,
-            dataset_info=dataset_info,
-            learning_rate=learning_rate,
-            weight_decay=weight_decay,
-            lr_scheduler=lr_scheduler,  # for building lr scheduler
-            eta_min=eta_min,  # for building lr scheduler
-            epochs=pl_trainer_args["max_epochs"],
-            optimizer=optimizer,
-        )
+        pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
 
         logger.warning(f"Resuming hyperparameters: {pl_model.hparams}")
 
