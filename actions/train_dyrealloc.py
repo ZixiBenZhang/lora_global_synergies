@@ -218,7 +218,16 @@ def train_dynamic_reallocation(
         # update_ags_ln_require_grad(model, require_grad=False)
         print_trainable_parameters(model)
 
-        pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
+        pl_model = wrapper_pl_model(
+            model,
+            dataset_info=dataset_info,
+            learning_rate=learning_rate,
+            weight_decay=weight_decay,
+            lr_scheduler=lr_scheduler,  # for building lr scheduler
+            eta_min=eta_min,  # for building lr scheduler
+            epochs=pl_trainer_args["max_epochs"],
+            optimizer=optimizer,
+        )
 
         logger.warning(f"Resuming hyperparameters: {pl_model.hparams}")
 
