@@ -3,6 +3,7 @@ model = "llama_lora_ags"
 dataset = "wikitext-2-v1"
 load_name = "./ags_output/llama_lora_ags_causal_language_modeling_wikitext-2-v1_2024-07-29/dyrealloc_ckpts/last_chkpt-None-epoch=4-18-25.ckpt"
 load_type = "pl"
+backbone_model = "meta-llama/Meta-Llama-3-8B"
 precision = "16"
 resume_training = true
 # dyrealloc
