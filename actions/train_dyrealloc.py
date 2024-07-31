@@ -16,7 +16,9 @@ from lora.lora_modules import (
 )
 from models.model_info import AgsModelInfo
 from pl_callbacks.dyrealloc_callback import DynamicLoraReallocationCallback
-from pl_callbacks.dyrealloc_callback_llama import DynamicLoraReallocationForLlamaCallback
+from pl_callbacks.dyrealloc_callback_llama import (
+    DynamicLoraReallocationForLlamaCallback,
+)
 from pl_callbacks.val_callback import MMLUValidationCallback
 from projectors.shortcut_modules import (
     update_ags_importance_beta_require_grad,
@@ -55,7 +57,6 @@ def train_dynamic_reallocation(
     seed,  # for logging in Tensorboard
     mmlu_mode,  # zero-shot/few-shot for MMLU in validation
     mmlu_args,  # arguments for MMLUValidationCallback
-
 ):
     t = time.strftime("%H-%M")
 
@@ -283,7 +284,7 @@ def train_dynamic_reallocation(
 
 
 def get_dyrealloc_callback(model_info: AgsModelInfo):
-    if "llama" in model_info.name:
+    if "llama" in model_info.name or "qwen2" in model_info.name:
         return DynamicLoraReallocationForLlamaCallback
     else:
         return DynamicLoraReallocationCallback
