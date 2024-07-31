@@ -86,8 +86,8 @@ def train_dynamic_reallocation(
             dirpath=save_path,
             filename=f"best_chkpt-{mmlu_mode}" + "-{epoch}-" + t,
             save_top_k=1,
-            monitor=task_metric[task][0],
-            mode=task_metric[task][1],
+            monitor=task_metric[task][0] if mmlu_mode is None else "mmlu_val_acc",
+            mode=task_metric[task][1] if mmlu_mode is None else "max",
             # save_last=True,
         )
         latest_checkpoint_callback = pl.callbacks.ModelCheckpoint(
