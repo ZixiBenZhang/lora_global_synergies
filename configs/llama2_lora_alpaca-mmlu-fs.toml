@@ -1,7 +1,7 @@
 # basics
 model = "llama_lora"
 dataset = "alpaca"
-load_name = "meta-llama/Llama-2-7b"
+load_name = "meta-llama/Llama-2-7b-hf"
 load_type = "hf"
 precision = "16"
 # training
