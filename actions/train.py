@@ -234,12 +234,13 @@ def train(
 
         trainer = pl.Trainer(
             **pl_trainer_args,
-            # limit_train_batches=0.05, limit_val_batches=1, enable_checkpointing=False
+            limit_train_batches=0.05, limit_val_batches=1, enable_checkpointing=False
         )
         trainer.fit(pl_model, datamodule=data_module)
 
-    if mmlu_mode is not None:
-        trainer.test(pl_model, dataloaders=mmlu_test_zs)
-        trainer.test(pl_model, dataloaders=mmlu_test_fs)
-    else:
-        trainer.test(pl_model, datamodule=data_module)
+    trainer.test(pl_model, dataloaders=mmlu_val)
+    # if mmlu_mode is not None:
+    #     trainer.test(pl_model, dataloaders=mmlu_test_zs)
+    #     trainer.test(pl_model, dataloaders=mmlu_test_fs)
+    # else:
+    #     trainer.test(pl_model, datamodule=data_module)
