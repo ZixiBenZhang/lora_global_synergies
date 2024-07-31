@@ -328,7 +328,7 @@ class AgsDataModule(pl.LightningDataModule):
         )
 
     def val_dataloader(self) -> DataLoader:
-        if self.validation_dataset is None:
+        if self.testing_dataset is None:
             raise RuntimeError("The validation dataset is not available.")
         data_collator = None
         if self.dataset_info.data_collator_cls is not None:
@@ -336,7 +336,7 @@ class AgsDataModule(pl.LightningDataModule):
                 tokenizer=self.tokenizer
             )
         return DataLoader(
-            self.validation_dataset,
+            self.testing_dataset,
             batch_size=self.batch_size,
             shuffle=False,
             num_workers=self.num_workers,
