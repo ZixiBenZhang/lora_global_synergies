@@ -20,8 +20,11 @@ from models.modeling_llama_lora_ags import (
     LlamaLoraAgsForQuestionAnswering,
     LlamaLoraAgsDecoderLayer,
 )
-from models.modeling_qwen2_lora_ags import Qwen2LoraAgsDecoderLayer, Qwen2LoraAgsForCausalLM, \
-    Qwen2LoraAgsForSequenceClassification
+from models.modeling_qwen2_lora_ags import (
+    Qwen2LoraAgsDecoderLayer,
+    Qwen2LoraAgsForCausalLM,
+    Qwen2LoraAgsForSequenceClassification,
+)
 from pl_model_wrapper.base import PlWrapperBase
 from projectors.shortcut_modules import ShortcutBase
 
@@ -269,7 +272,9 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                         continue
                     lora.disable_adapters = False
 
-                if isinstance(decoder_layer, (LlamaLoraAgsDecoderLayer, Qwen2LoraAgsDecoderLayer)):
+                if isinstance(
+                    decoder_layer, (LlamaLoraAgsDecoderLayer, Qwen2LoraAgsDecoderLayer)
+                ):
                     decoder_layer: LlamaLoraAgsDecoderLayer | Qwen2LoraAgsDecoderLayer
                     shortcut_modules: dict[str, ShortcutBase] = {
                         "residual_1": decoder_layer.residual_1,
@@ -290,9 +295,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         # format: {layer_idx: {proj: alpha}}
         # Force CONSTANT for first half epochs
         importance_test = self._get_importance_test(
-            test_name="constant"
-            if pl_module.current_epoch < 2
-            else None
+            test_name="constant" if pl_module.current_epoch < 2 else None
         )
         res_val: dict[int, dict[str, float]] = importance_test(
             trainer,
@@ -302,9 +305,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         )
         if self.ags_mode is not None and self.ags_mode != "off":
             ags_importance_test = self._get_ags_importance_test(
-                test_name="constant"
-                if pl_module.current_epoch < 2
-                else None
+                test_name="constant" if pl_module.current_epoch < 2 else None
             )
             ags_res_val: None | dict[int, dict[str, float]] = ags_importance_test(
                 trainer,
@@ -521,13 +522,16 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
 
                 # Turn on/off lora modules
                 model = self.alpha_pl_module.model
-                assert isinstance(model, (
-                    LlamaLoraAgsForCausalLM,
-                    LlamaLoraAgsForSequenceClassification,
-                    LlamaLoraAgsForQuestionAnswering,
-                    Qwen2LoraAgsForCausalLM,
-                    Qwen2LoraAgsForSequenceClassification,
-                ))
+                assert isinstance(
+                    model,
+                    (
+                        LlamaLoraAgsForCausalLM,
+                        LlamaLoraAgsForSequenceClassification,
+                        LlamaLoraAgsForQuestionAnswering,
+                        Qwen2LoraAgsForCausalLM,
+                        Qwen2LoraAgsForSequenceClassification,
+                    ),
+                )
 
                 model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering | Qwen2LoraAgsForCausalLM | Qwen2LoraAgsForSequenceClassification
 
@@ -624,13 +628,16 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
 
                 # Turn on/off lora modules
                 model = self.alpha_pl_module.model
-                assert isinstance(model, (
-                    LlamaLoraAgsForCausalLM,
-                    LlamaLoraAgsForSequenceClassification,
-                    LlamaLoraAgsForQuestionAnswering,
-                    Qwen2LoraAgsForCausalLM,
-                    Qwen2LoraAgsForSequenceClassification,
-                ))
+                assert isinstance(
+                    model,
+                    (
+                        LlamaLoraAgsForCausalLM,
+                        LlamaLoraAgsForSequenceClassification,
+                        LlamaLoraAgsForQuestionAnswering,
+                        Qwen2LoraAgsForCausalLM,
+                        Qwen2LoraAgsForSequenceClassification,
+                    ),
+                )
 
                 model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering | Qwen2LoraAgsForCausalLM | Qwen2LoraAgsForSequenceClassification
 
@@ -672,13 +679,16 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         batch_idx: int,
     ) -> dict[int, dict[str, float]]:
         model = self.alpha_pl_module.model
-        assert isinstance(model, (
-            LlamaLoraAgsForCausalLM,
-            LlamaLoraAgsForSequenceClassification,
-            LlamaLoraAgsForQuestionAnswering,
-            Qwen2LoraAgsForCausalLM,
-            Qwen2LoraAgsForSequenceClassification,
-        ))
+        assert isinstance(
+            model,
+            (
+                LlamaLoraAgsForCausalLM,
+                LlamaLoraAgsForSequenceClassification,
+                LlamaLoraAgsForQuestionAnswering,
+                Qwen2LoraAgsForCausalLM,
+                Qwen2LoraAgsForSequenceClassification,
+            ),
+        )
 
         model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering | Qwen2LoraAgsForCausalLM | Qwen2LoraAgsForSequenceClassification
 
@@ -718,13 +728,16 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         batch_idx: int,
     ) -> dict[int, dict[str, float]]:
         model = self.alpha_pl_module.model
-        assert isinstance(model, (
-            LlamaLoraAgsForCausalLM,
-            LlamaLoraAgsForSequenceClassification,
-            LlamaLoraAgsForQuestionAnswering,
-            Qwen2LoraAgsForCausalLM,
-            Qwen2LoraAgsForSequenceClassification,
-        ))
+        assert isinstance(
+            model,
+            (
+                LlamaLoraAgsForCausalLM,
+                LlamaLoraAgsForSequenceClassification,
+                LlamaLoraAgsForQuestionAnswering,
+                Qwen2LoraAgsForCausalLM,
+                Qwen2LoraAgsForSequenceClassification,
+            ),
+        )
 
         model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering | Qwen2LoraAgsForCausalLM | Qwen2LoraAgsForSequenceClassification
 
@@ -742,9 +755,9 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                 }
                 for proj_name, shortcut in shortcut_modules.items():
                     if (
-                            shortcut is None
-                            or shortcut.active_projector not in shortcut.proj_A.keys()
-                            or shortcut.r[shortcut.active_projector] == 0
+                        shortcut is None
+                        or shortcut.active_projector not in shortcut.proj_A.keys()
+                        or shortcut.r[shortcut.active_projector] == 0
                     ):
                         continue
 
@@ -972,13 +985,16 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
 
         # SNIP
         model = self.alpha_pl_module.model
-        assert isinstance(model, (
-            LlamaLoraAgsForCausalLM,
-            LlamaLoraAgsForSequenceClassification,
-            LlamaLoraAgsForQuestionAnswering,
-            Qwen2LoraAgsForCausalLM,
-            Qwen2LoraAgsForSequenceClassification,
-        ))
+        assert isinstance(
+            model,
+            (
+                LlamaLoraAgsForCausalLM,
+                LlamaLoraAgsForSequenceClassification,
+                LlamaLoraAgsForQuestionAnswering,
+                Qwen2LoraAgsForCausalLM,
+                Qwen2LoraAgsForSequenceClassification,
+            ),
+        )
 
         model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering | Qwen2LoraAgsForCausalLM | Qwen2LoraAgsForSequenceClassification
 
@@ -1168,13 +1184,16 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
 
         # SYNFLOW
         model = self.alpha_pl_module.model
-        assert isinstance(model, (
-            LlamaLoraAgsForCausalLM,
-            LlamaLoraAgsForSequenceClassification,
-            LlamaLoraAgsForQuestionAnswering,
-            Qwen2LoraAgsForCausalLM,
-            Qwen2LoraAgsForSequenceClassification,
-        ))
+        assert isinstance(
+            model,
+            (
+                LlamaLoraAgsForCausalLM,
+                LlamaLoraAgsForSequenceClassification,
+                LlamaLoraAgsForQuestionAnswering,
+                Qwen2LoraAgsForCausalLM,
+                Qwen2LoraAgsForSequenceClassification,
+            ),
+        )
 
         model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering | Qwen2LoraAgsForCausalLM | Qwen2LoraAgsForSequenceClassification
 

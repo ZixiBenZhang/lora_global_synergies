@@ -23,7 +23,9 @@ def get_tokenizer(name: str, checkpoint: str | PathLike = None):
 
 
 def get_hf_model_tokenizer(name: str, checkpoint: str | PathLike = None):
-    tokenizer = AutoTokenizer.from_pretrained(name if checkpoint is None else checkpoint)
+    tokenizer = AutoTokenizer.from_pretrained(
+        name if checkpoint is None else checkpoint
+    )
     if "llama" in name:
         tokenizer.pad_token = tokenizer.eos_token
         logger.warning("Setting pad_token as eos_token")

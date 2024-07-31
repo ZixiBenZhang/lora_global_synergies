@@ -429,10 +429,14 @@ class LanguageModelingDatasetWikitext2(LanguageModelingDatasetBase):
     def _download_dataset(self) -> hf_datasets.DatasetDict:
         if self.load_from_cache_file and self.load_from_saved_path is not None:
             dataset_dict = datasets.load_dataset(
-                "Salesforce/wikitext", "wikitext-2-v1", cache_dir=self.load_from_saved_path
+                "Salesforce/wikitext",
+                "wikitext-2-v1",
+                cache_dir=self.load_from_saved_path,
             )
         else:
-            dataset_dict = hf_datasets.load_dataset("Salesforce/wikitext", "wikitext-2-v1")
+            dataset_dict = hf_datasets.load_dataset(
+                "Salesforce/wikitext", "wikitext-2-v1"
+            )
         return dataset_dict
 
     @staticmethod
@@ -521,7 +525,8 @@ class DataCollatorForCausalLMMMLU:
 
     def __call__(self, instances: list[Dict]) -> Dict[str, torch.Tensor]:
         input_ids, labels, subjects = tuple(
-            [instance[key] for instance in instances] for key in ("input_ids", "labels", "subject")
+            [instance[key] for instance in instances]
+            for key in ("input_ids", "labels", "subject")
         )
         if not isinstance(input_ids[0], torch.Tensor):
             input_ids = [torch.as_tensor(x) for x in input_ids]

@@ -6,7 +6,10 @@ from datasets import DatasetDict
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizer
 
-from dataset.language_modeling_datasets import DataCollatorForCausalLMAlpaca, DataCollatorForCausalLMMMLU
+from dataset.language_modeling_datasets import (
+    DataCollatorForCausalLMAlpaca,
+    DataCollatorForCausalLMMMLU,
+)
 
 IGNORE_INDEX = -100
 

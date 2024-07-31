@@ -12,8 +12,11 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 import pl_model_wrapper
 from lora.lora_modules import LoraLinear
-from models.modeling_llama_lora_ags import LlamaLoraAgsForCausalLM, LlamaLoraAgsForSequenceClassification, \
-    LlamaLoraAgsForQuestionAnswering
+from models.modeling_llama_lora_ags import (
+    LlamaLoraAgsForCausalLM,
+    LlamaLoraAgsForSequenceClassification,
+    LlamaLoraAgsForQuestionAnswering,
+)
 from pl_callbacks.val_callback import MMLUValidationCallback
 from projectors.shortcut_modules import ShortcutBase
 from tools.checkpoint_load import load_model_chkpt
@@ -80,13 +83,17 @@ def test(
         # raise ValueError(
         #     "Path to checkpoint required for resuming training. Please use --load PATH."
         # )
-        pl_model: pl.LightningModule = wrapper_pl_model(
-            model,
-            dataset_info=dataset_info,
-        ) if mmlu_mode is None else wrapper_pl_model(
-            model,
-            dataset_info=dataset_info,
-            tokenizer=tokenizer,
+        pl_model: pl.LightningModule = (
+            wrapper_pl_model(
+                model,
+                dataset_info=dataset_info,
+            )
+            if mmlu_mode is None
+            else wrapper_pl_model(
+                model,
+                dataset_info=dataset_info,
+                tokenizer=tokenizer,
+            )
         )
     else:
         if load_type == "pl":
@@ -101,13 +108,17 @@ def test(
             )
             logger.warning(f"Resuming hyperparameters: {pl_model.hparams}")
         else:
-            pl_model: pl.LightningModule = wrapper_pl_model(
-                model,
-                dataset_info=dataset_info,
-            ) if mmlu_mode is None else wrapper_pl_model(
-                model,
-                dataset_info=dataset_info,
-                tokenizer=tokenizer,
+            pl_model: pl.LightningModule = (
+                wrapper_pl_model(
+                    model,
+                    dataset_info=dataset_info,
+                )
+                if mmlu_mode is None
+                else wrapper_pl_model(
+                    model,
+                    dataset_info=dataset_info,
+                    tokenizer=tokenizer,
+                )
             )
 
     if realloc_hist_path is not None:
@@ -115,7 +126,12 @@ def test(
 
     for name, module in model.named_modules():
         if isinstance(module, (LoraLinear, ShortcutBase)):
-            logger.info(name, module.disable_adapters if isinstance(module, LoraLinear) else module.disable_projectors)
+            logger.info(
+                name,
+                module.disable_adapters
+                if isinstance(module, LoraLinear)
+                else module.disable_projectors,
+            )
 
     trainer = pl.Trainer(**pl_trainer_args)
 
@@ -139,11 +155,22 @@ def test(
 
 
 def set_dyrealloc_enabling(model: torch.nn.Module, realloc_hist_path: str):
-    assert isinstance(model, (LlamaLoraAgsForCausalLM, LlamaLoraAgsForSequenceClassification, LlamaLoraAgsForQuestionAnswering)), "Loading dyrealloc final turn-on is only supported for Llama models"
+    assert isinstance(
+        model,
+        (
+            LlamaLoraAgsForCausalLM,
+            LlamaLoraAgsForSequenceClassification,
+            LlamaLoraAgsForQuestionAnswering,
+        ),
+    ), "Loading dyrealloc final turn-on is only supported for Llama models"
 
     history = toml.load(realloc_hist_path)
     keys = list(history.keys())
-    last_key = keys[0].split("_")[0] + "_" + str(np.max([int(key.split("_")[1]) for key in keys]))
+    last_key = (
+        keys[0].split("_")[0]
+        + "_"
+        + str(np.max([int(key.split("_")[1]) for key in keys]))
+    )
     last_decision = history[last_key]["turn_on"]
 
     turn_on = []

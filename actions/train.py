@@ -98,7 +98,9 @@ def train(
         )
         pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
 
-        mmlu_val_getter, _ = setup_mmlu(**mmlu_args, few_shot=(mmlu_mode == "fs"), max_token_len=4096)
+        mmlu_val_getter, _ = setup_mmlu(
+            **mmlu_args, few_shot=(mmlu_mode == "fs"), max_token_len=4096
+        )
         mmlu_val = mmlu_val_getter()
 
     # Validation metrics history, for hyperparameter search
@@ -209,8 +211,7 @@ def train(
         )
 
         trainer = pl.Trainer(
-            **pl_trainer_args,
-            limit_train_batches=0.05, enable_checkpointing=False
+            **pl_trainer_args, limit_train_batches=0.05, enable_checkpointing=False
         )
         trainer.fit(pl_model, datamodule=data_module)
 

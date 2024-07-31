@@ -12,7 +12,9 @@ def setup_folder(args) -> Path:
         project = "{}_{}_{}_{}".format(
             args.model.replace("/", "-"),
             args.task,
-            args.dataset.replace("/", "-") if args.mmlu_mode is None else args.dataset.replace("/", "-") + "-mmlu",
+            args.dataset.replace("/", "-")
+            if args.mmlu_mode is None
+            else args.dataset.replace("/", "-") + "-mmlu",
             time.strftime("%Y-%m-%d"),
         )
         setattr(args, "project", project)
