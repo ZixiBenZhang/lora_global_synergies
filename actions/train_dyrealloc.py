@@ -107,8 +107,8 @@ def train_dynamic_reallocation(
         )
         # Lora rank reallocation callback
         pl_trainer_args["callbacks"] = [
-            best_checkpoint_callback,
-            latest_checkpoint_callback,
+            # best_checkpoint_callback,
+            # latest_checkpoint_callback,
             lr_monitor_callback,
         ]
         pl_trainer_args["logger"] = [tb_logger]
@@ -117,11 +117,6 @@ def train_dynamic_reallocation(
     # MMLU validation callback
     mmlu_test_zs = mmlu_test_fs = None
     if mmlu_mode is not None:
-        # mmlu_val_callback = MMLUValidationCallback(
-        #     **mmlu_args, few_shot=(mmlu_mode == "fs")
-        # )
-        # pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
-
         mmlu_val_getter, _ = setup_mmlu(
             **mmlu_args, few_shot=(mmlu_mode == "fs")
         )
@@ -305,7 +300,10 @@ def train_dynamic_reallocation(
             mmlu_tokenizer=tokenizer,
         )
 
-        trainer = pl.Trainer(**pl_trainer_args)
+        trainer = pl.Trainer(
+            **pl_trainer_args,
+            limit_train_batches=0.05, limit_val_batches=1, limit_test_batches=4, enable_checkpointing=False
+        )
         trainer.fit(pl_model, datamodule=data_module)
 
     dynamic_reallocation_callback.save_reallocation_history()
