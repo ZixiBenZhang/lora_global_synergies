@@ -91,15 +91,15 @@ def train(
         pl_trainer_args["logger"] = [tb_logger]
 
     # MMLU validation callback
-    # mmlu_val = None
+    mmlu_val = None
     if mmlu_mode is not None:
         mmlu_val_callback = MMLUValidationCallback(
             **mmlu_args, few_shot=(mmlu_mode == "fs")
         )
         pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
 
-        # mmlu_val_getter, _ = setup_mmlu(**mmlu_args, few_shot=(mmlu_mode == "fs"))
-        # mmlu_val = mmlu_val_getter()
+        mmlu_val_getter, _ = setup_mmlu(**mmlu_args, few_shot=(mmlu_mode == "fs"), max_token_len=4096)
+        mmlu_val = mmlu_val_getter()
 
     # Validation metrics history, for hyperparameter search
     val_history = ValidationMetricsCallback()
@@ -210,10 +210,10 @@ def train(
 
         trainer = pl.Trainer(
             **pl_trainer_args,
-            # limit_train_batches=0.05, enable_checkpointing=False
+            limit_train_batches=0.05, enable_checkpointing=False
         )
         trainer.fit(pl_model, datamodule=data_module)
 
     # mmlu_val_getter, _ = setup_mmlu(**mmlu_args, few_shot=True)
     # mmlu_val = mmlu_val_getter()
-    trainer.test(pl_model, datamodule=data_module)
+    trainer.test(pl_model, dataloaders=mmlu_val)
