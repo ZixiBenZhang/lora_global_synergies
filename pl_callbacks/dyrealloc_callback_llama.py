@@ -295,7 +295,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         # Force CONSTANT for first half epochs
         importance_test = self._get_importance_test(
             test_name="constant"
-            if pl_module.current_epoch < 2
+            if pl_module.current_epoch < 0
             else None
         )
         res_val: dict[int, dict[str, float]] = importance_test(
@@ -307,7 +307,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         if self.ags_mode is not None and self.ags_mode != "off":
             ags_importance_test = self._get_ags_importance_test(
                 test_name="constant"
-                if pl_module.current_epoch < 2
+                if pl_module.current_epoch < 0
                 else None
             )
             ags_res_val: None | dict[int, dict[str, float]] = ags_importance_test(
