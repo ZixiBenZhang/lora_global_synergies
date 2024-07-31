@@ -161,7 +161,7 @@ def train(
         pl_model = wrapper_pl_model.load_from_checkpoint(
             load_name, model=model
         ) if mmlu_mode is None else wrapper_pl_model.load_from_checkpoint(
-            load_name, model=model, tokenizer=tokenizer
+            load_name, model=model, mmlu_tokenizer=tokenizer
         )
 
         logger.warning(f"Resuming hyperparameters: {pl_model.hparams}")
@@ -221,7 +221,7 @@ def train(
             eta_min=eta_min,  # for building lr scheduler
             epochs=pl_trainer_args["max_epochs"],
             optimizer=optimizer,
-            tokenizer=tokenizer,
+            mmlu_tokenizer=tokenizer,
         )
 
         trainer = pl.Trainer(

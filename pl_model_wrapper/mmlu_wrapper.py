@@ -84,7 +84,7 @@ class NLPMMLULanguageModelingModelWrapper(NLPLanguageModelingModelWrapper):
         eta_min=0.0,  # for building lr scheduler
         epochs=200,  # for building lr_scheduler
         dataset_info: AgsDatasetInfo = None,  # for getting num_classes for calculating Accuracy
-        tokenizer: PreTrainedTokenizer = None,  # for getting abcd_idx
+        mmlu_tokenizer: PreTrainedTokenizer = None,  # for getting abcd_idx
     ):
         super().__init__(
             model,

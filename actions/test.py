@@ -92,7 +92,7 @@ def test(
             else wrapper_pl_model(
                 model,
                 dataset_info=dataset_info,
-                tokenizer=tokenizer,
+                mmlu_tokenizer=tokenizer,
             )
         )
     else:
@@ -104,7 +104,7 @@ def test(
             pl_model: pl.LightningModule = wrapper_pl_model(
                 model,
                 dataset_info=dataset_info,
-                tokenizer=tokenizer,
+                mmlu_tokenizer=tokenizer,
             )
             logger.warning(f"Resuming hyperparameters: {pl_model.hparams}")
         else:
@@ -117,7 +117,7 @@ def test(
                 else wrapper_pl_model(
                     model,
                     dataset_info=dataset_info,
-                    tokenizer=tokenizer,
+                    mmlu_tokenizer=tokenizer,
                 )
             )
 
