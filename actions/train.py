@@ -84,8 +84,8 @@ def train(
         # csv_logger = pl.loggers.CSVLogger(save_dir=save_path, name="csv_logs")
         # wandb_logger = pl.loggers.WandbLogger(save_dir=save_path, name="wandb_logs")
         pl_trainer_args["callbacks"] = [
-            best_checkpoint_callback,
-            latest_checkpoint_callback,
+            # best_checkpoint_callback,
+            # latest_checkpoint_callback,
             lr_monitor_callback,
         ]
         pl_trainer_args["logger"] = [tb_logger]
