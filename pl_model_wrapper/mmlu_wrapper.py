@@ -131,10 +131,10 @@ class NLPMMLULanguageModelingModelWrapper(NLPLanguageModelingModelWrapper):
             ]
             if "Llama" in type(self.tokenizer).__name__
             else [
-                tokenizer.encode("A")[0],
-                tokenizer.encode("B")[0],
-                tokenizer.encode("C")[0],
-                tokenizer.encode("D")[0],
+                tokenizer.encode(" A")[0],
+                tokenizer.encode(" B")[0],
+                tokenizer.encode(" C")[0],
+                tokenizer.encode(" D")[0],
             ]
         )
 
