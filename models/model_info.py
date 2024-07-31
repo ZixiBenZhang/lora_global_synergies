@@ -13,7 +13,7 @@ from transformers import (
     OPTForSequenceClassification,
     OPTForCausalLM,
     GemmaConfig,
-    GemmaTokenizer, AutoTokenizer,
+    GemmaTokenizer, AutoTokenizer, Qwen2Config, Qwen2Tokenizer,
 )
 
 from models.configuration_gemma_lora import GemmaLoraConfig
@@ -23,6 +23,8 @@ from models.configuration_opt_lora import OPTLoraConfig
 from models.configuration_opt_lora_ags import (
     OPTLoraAgsConfig,
 )
+from models.configuration_qwen2_lora import Qwen2LoraConfig
+from models.configuration_qwen2_lora_ags import Qwen2LoraAgsConfig
 from models.configuration_roberta_lora import RobertaLoraConfig
 from models.modeling_gemma_lora import (
     GemmaLoraForSequenceClassification,
@@ -38,6 +40,8 @@ from models.modeling_opt_lora_ags import (
     OPTLoraAgsForSequenceClassification,
     OPTLoraAgsForCausalLM,
 )
+from models.modeling_qwen2_lora import Qwen2LoraForSequenceClassification, Qwen2LoraForCausalLM
+from models.modeling_qwen2_lora_ags import Qwen2LoraAgsForSequenceClassification, Qwen2LoraAgsForCausalLM
 from models.modeling_roberta_lora import (
     RobertaLoraForSequenceClassification,
     RobertaLoraForCausalLM,
@@ -249,6 +253,39 @@ HF_NLP_MODELS = {
             causal_LM=True,
         ),
     },
+    "Qwen/Qwen2-0.5B": {
+        "config_cls": Qwen2Config,
+        "tokenizer_cls": Qwen2Tokenizer,
+        "info": AgsModelInfo(
+            "Qwen/Qwen2-0.5B",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
+    },
+    "Qwen/Qwen2-1.5B": {
+        "config_cls": Qwen2Config,
+        "tokenizer_cls": Qwen2Tokenizer,
+        "info": AgsModelInfo(
+            "Qwen/Qwen2-1.5B",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
+    },
+    "Qwen/Qwen2-7B": {
+        "config_cls": Qwen2Config,
+        "tokenizer_cls": Qwen2Tokenizer,
+        "info": AgsModelInfo(
+            "Qwen/Qwen2-7B",
+            model_source="hf_transformers",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+        ),
+    },
 }
 
 MANUAL_MODELS = {
@@ -364,6 +401,36 @@ MANUAL_MODELS = {
         ),
         "sequence_classification": LlamaLoraAgsForSequenceClassification,
         "causal_LM": LlamaLoraAgsForCausalLM,
+    },
+    "qwen2_lora": {
+        "config_cls": Qwen2LoraConfig,
+        "tokenizer_cls": Qwen2Tokenizer,
+        "info": AgsModelInfo(
+            "qwen2_lora",
+            model_source="manual",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+            is_lora=True,
+            is_ags=False,
+        ),
+        "sequence_classification": Qwen2LoraForSequenceClassification,
+        "causal_LM": Qwen2LoraForCausalLM,
+    },
+    "qwen2_lora_ags": {
+        "config_cls": Qwen2LoraAgsConfig,
+        "tokenizer_cls": Qwen2Tokenizer,
+        "info": AgsModelInfo(
+            "qwen2_lora_ags",
+            model_source="manual",
+            task_type="nlp",
+            sequence_classification=True,
+            causal_LM=True,
+            is_lora=True,
+            is_ags=True,
+        ),
+        "sequence_classification": Qwen2LoraAgsForSequenceClassification,
+        "causal_LM": Qwen2LoraAgsForCausalLM,
     },
 }
 

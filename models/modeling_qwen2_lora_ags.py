@@ -50,8 +50,8 @@ from transformers.utils import (
 from transformers.models.qwen2.configuration_qwen2 import Qwen2Config
 
 from lora.lora_modules import LoraLinear
-from models.configuration_qwen_lora import Qwen2LoraConfig
-from models.configuration_qwen_lora_ags import Qwen2LoraAgsConfig
+from models.configuration_qwen2_lora import Qwen2LoraConfig
+from models.configuration_qwen2_lora_ags import Qwen2LoraAgsConfig
 from projectors.shortcut_modules import ShortcutFromZeros, ShortcutFromIdentity
 
 if is_flash_attn_2_available():

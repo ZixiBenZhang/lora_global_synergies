@@ -121,7 +121,7 @@ def train(
             raise ValueError(
                 "Path to checkpoint required for resuming training. Please use --load PATH."
             )
-        model = load_model_chkpt(load_name, load_type=load_type, model=model)
+        # model = load_model_chkpt(load_name, load_type=load_type, model=model)
 
         if load_type != "pl":
             raise ValueError(

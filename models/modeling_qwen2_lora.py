@@ -50,7 +50,7 @@ from transformers.utils import (
 from transformers.models.qwen2.configuration_qwen2 import Qwen2Config
 
 from lora.lora_modules import LoraLinear
-from models.configuration_qwen_lora import Qwen2LoraConfig
+from models.configuration_qwen2_lora import Qwen2LoraConfig
 
 if is_flash_attn_2_available():
     from transformers.modeling_flash_attention_utils import _flash_attention_forward
@@ -663,7 +663,7 @@ QWEN2_START_DOCSTRING = r"""
     QWEN2_START_DOCSTRING,
 )
 class Qwen2LoraPreTrainedModel(PreTrainedModel):
-    config_class = Qwen2Config
+    config_class = Qwen2LoraConfig
     base_model_prefix = "model"
     supports_gradient_checkpointing = True
     _no_split_modules = ["Qwen2LoraDecoderLayer"]

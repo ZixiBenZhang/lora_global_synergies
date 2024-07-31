@@ -1,17 +1,16 @@
 import logging
 import math
-import os
 import time
 import types
 from typing import Any, Optional, Callable
 
 import numpy as np
+import pytorch_lightning as pl
 import toml
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 from torch.utils.data import DataLoader
-import pytorch_lightning as pl
 
 from dataset.pl_dataset_module import AgsDataModule
 from lora.lora_modules import LoraLinear
@@ -21,11 +20,8 @@ from models.modeling_llama_lora_ags import (
     LlamaLoraAgsForQuestionAnswering,
     LlamaLoraAgsDecoderLayer,
 )
-from pl_model_wrapper import (
-    NLPClassificationModelWrapper,
-    NLPSummarizationModelWrapper,
-    NLPLanguageModelingModelWrapper,
-)
+from models.modeling_qwen2_lora_ags import Qwen2LoraAgsDecoderLayer, Qwen2LoraAgsForCausalLM, \
+    Qwen2LoraAgsForSequenceClassification
 from pl_model_wrapper.base import PlWrapperBase
 from projectors.shortcut_modules import ShortcutBase
 
@@ -273,8 +269,8 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
                         continue
                     lora.disable_adapters = False
 
-                if isinstance(decoder_layer, LlamaLoraAgsDecoderLayer):
-                    decoder_layer: LlamaLoraAgsDecoderLayer
+                if isinstance(decoder_layer, (LlamaLoraAgsDecoderLayer, Qwen2LoraAgsDecoderLayer)):
+                    decoder_layer: LlamaLoraAgsDecoderLayer | Qwen2LoraAgsDecoderLayer
                     shortcut_modules: dict[str, ShortcutBase] = {
                         "residual_1": decoder_layer.residual_1,
                         "residual_2": decoder_layer.residual_2,
@@ -525,16 +521,18 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
 
                 # Turn on/off lora modules
                 model = self.alpha_pl_module.model
-                assert (
-                        type(model) is LlamaLoraAgsForCausalLM
-                        or type(model) is LlamaLoraAgsForSequenceClassification
-                        or type(model) is LlamaLoraAgsForQuestionAnswering
-                )
-                model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering
+                assert isinstance(model, (
+                    LlamaLoraAgsForCausalLM,
+                    LlamaLoraAgsForSequenceClassification,
+                    LlamaLoraAgsForQuestionAnswering,
+                    Qwen2LoraAgsForCausalLM,
+                    Qwen2LoraAgsForSequenceClassification,
+                ))
+
+                model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering | Qwen2LoraAgsForCausalLM | Qwen2LoraAgsForSequenceClassification
 
                 # for decoder_layer in reversed(model.model.decoder.layers):
                 for decoder_layer in reversed(model.model.layers):  # Llama2
-                    # decoder_layer: OPTLoraAgsDecoderLayer
                     layer_idx = decoder_layer.layer_idx
 
                     lora_modules: dict[str, LoraLinear] = {
@@ -626,12 +624,15 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
 
                 # Turn on/off lora modules
                 model = self.alpha_pl_module.model
-                assert (
-                        type(model) is LlamaLoraAgsForCausalLM
-                        or type(model) is LlamaLoraAgsForSequenceClassification
-                        or type(model) is LlamaLoraAgsForQuestionAnswering
-                )
-                model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering
+                assert isinstance(model, (
+                    LlamaLoraAgsForCausalLM,
+                    LlamaLoraAgsForSequenceClassification,
+                    LlamaLoraAgsForQuestionAnswering,
+                    Qwen2LoraAgsForCausalLM,
+                    Qwen2LoraAgsForSequenceClassification,
+                ))
+
+                model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering | Qwen2LoraAgsForCausalLM | Qwen2LoraAgsForSequenceClassification
 
                 # for decoder_layer in reversed(model.model.decoder.layers):
                 for decoder_layer in reversed(model.model.layers):
@@ -671,18 +672,21 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         batch_idx: int,
     ) -> dict[int, dict[str, float]]:
         model = self.alpha_pl_module.model
-        assert (
-            type(model) is LlamaLoraAgsForCausalLM
-            or type(model) is LlamaLoraAgsForSequenceClassification
-            or type(model) is LlamaLoraAgsForQuestionAnswering
-        )
-        model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering
+        assert isinstance(model, (
+            LlamaLoraAgsForCausalLM,
+            LlamaLoraAgsForSequenceClassification,
+            LlamaLoraAgsForQuestionAnswering,
+            Qwen2LoraAgsForCausalLM,
+            Qwen2LoraAgsForSequenceClassification,
+        ))
+
+        model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering | Qwen2LoraAgsForCausalLM | Qwen2LoraAgsForSequenceClassification
 
         # constant score of every lora module
         with torch.no_grad():
             res_val = {}
             for decoder_layer in model.model.layers:
-                decoder_layer: LlamaLoraAgsDecoderLayer
+                decoder_layer: LlamaLoraAgsDecoderLayer | Qwen2LoraAgsDecoderLayer
                 layer_idx = decoder_layer.layer_idx
                 lora_modules: dict[str, LoraLinear] = {
                     "q_proj": decoder_layer.self_attn.q_proj,
@@ -714,18 +718,21 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         batch_idx: int,
     ) -> dict[int, dict[str, float]]:
         model = self.alpha_pl_module.model
-        assert (
-            type(model) is LlamaLoraAgsForCausalLM
-            or type(model) is LlamaLoraAgsForSequenceClassification
-            or type(model) is LlamaLoraAgsForQuestionAnswering
-        )
-        model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering
+        assert isinstance(model, (
+            LlamaLoraAgsForCausalLM,
+            LlamaLoraAgsForSequenceClassification,
+            LlamaLoraAgsForQuestionAnswering,
+            Qwen2LoraAgsForCausalLM,
+            Qwen2LoraAgsForSequenceClassification,
+        ))
+
+        model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering | Qwen2LoraAgsForCausalLM | Qwen2LoraAgsForSequenceClassification
 
         # constant score of every lora module
         with torch.no_grad():
             res_val = {}
             for decoder_layer in model.model.layers:
-                decoder_layer: LlamaLoraAgsDecoderLayer
+                decoder_layer: LlamaLoraAgsDecoderLayer | Qwen2LoraAgsDecoderLayer
                 layer_idx = decoder_layer.layer_idx
                 shortcut_modules: dict[str, ShortcutBase] = {
                     "residual_1": decoder_layer.residual_1,
@@ -965,12 +972,15 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
 
         # SNIP
         model = self.alpha_pl_module.model
-        assert (
-                LlamaLoraAgsForCausalLM
-                or type(model) is LlamaLoraAgsForSequenceClassification
-                or type(model) is LlamaLoraAgsForQuestionAnswering
-        )
-        model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering
+        assert isinstance(model, (
+            LlamaLoraAgsForCausalLM,
+            LlamaLoraAgsForSequenceClassification,
+            LlamaLoraAgsForQuestionAnswering,
+            Qwen2LoraAgsForCausalLM,
+            Qwen2LoraAgsForSequenceClassification,
+        ))
+
+        model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering | Qwen2LoraAgsForCausalLM | Qwen2LoraAgsForSequenceClassification
 
         @torch.no_grad()
         def get_require_grad(net: nn.Module):
@@ -1039,7 +1049,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         original_forward = {}
 
         for decoder_layer in reversed(model.model.layers):
-            decoder_layer: LlamaLoraAgsDecoderLayer
+            decoder_layer: LlamaLoraAgsDecoderLayer | Qwen2LoraAgsDecoderLayer
             lora_modules: dict[str, LoraLinear] = {
                 "q_proj": decoder_layer.self_attn.q_proj,
                 "k_proj": decoder_layer.self_attn.k_proj,
@@ -1088,7 +1098,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         # calculate score of every lora module
         grads_abs = {}
         for decoder_layer in model.model.layers:
-            decoder_layer: LlamaLoraAgsDecoderLayer
+            decoder_layer: LlamaLoraAgsDecoderLayer | Qwen2LoraAgsDecoderLayer
             layer_idx = decoder_layer.layer_idx
             lora_modules: dict[str, LoraLinear] = {
                 "q_proj": decoder_layer.self_attn.q_proj,
@@ -1118,7 +1128,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         # recover requires_grad and forward, reset grads
         set_require_grad(model, original_require_grad)
         for decoder_layer in reversed(model.model.layers):
-            decoder_layer: LlamaLoraAgsDecoderLayer
+            decoder_layer: LlamaLoraAgsDecoderLayer | Qwen2LoraAgsDecoderLayer
             lora_modules: dict[str, LoraLinear] = {
                 "q_proj": decoder_layer.self_attn.q_proj,
                 "k_proj": decoder_layer.self_attn.k_proj,
@@ -1158,12 +1168,15 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
 
         # SYNFLOW
         model = self.alpha_pl_module.model
-        assert (
-                type(model) is LlamaLoraAgsForCausalLM
-                or type(model) is LlamaLoraAgsForSequenceClassification
-                or type(model) is LlamaLoraAgsForQuestionAnswering
-        )
-        model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering
+        assert isinstance(model, (
+            LlamaLoraAgsForCausalLM,
+            LlamaLoraAgsForSequenceClassification,
+            LlamaLoraAgsForQuestionAnswering,
+            Qwen2LoraAgsForCausalLM,
+            Qwen2LoraAgsForSequenceClassification,
+        ))
+
+        model: LlamaLoraAgsForCausalLM | LlamaLoraAgsForSequenceClassification | LlamaLoraAgsForQuestionAnswering | Qwen2LoraAgsForCausalLM | Qwen2LoraAgsForSequenceClassification
 
         # convert params to their abs, keep sign for converting it back
         @torch.no_grad()
@@ -1220,7 +1233,7 @@ class DynamicLoraReallocationForLlamaCallback(pl.Callback):
         # calculate score of every lora module
         grads_abs = {}
         for decoder_layer in model.model.layers:
-            decoder_layer: LlamaLoraAgsDecoderLayer
+            decoder_layer: LlamaLoraAgsDecoderLayer | Qwen2LoraAgsDecoderLayer
             layer_idx = decoder_layer.layer_idx
             lora_modules: dict[str, LoraLinear] = {
                 "q_proj": decoder_layer.self_attn.q_proj,
