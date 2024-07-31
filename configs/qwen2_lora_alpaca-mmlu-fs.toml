@@ -9,7 +9,7 @@ training_optimizer = "adamw"
 learning_rate = 1e-5
 weight_decay = 0.01
 max_epochs = 1
-batch_size = 4
+batch_size = 16
 log_every_n_steps = 20
 mmlu_mode = "fs"
 # torch lightning

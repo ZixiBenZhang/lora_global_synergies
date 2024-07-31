@@ -93,10 +93,10 @@ def train(
     # MMLU validation callback
     mmlu_val = None
     if mmlu_mode is not None:
-        mmlu_val_callback = MMLUValidationCallback(
-            **mmlu_args, few_shot=(mmlu_mode == "fs")
-        )
-        pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
+        # mmlu_val_callback = MMLUValidationCallback(
+        #     **mmlu_args, few_shot=(mmlu_mode == "fs")
+        # )
+        # pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
 
         mmlu_val_getter, _ = setup_mmlu(
             **mmlu_args, few_shot=(mmlu_mode == "fs")
