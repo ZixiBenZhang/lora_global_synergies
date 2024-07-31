@@ -129,7 +129,7 @@ class NLPMMLULanguageModelingModelWrapper(NLPLanguageModelingModelWrapper):
                 mmlu_tokenizer.encode(" C")[1],
                 mmlu_tokenizer.encode(" D")[1],
             ]
-            if "Llama" in type(mmlu_tokenizer).__name__
+            if "llama" in type(mmlu_tokenizer).__name__.lower()
             else [
                 mmlu_tokenizer.encode(" A")[0],
                 mmlu_tokenizer.encode(" B")[0],
