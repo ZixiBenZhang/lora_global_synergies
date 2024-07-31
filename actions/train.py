@@ -7,6 +7,7 @@ import pytorch_lightning as pl
 from lightning_fabric.plugins.environments import SLURMEnvironment
 from pytorch_lightning.loggers import TensorBoardLogger
 
+from dataset.pl_dataset_module import AgsDataModule
 from lora.lora_modules import (
     update_lora_importance_alpha_require_grad,
     reset_lora,
@@ -31,7 +32,7 @@ def train(
     model: torch.nn.Module | torch.fx.GraphModule,
     tokenizer,
     model_info: AgsModelInfo,  # dataclass of model's task type and name
-    data_module: pl.LightningDataModule,  # for preparing and loading datasets for pl trainer
+    data_module: AgsDataModule,  # for preparing and loading datasets for pl trainer
     dataset_info,  # dataclass including e.g. number of classes for the pl model wrapper
     task,  # to decide the pl model wrapper of which type should be used
     optimizer,  # optimizer for pl trainer
@@ -102,6 +103,7 @@ def train(
             **mmlu_args, few_shot=(mmlu_mode == "fs")
         )
         mmlu_val = mmlu_val_getter()
+        data_module.set_val_dataloader(mmlu_val)
 
     # Validation metrics history, for hyperparameter search
     val_history = ValidationMetricsCallback()
