@@ -114,7 +114,7 @@ def train(
     pl_trainer_args["plugins"] = plugins
 
     wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
-        model_info, task
+        model_info, task if mmlu_mode is None else task + "-mmlu"
     )
 
     if resume_training:
