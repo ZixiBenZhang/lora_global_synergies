@@ -100,12 +100,21 @@ class MMLUValidationCallback(pl.Callback):
 
         self.mmlu_dataset = None
 
-        self.abcd_idx = [
-            tokenizer.encode(" A")[1],
-            tokenizer.encode(" B")[1],
-            tokenizer.encode(" C")[1],
-            tokenizer.encode(" D")[1],
-        ]
+        self.abcd_idx = (
+            [
+                tokenizer.encode(" A")[1],
+                tokenizer.encode(" B")[1],
+                tokenizer.encode(" C")[1],
+                tokenizer.encode(" D")[1],
+            ]
+            if "Llama" in type(self.tokenizer).__name__
+            else [
+                tokenizer.encode("A")[0],
+                tokenizer.encode("B")[0],
+                tokenizer.encode("C")[0],
+                tokenizer.encode("D")[0],
+            ]
+        )
 
     def _download_dataset(self):
         if not self.few_shot:
@@ -226,7 +235,10 @@ class MMLUValidationCallback(pl.Callback):
                 logit_abcd = logit[label_non_zero_ids[0][0] - 1][self.abcd_idx]
                 preds.append(torch.argmax(logit_abcd).item())
             labels = labels[labels != self.IGNORE_INDEX].view(-1, 1)[:, 0]
-            refs += [self.abcd_idx.index(label) if label != 4 else 4 for label in labels.tolist()]
+            refs += [
+                self.abcd_idx.index(label) if label != 4 else 4
+                for label in labels.tolist()
+            ]
             loss_mmlu += loss.item()
 
         results = {"mmlu_loss": loss_mmlu / len(data_loader)}
@@ -252,7 +264,9 @@ class MMLUValidationCallback(pl.Callback):
 
         pl_module.log_dict(results)
 
-    def on_test_epoch_start(self, trainer: pl.Trainer, pl_module: pl.LightningModule) -> None:
+    def on_test_epoch_start(
+        self, trainer: pl.Trainer, pl_module: pl.LightningModule
+    ) -> None:
         if torch.cuda.current_device() != 0:
             return
         data_loader = self._test_dataloader()
@@ -282,7 +296,10 @@ class MMLUValidationCallback(pl.Callback):
                 logit_abcd = logit[label_non_zero_ids[0][0] - 1][self.abcd_idx]
                 preds.append(torch.argmax(logit_abcd).item())
             labels = labels[labels != self.IGNORE_INDEX].view(-1, 1)[:, 0]
-            refs += [self.abcd_idx.index(label) if label != 4 else 4 for label in labels.tolist()]
+            refs += [
+                self.abcd_idx.index(label) if label != 4 else 4
+                for label in labels.tolist()
+            ]
             loss_mmlu += loss.item()
 
         results = {"mmlu_loss": loss_mmlu / len(data_loader)}

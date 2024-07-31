@@ -122,12 +122,21 @@ class NLPMMLULanguageModelingModelWrapper(NLPLanguageModelingModelWrapper):
             "other": self.acc_other_test,
         }
 
-        self.abcd_idx = [
-            tokenizer.encode(" A")[1],
-            tokenizer.encode(" B")[1],
-            tokenizer.encode(" C")[1],
-            tokenizer.encode(" D")[1],
-        ]
+        self.abcd_idx = (
+            [
+                tokenizer.encode(" A")[1],
+                tokenizer.encode(" B")[1],
+                tokenizer.encode(" C")[1],
+                tokenizer.encode(" D")[1],
+            ]
+            if "Llama" in type(self.tokenizer).__name__
+            else [
+                tokenizer.encode("A")[0],
+                tokenizer.encode("B")[0],
+                tokenizer.encode("C")[0],
+                tokenizer.encode("D")[0],
+            ]
+        )
 
     def forward(self, input_ids, attention_mask=None, labels=None):
         """
@@ -197,7 +206,10 @@ class NLPMMLULanguageModelingModelWrapper(NLPLanguageModelingModelWrapper):
 
         # Log subject accuracies
         for s in subjects_output:
-            self.acc_sub_val[s](torch.tensor(subjects_output[s]["preds"]).detach(), torch.tensor(subjects_output[s]["refs"]))
+            self.acc_sub_val[s](
+                torch.tensor(subjects_output[s]["preds"]).detach(),
+                torch.tensor(subjects_output[s]["refs"]),
+            )
 
         self.loss_val(loss.detach())
 
@@ -217,7 +229,6 @@ class NLPMMLULanguageModelingModelWrapper(NLPLanguageModelingModelWrapper):
         outputs = self.forward(input_ids, attention_mask, labels)
         loss = outputs["loss"]
         logits = outputs["logits"]
-
 
         # loss: (float) batch_size * seq_len
         # logits: (float) batch_size * seq_len * vocab_size
@@ -250,7 +261,10 @@ class NLPMMLULanguageModelingModelWrapper(NLPLanguageModelingModelWrapper):
 
         # Log subject accuracies
         for s in subjects_output:
-            self.acc_sub_test[s](torch.tensor(subjects_output[s]["preds"]).detach(), torch.tensor(subjects_output[s]["refs"]))
+            self.acc_sub_test[s](
+                torch.tensor(subjects_output[s]["preds"]).detach(),
+                torch.tensor(subjects_output[s]["refs"]),
+            )
 
         self.loss_test(loss.detach())
 
