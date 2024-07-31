@@ -99,7 +99,7 @@ def train(
         pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
 
         mmlu_val_getter, _ = setup_mmlu(
-            **mmlu_args, few_shot=(mmlu_mode == "fs"), max_token_len=4096
+            **mmlu_args, few_shot=(mmlu_mode == "fs")
         )
         mmlu_val = mmlu_val_getter()
 

@@ -88,7 +88,7 @@ def main():
             mmlu_args = {
                 "batch_size": args.batch_size * args.num_devices,
                 "tokenizer": tokenizer,
-                "max_token_len": args.max_token_len,
+                "max_token_len": 4096,
                 "num_workers": args.num_workers,
                 "load_from_cache_file": not args.disable_dataset_cache,
                 # "load_from_saved_path": args.dataset_saved_path,
@@ -308,7 +308,7 @@ def main():
             mmlu_args = {
                 "batch_size": args.batch_size * args.num_devices,
                 "tokenizer": tokenizer,
-                "max_token_len": args.max_token_len,
+                "max_token_len": 4096,
                 "num_workers": args.num_workers,
                 "load_from_cache_file": not args.disable_dataset_cache,
                 # "load_from_saved_path": args.dataset_saved_path,
