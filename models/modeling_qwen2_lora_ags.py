@@ -653,6 +653,7 @@ class Qwen2LoraAgsDecoderLayer(nn.Module):
     def __init__(self, config: Qwen2LoraAgsConfig, layer_idx: int):
         super().__init__()
         self.hidden_size = config.hidden_size
+        self.layer_idx = layer_idx
 
         if config.sliding_window and config._attn_implementation != "flash_attention_2":
             logger.warning_once(
