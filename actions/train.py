@@ -227,7 +227,8 @@ def train(
         )
 
         trainer = pl.Trainer(
-            **pl_trainer_args, limit_train_batches=0.05, enable_checkpointing=False
+            **pl_trainer_args,
+            limit_train_batches=0.05, limit_val_batches=1, enable_checkpointing=False
         )
         trainer.fit(pl_model, datamodule=data_module)
 
