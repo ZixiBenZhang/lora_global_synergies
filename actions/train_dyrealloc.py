@@ -117,10 +117,16 @@ def train_dynamic_reallocation(
     # MMLU validation callback
     mmlu_test_zs = mmlu_test_fs = None
     if mmlu_mode is not None:
-        mmlu_val_callback = MMLUValidationCallback(
+        # mmlu_val_callback = MMLUValidationCallback(
+        #     **mmlu_args, few_shot=(mmlu_mode == "fs")
+        # )
+        # pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
+
+        mmlu_val_getter, _ = setup_mmlu(
             **mmlu_args, few_shot=(mmlu_mode == "fs")
         )
-        pl_trainer_args["callbacks"].insert(0, mmlu_val_callback)
+        mmlu_val = mmlu_val_getter()
+        data_module.set_val_dataloader(mmlu_val)
 
         _, mmlu_test_getter = setup_mmlu(**mmlu_args, few_shot=False)
         mmlu_test_zs = mmlu_test_getter()
@@ -135,7 +141,7 @@ def train_dynamic_reallocation(
     alpha_pl_trainer_args["plugins"] = plugins
 
     wrapper_pl_model: pl.LightningModule = pl_model_wrapper.get_model_wrapper(
-        model_info, task
+        model_info, task if mmlu_mode is None else task + "-mmlu"
     )
 
     # Dynamic reallocation callback
@@ -145,7 +151,11 @@ def train_dynamic_reallocation(
     data_module: AgsDataModule
 
     if resume_training:
-        alpha_pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
+        alpha_pl_model = wrapper_pl_model.load_from_checkpoint(
+            load_name, model=model
+        ) if mmlu_mode is None else wrapper_pl_model.load_from_checkpoint(
+            load_name, model=model, mmlu_tokenizer=tokenizer
+        )
     else:
         alpha_pl_model = wrapper_pl_model(
             model,
@@ -156,6 +166,16 @@ def train_dynamic_reallocation(
             eta_min=eta_min,
             epochs=pl_trainer_args["max_epochs"],
             optimizer=optimizer,
+        ) if mmlu_mode is None else wrapper_pl_model(
+            model,
+            dataset_info=dataset_info,
+            learning_rate=learning_rate,
+            weight_decay=weight_decay,
+            lr_scheduler=lr_scheduler,
+            eta_min=eta_min,
+            epochs=pl_trainer_args["max_epochs"],
+            optimizer=optimizer,
+            mmlu_tokenizer=tokenizer,
         )
 
     dyrealloc_callback = get_dyrealloc_callback(model_info)
@@ -219,7 +239,11 @@ def train_dynamic_reallocation(
         # update_ags_ln_require_grad(model, require_grad=False)
         print_trainable_parameters(model)
 
-        pl_model = wrapper_pl_model.load_from_checkpoint(load_name, model=model)
+        pl_model = wrapper_pl_model.load_from_checkpoint(
+            load_name, model=model
+        ) if mmlu_mode is None else wrapper_pl_model.load_from_checkpoint(
+            load_name, model=model, mmlu_tokenizer=tokenizer
+        )
 
         logger.warning(f"Resuming hyperparameters: {pl_model.hparams}")
 
@@ -269,6 +293,16 @@ def train_dynamic_reallocation(
             eta_min=eta_min,  # for building lr scheduler
             epochs=pl_trainer_args["max_epochs"],
             optimizer=optimizer,
+        ) if mmlu_mode is None else wrapper_pl_model(
+            model,
+            dataset_info=dataset_info,
+            learning_rate=learning_rate,
+            weight_decay=weight_decay,
+            lr_scheduler=lr_scheduler,  # for building lr scheduler
+            eta_min=eta_min,  # for building lr scheduler
+            epochs=pl_trainer_args["max_epochs"],
+            optimizer=optimizer,
+            mmlu_tokenizer=tokenizer,
         )
 
         trainer = pl.Trainer(**pl_trainer_args)
@@ -276,11 +310,11 @@ def train_dynamic_reallocation(
 
     dynamic_reallocation_callback.save_reallocation_history()
 
-    # if mmlu_mode is not None:
-    #     trainer.test(pl_model, dataloaders=mmlu_test_zs)
-    #     trainer.test(pl_model, dataloaders=mmlu_test_fs)
-    # else:
-    trainer.test(pl_model, datamodule=data_module)
+    if mmlu_mode is not None:
+        trainer.test(pl_model, dataloaders=mmlu_test_zs)
+        trainer.test(pl_model, dataloaders=mmlu_test_fs)
+    else:
+        trainer.test(pl_model, datamodule=data_module)
 
 
 def get_dyrealloc_callback(model_info: AgsModelInfo):

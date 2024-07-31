@@ -85,14 +85,15 @@ def train(
         # csv_logger = pl.loggers.CSVLogger(save_dir=save_path, name="csv_logs")
         # wandb_logger = pl.loggers.WandbLogger(save_dir=save_path, name="wandb_logs")
         pl_trainer_args["callbacks"] = [
-            # best_checkpoint_callback,
-            # latest_checkpoint_callback,
+            best_checkpoint_callback,
+            latest_checkpoint_callback,
             lr_monitor_callback,
         ]
         pl_trainer_args["logger"] = [tb_logger]
 
     # MMLU validation callback
     mmlu_val = None
+    mmlu_test_zs = mmlu_test_fs = None
     if mmlu_mode is not None:
         # mmlu_val_callback = MMLUValidationCallback(
         #     **mmlu_args, few_shot=(mmlu_mode == "fs")
@@ -104,6 +105,11 @@ def train(
         )
         mmlu_val = mmlu_val_getter()
         data_module.set_val_dataloader(mmlu_val)
+
+        _, mmlu_test_getter = setup_mmlu(**mmlu_args, few_shot=False)
+        mmlu_test_zs = mmlu_test_getter()
+        _, mmlu_test_getter = setup_mmlu(**mmlu_args, few_shot=True)
+        mmlu_test_fs = mmlu_test_getter()
 
     # Validation metrics history, for hyperparameter search
     val_history = ValidationMetricsCallback()
@@ -228,10 +234,12 @@ def train(
 
         trainer = pl.Trainer(
             **pl_trainer_args,
-            limit_train_batches=0.05, limit_val_batches=1, enable_checkpointing=False
+            # limit_train_batches=0.05, limit_val_batches=1, enable_checkpointing=False
         )
         trainer.fit(pl_model, datamodule=data_module)
 
-    # mmlu_val_getter, _ = setup_mmlu(**mmlu_args, few_shot=True)
-    # mmlu_val = mmlu_val_getter()
-    trainer.test(pl_model, dataloaders=mmlu_val)
+    if mmlu_mode is not None:
+        trainer.test(pl_model, dataloaders=mmlu_test_zs)
+        trainer.test(pl_model, dataloaders=mmlu_test_fs)
+    else:
+        trainer.test(pl_model, datamodule=data_module)
