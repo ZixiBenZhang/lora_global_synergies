@@ -107,7 +107,7 @@ class MMLUValidationCallback(pl.Callback):
                 tokenizer.encode(" C")[1],
                 tokenizer.encode(" D")[1],
             ]
-            if "Llama" in type(self.tokenizer).__name__
+            if "Llama" in type(tokenizer).__name__
             else [
                 tokenizer.encode(" A")[0],
                 tokenizer.encode(" B")[0],
