@@ -62,12 +62,21 @@ class AgsDataModule(pl.LightningDataModule):
         self.testing_dataset = None
         self.prediction_dataset = None
 
+        self.training_dataloader = None
+        self.validation_dataloader = None
+        self.testing_dataloader = None
+        self.prediction_dataloader = None
+
         self.save_hyperparameters(
             ignore=[
                 "training_dataset",
                 "validation_dataset",
                 "testing_dataset",
                 "prediction_dataset",
+                "training_dataloader",
+                "validation_dataloader",
+                "testing_dataloader",
+                "prediction_dataloader",
             ]
         )
 
@@ -312,6 +321,8 @@ class AgsDataModule(pl.LightningDataModule):
             )
 
     def train_dataloader(self) -> DataLoader:
+        if self.training_dataloader is not None:
+            return self.training_dataloader
         if self.training_dataset is None:
             raise RuntimeError("The training dataset is not available.")
         data_collator = None
@@ -327,7 +338,12 @@ class AgsDataModule(pl.LightningDataModule):
             collate_fn=data_collator,
         )
 
+    def set_train_dataloader(self, dataloader: DataLoader):
+        self.training_dataloader = dataloader
+
     def val_dataloader(self) -> DataLoader:
+        if self.validation_dataloader is not None:
+            return self.validation_dataloader
         if self.validation_dataset is None:
             raise RuntimeError("The validation dataset is not available.")
         data_collator = None
@@ -343,7 +359,12 @@ class AgsDataModule(pl.LightningDataModule):
             collate_fn=data_collator,
         )
 
+    def set_val_dataloader(self, dataloader: DataLoader):
+        self.validation_dataloader = dataloader
+
     def test_dataloader(self) -> DataLoader:
+        if self.testing_dataloader is not None:
+            return self.testing_dataloader
         if self.testing_dataset is None:
             raise RuntimeError("The test dataset is not available.")
         data_collator = None
@@ -359,7 +380,12 @@ class AgsDataModule(pl.LightningDataModule):
             collate_fn=data_collator,
         )
 
+    def set_test_dataloader(self, dataloader: DataLoader):
+        self.testing_dataloader = dataloader
+
     def predict_dataloader(self) -> DataLoader:
+        if self.prediction_dataloader is not None:
+            return self.prediction_dataloader
         if self.prediction_dataset is None:
             raise RuntimeError("The prediction dataset is not available.")
         data_collator = None
@@ -374,3 +400,6 @@ class AgsDataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             collate_fn=data_collator,
         )
+
+    def set_predict_dataloader(self, dataloader: DataLoader):
+        self.prediction_dataloader = dataloader
