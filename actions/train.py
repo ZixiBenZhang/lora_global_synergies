@@ -85,8 +85,8 @@ def train(
         # csv_logger = pl.loggers.CSVLogger(save_dir=save_path, name="csv_logs")
         # wandb_logger = pl.loggers.WandbLogger(save_dir=save_path, name="wandb_logs")
         pl_trainer_args["callbacks"] = [
-            # best_checkpoint_callback,
-            # latest_checkpoint_callback,
+            best_checkpoint_callback,
+            latest_checkpoint_callback,
             lr_monitor_callback,
         ]
         pl_trainer_args["logger"] = [tb_logger]
@@ -234,13 +234,13 @@ def train(
 
         trainer = pl.Trainer(
             **pl_trainer_args,
-            limit_train_batches=0.05, limit_val_batches=1, enable_checkpointing=False
+            # limit_train_batches=0.05, limit_val_batches=1, enable_checkpointing=False
         )
         trainer.fit(pl_model, datamodule=data_module)
 
-    trainer.test(pl_model, dataloaders=data_module.val_dataloader())
-    # if mmlu_mode is not None:
-    #     trainer.test(pl_model, dataloaders=mmlu_test_zs)
-    #     trainer.test(pl_model, dataloaders=mmlu_test_fs)
-    # else:
-    #     trainer.test(pl_model, datamodule=data_module)
+    # trainer.test(pl_model, dataloaders=data_module.val_dataloader())
+    if mmlu_mode is not None:
+        trainer.test(pl_model, dataloaders=mmlu_test_zs)
+        trainer.test(pl_model, dataloaders=mmlu_test_fs)
+    else:
+        trainer.test(pl_model, datamodule=data_module)
