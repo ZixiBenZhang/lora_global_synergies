@@ -6,9 +6,9 @@ load_type = "hf"
 precision = "16"
 # training
 training_optimizer = "adamw"
-learning_rate = 1e-5
+learning_rate = 5e-5
 weight_decay = 0.01
-max_epochs = 1
+max_epochs = 2
 batch_size = 4
 log_every_n_steps = 20
 # torch lightning
