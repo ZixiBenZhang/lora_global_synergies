@@ -107,8 +107,8 @@ def train_dynamic_reallocation(
         )
         # Lora rank reallocation callback
         pl_trainer_args["callbacks"] = [
-            # best_checkpoint_callback,
-            # latest_checkpoint_callback,
+            best_checkpoint_callback,
+            latest_checkpoint_callback,
             lr_monitor_callback,
         ]
         pl_trainer_args["logger"] = [tb_logger]
@@ -302,7 +302,7 @@ def train_dynamic_reallocation(
 
         trainer = pl.Trainer(
             **pl_trainer_args,
-            limit_train_batches=0.05, limit_val_batches=1, limit_test_batches=4, enable_checkpointing=False
+            # limit_train_batches=0.05, limit_val_batches=1, limit_test_batches=4, enable_checkpointing=False
         )
         trainer.fit(pl_model, datamodule=data_module)
 
