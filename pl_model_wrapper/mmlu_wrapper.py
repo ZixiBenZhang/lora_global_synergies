@@ -124,10 +124,10 @@ class NLPMMLULanguageModelingModelWrapper(NLPLanguageModelingModelWrapper):
 
         self.abcd_idx = (
             [
-                mmlu_tokenizer.encode(" A")[1],
-                mmlu_tokenizer.encode(" B")[1],
-                mmlu_tokenizer.encode(" C")[1],
-                mmlu_tokenizer.encode(" D")[1],
+                mmlu_tokenizer.encode(" A")[-1],
+                mmlu_tokenizer.encode(" B")[-1],
+                mmlu_tokenizer.encode(" C")[-1],
+                mmlu_tokenizer.encode(" D")[-1],
             ]
             if "llama" in type(mmlu_tokenizer).__name__.lower()
             else [

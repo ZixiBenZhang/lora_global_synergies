@@ -102,10 +102,10 @@ class MMLUValidationCallback(pl.Callback):
 
         self.abcd_idx = (
             [
-                tokenizer.encode(" A")[1],
-                tokenizer.encode(" B")[1],
-                tokenizer.encode(" C")[1],
-                tokenizer.encode(" D")[1],
+                tokenizer.encode(" A")[-1],
+                tokenizer.encode(" B")[-1],
+                tokenizer.encode(" C")[-1],
+                tokenizer.encode(" D")[-1],
             ]
             if "Llama" in type(tokenizer).__name__
             else [
