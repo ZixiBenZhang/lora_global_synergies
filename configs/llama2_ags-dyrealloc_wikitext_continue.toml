@@ -2,7 +2,7 @@
 model = "llama_lora_ags"
 dataset = "wikitext-2-v1"
 load_name = "./ags_output/llama_lora_ags_causal_language_modeling_wikitext-2-v1_2024-08-01/dyrealloc_ckpts/last_chkpt-None-epoch=4-11-51.ckpt"
-load_type = "hf"
+load_type = "pl"
 backbone_model = "meta-llama/Llama-2-7b-hf"
 precision = "16"
 resume_training = true
