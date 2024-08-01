@@ -155,7 +155,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
         elif type(self.limit_test_batches) is float:
             # Percentage of validation set
             self.limit_test_batches: int = (
-                math.ceil(self.val_set_len * self.limit_test_batches) * 2
+                math.ceil(self.train_set_len * self.limit_test_batches)
             )
         else:
             raise TypeError(
@@ -296,6 +296,7 @@ class DynamicLoraReallocationCallback(pl.Callback):
                 f"\n\n>>>>> Running reallocation on epoch {pl_module.current_epoch}, step {batch_idx} <<<<<\n"
             )
 
+        t = time.time()
         # Turn on all lora modules
         with torch.no_grad():
             model = self.alpha_pl_module.model
@@ -697,6 +698,8 @@ class DynamicLoraReallocationCallback(pl.Callback):
                         lora.disable_adapters = [layer_id, proj_hash] not in turn_on
 
             self.save_reallocation_history()
+
+        logger.warning(f"dyrealloc time: {time.time()-t}")
 
         if torch.cuda.current_device() == 0:
             logger.warning(
