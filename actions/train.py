@@ -238,7 +238,7 @@ def train(
         )
         trainer.fit(pl_model, datamodule=data_module)
 
-    trainer.test(pl_model, dataloaders=data_module.validation_dataloader)
+    trainer.test(pl_model, dataloaders=data_module.val_dataloader())
     # if mmlu_mode is not None:
     #     trainer.test(pl_model, dataloaders=mmlu_test_zs)
     #     trainer.test(pl_model, dataloaders=mmlu_test_fs)
